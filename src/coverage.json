@@ -1,100 +1,47 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T02:53:02.089Z",
+  "generatedAt": "2026-02-05T22:48:52.649Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 7,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
+        "summary": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/AddMangaDialog.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/AddMangaDialog.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
+        "summary": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
+          "frontend/src/components/manga/CoverHoverPopup.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
+          "frontend/src/components/manga/CoverHoverPopup.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+        "summary": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/components/manga/MangaListControls.tsx"
+          "frontend/src/components/layout/AppLayout.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/components/manga/MangaListControls.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/hooks/useMangaListQueryState.ts",
-          "frontend/src/components/manga/PaginationControls.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/manga/MangaListPage.tsx"
+          "frontend/src/components/layout/AppLayout.tsx"
         ]
       }
     ]
@@ -104,10 +51,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
-    "frontend/src/components/manga/AddMangaDialog.tsx",
-    "frontend/src/components/manga/MangaListControls.tsx",
-    "frontend/src/components/manga/MangaListPage.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/components/manga/CoverHoverPopup.tsx",
+    "frontend/src/components/manga/MangaCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

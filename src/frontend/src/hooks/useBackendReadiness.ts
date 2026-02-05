@@ -1,4 +1,4 @@
-import { useBackendConnection } from './useBackendConnection';
+import { useBackendConnectionSingleton } from './useBackendConnectionSingleton';
 
 export type ReadinessStatus = 'idle' | 'connecting' | 'ready' | 'failed';
 
@@ -15,11 +15,11 @@ export interface BackendReadinessState {
 }
 
 /**
- * Hook that provides backend readiness state
- * Now delegates to the unified connection hook
+ * Hook that provides backend readiness state.
+ * Now delegates to the singleton connection hook to prevent multiple connection loops.
  */
 export function useBackendReadiness(): BackendReadinessState {
-  const connection = useBackendConnection();
+  const connection = useBackendConnectionSingleton();
 
   // Map connection status to readiness status
   let status: ReadinessStatus = 'idle';

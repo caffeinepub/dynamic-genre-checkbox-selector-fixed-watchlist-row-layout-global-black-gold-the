@@ -1,120 +1,90 @@
-/**
- * Classifies backend errors into categories for appropriate retry behavior and UI messaging
- */
-
-export type ErrorCategory = 
-  | 'connecting' // Initial connection/not ready
-  | 'transient' // Temporary network/connection issues
-  | 'authorization' // Auth/permission errors
-  | 'application' // Application-level errors
-  | 'timeout'; // Timeout errors
-
 export interface ClassifiedError {
-  category: ErrorCategory;
+  category: 'connecting' | 'transient' | 'authorization' | 'application' | 'timeout';
   message: string;
-  shouldRetry: boolean;
   userMessage: string;
+  shouldRetry: boolean;
 }
 
 /**
- * Classify an error based on its message and shape
+ * Classifies backend errors into categories for appropriate handling and user messaging.
+ * Enhanced to recognize stale/superseded attempts and prevent confusing error states.
  */
 export function classifyError(error: unknown): ClassifiedError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const lowerMessage = errorMessage.toLowerCase();
-  const errorName = error instanceof Error ? error.name : '';
 
-  // Timeout errors - should retry with caution
-  if (
-    errorName === 'TimeoutError' ||
-    lowerMessage.includes('timed out') ||
-    lowerMessage.includes('timeout') ||
-    lowerMessage.includes('exceeded maximum total time')
-  ) {
-    return {
-      category: 'timeout',
-      message: errorMessage,
-      shouldRetry: true,
-      userMessage: 'Connection timed out. Please retry.',
-    };
-  }
-
-  // Connecting/not ready states - do not label as failures
-  if (
-    lowerMessage.includes('actor not available') ||
-    lowerMessage.includes('not initialized') ||
-    lowerMessage.includes('still initializing') ||
-    lowerMessage.includes('connecting') ||
-    lowerMessage.includes('initializing')
-  ) {
+  // Superseded/stale attempts should not be surfaced as errors
+  if (lowerMessage.includes('superseded') || lowerMessage.includes('stale')) {
     return {
       category: 'connecting',
       message: errorMessage,
-      shouldRetry: true,
       userMessage: 'Connecting to backend...',
+      shouldRetry: false, // Don't retry - a newer attempt is already in progress
     };
   }
 
-  // Transient connection errors - includes IC-specific patterns
-  if (
-    lowerMessage.includes('network') ||
-    lowerMessage.includes('fetch failed') ||
-    lowerMessage.includes('connection') ||
-    lowerMessage.includes('unreachable') ||
-    lowerMessage.includes('econnrefused') ||
-    lowerMessage.includes('enotfound') ||
-    lowerMessage.includes('backend not ready') ||
-    lowerMessage.includes('canister') ||
-    lowerMessage.includes('replica') ||
-    lowerMessage.includes('request rejected') ||
-    lowerMessage.includes('transport') ||
-    lowerMessage.includes('agent') ||
-    lowerMessage.includes('unavailable')
-  ) {
+  // Timeout errors
+  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
     return {
-      category: 'transient',
+      category: 'timeout',
       message: errorMessage,
+      userMessage: 'Connection timed out. Please check your network and try again.',
       shouldRetry: true,
-      userMessage: 'Connection issue. Retrying...',
     };
   }
 
-  // Authorization errors (should not retry automatically)
+  // Authorization errors
   if (
     lowerMessage.includes('unauthorized') ||
-    lowerMessage.includes('permission denied') ||
-    lowerMessage.includes('access denied') ||
     lowerMessage.includes('forbidden') ||
-    lowerMessage.includes('not authenticated') ||
-    lowerMessage.includes('trap')
+    lowerMessage.includes('access denied') ||
+    lowerMessage.includes('permission')
   ) {
     return {
       category: 'authorization',
       message: errorMessage,
+      userMessage: 'You do not have permission to perform this action. Please log in.',
       shouldRetry: false,
-      userMessage: 'Authorization required. Please log in.',
     };
   }
 
-  // Application-level errors (should not retry)
+  // IC-specific transient errors
+  if (
+    lowerMessage.includes('canister') ||
+    lowerMessage.includes('replica') ||
+    lowerMessage.includes('agent') ||
+    lowerMessage.includes('boundary') ||
+    lowerMessage.includes('network') ||
+    lowerMessage.includes('connection') ||
+    lowerMessage.includes('fetch')
+  ) {
+    return {
+      category: 'transient',
+      message: errorMessage,
+      userMessage: 'Network issue detected. Retrying connection...',
+      shouldRetry: true,
+    };
+  }
+
+  // Connecting state
+  if (lowerMessage.includes('connecting') || lowerMessage.includes('not ready')) {
+    return {
+      category: 'connecting',
+      message: errorMessage,
+      userMessage: 'Connecting to backend...',
+      shouldRetry: true,
+    };
+  }
+
+  // Application errors (default)
   return {
     category: 'application',
     message: errorMessage,
+    userMessage: errorMessage,
     shouldRetry: false,
-    userMessage: errorMessage || 'An error occurred. Please try again.',
   };
 }
 
-/**
- * Check if an error is retryable
- */
 export function isRetryableError(error: unknown): boolean {
   return classifyError(error).shouldRetry;
-}
-
-/**
- * Get user-friendly message for an error
- */
-export function getUserErrorMessage(error: unknown): string {
-  return classifyError(error).userMessage;
 }

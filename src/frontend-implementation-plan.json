@@ -1,147 +1,60 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Manga dialog scroll fix + list search/filter/sort",
+  "title": "Arrow overlap adjustments and collapsible sticky header",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Pin Add Manga dialog header/footer and constrain only the body section to scroll with a 400px max height.",
+      "summary": "Shift the MangaCard green cycle-title arrow upward by 25px and allow it to overlap the rating area via layering without changing rating layout.",
       "acceptanceCriteria": [
-        "When the Add Manga dialog content exceeds the available space, the scroll happens inside the dialog body area (middle section) and not on the page behind the modal.",
-        "The dialog header (title/alerts) stays visible at the top while scrolling the form.",
-        "The dialog footer (Cancel/Add Manga buttons) stays visible at the bottom while scrolling the form.",
-        "The scrollable middle section of the dialog never exceeds 400px height."
+        "In the manga list row UI (MangaCard), the green cycle-title arrow is vertically shifted upward by exactly 25px relative to its current position.",
+        "The arrow is allowed to overlap on top of the rating area (star button and/or numeric rating) via layering (e.g., z-index), rather than spacing/padding changes.",
+        "The rating area does not change its layout to avoid the arrow (no conditional margins/padding/gaps introduced to move rating away).",
+        "Clicking the arrow still cycles titles reliably, and the rating star/button remains usable (no unintended click-blocking beyond the intentional overlap)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Update the dialog layout to keep a pinned top section (title + any connection alerts) and pinned footer, while making only the middle content scrollable; set the scrollable body max height to 400px and ensure the dialog container uses a flex + min-h-0/overflow-hidden pattern so background/page scrolling does not occur. Use existing shadcn-ui Dialog, DialogContent, DialogHeader, DialogFooter, and ScrollArea components to implement the layout (verify the component's usage instructions before implementing)."
+          "description": "Adjust the cycle-title button positioning to use transform-based vertical shift (-25px) and layering (e.g., z-index/positioning) so it can visually overlap into the adjacent rating area without changing the rating container spacing/layout; ensure pointer-events/click behavior still allows both cycling titles and using the rating controls."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update the Add Manga dialog layout regression checklist to reference 400px max-height for the scrollable body.",
+      "summary": "Apply the same 25px upward shift and overlap behavior for the title-cycle arrow in the CoverHoverPopup title area without reflowing surrounding content.",
       "acceptanceCriteria": [
-        "The checklist in frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md refers to a 400px max-height for the scrollable body wherever it previously referenced 600px."
+        "In CoverHoverPopup, the green ChevronRight title-cycle button is shifted upward by 25px from its current placement.",
+        "The button may overlap adjacent content if needed (layered), and the title text container does not dynamically resize/reposition to avoid it.",
+        "Cycling titles in the popup still works and does not close the popup unintentionally."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
+          "path": "frontend/src/components/manga/CoverHoverPopup.tsx",
           "operation": "modify",
-          "description": "Replace all references to a 600px max-height constraint for the scrollable body with 400px, including the test scenarios, expected behavior, and failure indicators."
+          "description": "Update the popup title-cycle ChevronRight button to be vertically shifted upward by 25px using transform (no layout reflow) and layered above adjacent content (z-index); remove/avoid title-area padding that reserves space for the button so overlap is allowed; preserve stopPropagation so cycling does not trigger drag/close behaviors."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Add Title/Synopsis/Notes search inputs and apply combined (AND) case-insensitive substring filtering to the manga list.",
+      "summary": "Make the sticky top header collapsible with an accessible toggle that minimizes branding and auth controls when collapsed and restores them when expanded.",
       "acceptanceCriteria": [
-        "The manga list page displays three labeled search inputs: Title, Synopsis, Notes.",
-        "Typing into any search input filters the displayed manga entries using case-insensitive substring matching on the corresponding field.",
-        "When multiple search inputs are filled, entries must match all provided search inputs to remain visible (logical AND).",
-        "All user-facing labels/placeholders for the new controls are in English."
+        "A visible, clickable header toggle control exists in the header area to collapse/expand it.",
+        "When collapsed, the header reduces its vertical footprint and hides (or minimizes) the MangaList branding area and the login/logout button; when expanded, they appear as they do today.",
+        "The header remains sticky at the top in both states.",
+        "The toggle control has accessible text (e.g., aria-label) in English indicating the action (Collapse header / Expand header)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Add three labeled search inputs (Title, Synopsis, Notes) and incorporate them into the displayed dataset using case-insensitive substring matching with logical AND across the three fields. Compose the UI using existing shadcn-ui Input/Label components (verify the component's usage instructions before implementing)."
+          "description": "Add local UI state to collapse/expand the existing sticky header, including a clearly visible toggle control within the header; when collapsed, reduce header padding/height and hide or minimize the logo/title and LoginLogoutButton while keeping the toggle accessible; ensure the header remains sticky in both states and the toggle uses English aria-label text (\"Collapse header\" / \"Expand header\")."
         },
         {
-          "path": "frontend/src/components/manga/MangaListControls.tsx",
-          "operation": "create",
-          "description": "Create a reusable controls component for the manga list page that renders the Title/Synopsis/Notes search inputs and exposes controlled values/onChange handlers to the parent page. Use existing shadcn-ui form primitives (Input/Label/Button as needed) (verify the component's usage instructions before implementing)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Add a Genre filter button that opens a dropdown with genre checkboxes and filter the list by selected genres.",
-      "acceptanceCriteria": [
-        "A Genre filter button is visible on the manga list page and opens a dropdown/popup containing genre checkbox options.",
-        "Selecting one or more genres filters the displayed manga entries to those that contain at least one of the selected genres.",
-        "Clearing all selected genres removes the genre filter (entries are no longer filtered by genre)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add a Genre filter control implemented as a button that opens a dropdown/popup with checkbox options sourced from the library genre list, and expose selected genre state to the parent. Compose using existing shadcn-ui Button + checkbox and an existing dropdown/popup primitive (e.g., Popover or DropdownMenu) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Apply selected-genre filtering to the displayed list: if one or more genres are selected, keep entries that contain at least one selected genre; if none are selected, do not filter by genre."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add a bookmarked-only filter toggle and filter the list to entries with bookmarks.length > 0 when enabled.",
-      "acceptanceCriteria": [
-        "A bookmark filter control is present on the manga list page (English text).",
-        "When enabled, only manga entries with bookmarks.length > 0 are shown.",
-        "When disabled, entries are not filtered by bookmarks."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaListControls.tsx",
-          "operation": "modify",
-          "description": "Add a bookmarked-only toggle control (English label) to the controls area and expose it as controlled state. Compose with existing shadcn-ui components (e.g., Checkbox/Switch + Label) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Apply bookmarked-only filtering when enabled by keeping only entries where bookmarks.length > 0; when disabled, do not apply this filter."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Add sorting controls to sort the manga list by Title or Rating with default Title (A–Z).",
-      "acceptanceCriteria": [
-        "A sort control is visible on the manga list page with options at minimum: Title and Rating.",
-        "Default sort on initial page load is Title (A–Z).",
-        "Selecting Title sorts the displayed entries in ascending alphabetical order by title."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaListControls.tsx",
-          "operation": "modify",
-          "description": "Add a sort control with at least two options (Title, Rating) and default it to Title. Compose using existing shadcn-ui select/menu components (e.g., Select) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Implement client-side sorting over the currently filtered dataset, defaulting to Title ascending (A–Z). Ensure the displayed results update immediately when changing sort selection."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Apply search/filters/sort across the full manga collection with pagination reflecting the filtered/sorted dataset.",
-      "acceptanceCriteria": [
-        "After applying any search/filter settings, the total pages and current page contents reflect the filtered dataset.",
-        "Changing pages preserves the active search/filter/sort settings and continues to show results consistent with those settings.",
-        "If the filtered dataset reduces the number of pages below the current page, the UI does not crash and shows a valid page of results."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Switch the list data source to the full collection (useGetAllMangaEntries) and implement client-side pagination over the filtered+sorted dataset so page counts and page contents reflect the same transformed dataset; clamp/reset the current page when filters reduce total pages to prevent invalid page rendering."
-        },
-        {
-          "path": "frontend/src/hooks/useMangaListQueryState.ts",
-          "operation": "create",
-          "description": "Add a small hook to manage manga list control state (search text fields, selected genres, bookmarked-only toggle, sort selection) and provide helpers to reset/clamp page state when those controls change, keeping state preservation consistent across pagination."
-        },
-        {
-          "path": "frontend/src/components/manga/PaginationControls.tsx",
-          "operation": "modify",
-          "description": "Ensure the pagination control integration supports updated totalPages driven by the filtered/sorted dataset and that page navigation remains disabled when the actor is not ready (no UI library changes; only adjust props usage/handling as needed)."
+          "description": "If needed for smooth collapsing/minimizing behavior, add minimal global utility styles (e.g., for header collapse transitions) using existing Tailwind layer conventions; do not modify any files under frontend/src/components/ui."
         }
       ]
     }

@@ -89,4 +89,157 @@
     .fill-gold {
         fill: oklch(var(--gold));
     }
+
+    .rainbow-glow {
+        filter: drop-shadow(0 0 2px oklch(0.7 0.3 0))
+                drop-shadow(0 0 4px oklch(0.7 0.3 60))
+                drop-shadow(0 0 6px oklch(0.7 0.3 120))
+                drop-shadow(0 0 8px oklch(0.7 0.3 180))
+                drop-shadow(0 0 10px oklch(0.7 0.3 240))
+                drop-shadow(0 0 12px oklch(0.7 0.3 300));
+        animation: rainbow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes rainbow-pulse {
+        0%, 100% {
+            filter: drop-shadow(0 0 2px oklch(0.7 0.3 0))
+                    drop-shadow(0 0 4px oklch(0.7 0.3 60))
+                    drop-shadow(0 0 6px oklch(0.7 0.3 120))
+                    drop-shadow(0 0 8px oklch(0.7 0.3 180))
+                    drop-shadow(0 0 10px oklch(0.7 0.3 240))
+                    drop-shadow(0 0 12px oklch(0.7 0.3 300));
+        }
+        50% {
+            filter: drop-shadow(0 0 4px oklch(0.7 0.3 0))
+                    drop-shadow(0 0 6px oklch(0.7 0.3 60))
+                    drop-shadow(0 0 8px oklch(0.7 0.3 120))
+                    drop-shadow(0 0 10px oklch(0.7 0.3 180))
+                    drop-shadow(0 0 12px oklch(0.7 0.3 240))
+                    drop-shadow(0 0 14px oklch(0.7 0.3 300));
+        }
+    }
+
+    .rainbow-text {
+        background: linear-gradient(
+            90deg,
+            oklch(0.7 0.3 0),
+            oklch(0.7 0.3 60),
+            oklch(0.7 0.3 120),
+            oklch(0.7 0.3 180),
+            oklch(0.7 0.3 240),
+            oklch(0.7 0.3 300),
+            oklch(0.7 0.3 0)
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: rainbow-text-shift 3s linear infinite;
+    }
+
+    @keyframes rainbow-text-shift {
+        0% {
+            background-position: 0% center;
+        }
+        100% {
+            background-position: 200% center;
+        }
+    }
+
+    .notes-preview-overlay {
+        pointer-events: auto;
+    }
+
+    .floating-controls-panel {
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Force visible scrollbar - general utility */
+    .force-scrollbar {
+        overflow-y: scroll;
+        scrollbar-gutter: stable;
+    }
+
+    .force-scrollbar::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .force-scrollbar::-webkit-scrollbar-track {
+        background: oklch(0.2 0.01 45);
+        border-radius: 6px;
+    }
+
+    .force-scrollbar::-webkit-scrollbar-thumb {
+        background: oklch(var(--gold) / 0.5);
+        border-radius: 6px;
+    }
+
+    .force-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: oklch(var(--gold) / 0.7);
+    }
+
+    /* Add Manga Dialog scroll body - deterministic, regression-resistant styling */
+    .add-manga-dialog-scroll-body {
+        overflow-y: scroll !important;
+        overscroll-behavior: contain !important;
+        scrollbar-gutter: stable;
+    }
+
+    .add-manga-dialog-scroll-body::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .add-manga-dialog-scroll-body::-webkit-scrollbar-track {
+        background: oklch(0.2 0.01 45);
+        border-radius: 6px;
+    }
+
+    .add-manga-dialog-scroll-body::-webkit-scrollbar-thumb {
+        background: oklch(var(--gold) / 0.5);
+        border-radius: 6px;
+    }
+
+    .add-manga-dialog-scroll-body::-webkit-scrollbar-thumb:hover {
+        background: oklch(var(--gold) / 0.7);
+    }
+
+    /* Firefox scrollbar styling for Add Manga Dialog */
+    .add-manga-dialog-scroll-body {
+        scrollbar-width: auto;
+        scrollbar-color: oklch(var(--gold) / 0.5) oklch(0.2 0.01 45);
+    }
+
+    /* Hidden scrollbar utility for popup synopsis */
+    .hidden-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .hidden-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Vertical auto-scroll animation - scrolls up from bottom, showing top line first */
+    @keyframes scroll-vertical-slow {
+        0% {
+            transform: translateY(100%);
+        }
+        100% {
+            transform: translateY(-100%);
+        }
+    }
+
+    .animate-scroll-vertical-slow {
+        animation: scroll-vertical-slow 20s linear infinite;
+    }
+
+    .animate-scroll-vertical-slow.paused {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-scroll-vertical-slow {
+            animation: none;
+        }
+    }
 }

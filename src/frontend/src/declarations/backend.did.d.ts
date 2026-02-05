@@ -12,6 +12,7 @@ import type { Principal } from '@icp-sdk/core/principal';
 
 export type ExternalBlob = Uint8Array;
 export interface MangaEntry {
+  'stableId' : bigint,
   'title' : string,
   'availableChapters' : bigint,
   'chaptersRead' : bigint,
@@ -23,11 +24,22 @@ export interface MangaEntry {
   'coverImages' : Array<ExternalBlob>,
   'rating' : number,
   'alternateTitles' : Array<string>,
+  'isBookmarked' : boolean,
 }
-export interface MangaPage {
-  'pageNumber' : bigint,
-  'entries' : Array<MangaEntry>,
-  'totalPages' : bigint,
+export interface UpdateFields {
+  'stableId' : bigint,
+  'title' : [] | [string],
+  'availableChapters' : [] | [bigint],
+  'chaptersRead' : [] | [bigint],
+  'completed' : [] | [boolean],
+  'bookmarks' : [] | [Array<bigint>],
+  'synopsis' : [] | [string],
+  'genres' : [] | [Array<string>],
+  'notes' : [] | [string],
+  'coverImages' : [] | [Array<ExternalBlob>],
+  'rating' : [] | [number],
+  'alternateTitles' : [] | [Array<string>],
+  'isBookmarked' : [] | [boolean],
 }
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
@@ -61,19 +73,23 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addEntry' : ActorMethod<[string, MangaEntry], undefined>,
+  'addEntry' : ActorMethod<[MangaEntry], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'deleteEntry' : ActorMethod<[string], undefined>,
+  'deleteEntry' : ActorMethod<[bigint], undefined>,
   'getAllEntries' : ActorMethod<[], Array<MangaEntry>>,
+  'getAllEntriesWithStableIds' : ActorMethod<[], Array<[bigint, MangaEntry]>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getEntry' : ActorMethod<[string], MangaEntry>,
-  'getMangaPage' : ActorMethod<[bigint], MangaPage>,
+  'getEntry' : ActorMethod<[bigint], MangaEntry>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isReady' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'updateEntry' : ActorMethod<[string, MangaEntry], undefined>,
+  'toggleBookmark' : ActorMethod<[bigint], boolean>,
+  'updateCompletionStatus' : ActorMethod<[bigint, boolean], boolean>,
+  'updateEntry' : ActorMethod<[bigint, UpdateFields], MangaEntry>,
+  'updateNotes' : ActorMethod<[bigint, string], string>,
+  'updateRating' : ActorMethod<[bigint, number], number>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

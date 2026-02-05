@@ -15,6 +15,7 @@ export class ExternalBlob {
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
 export interface MangaEntry {
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -26,11 +27,22 @@ export interface MangaEntry {
     coverImages: Array<ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }
-export interface MangaPage {
-    pageNumber: bigint;
-    entries: Array<MangaEntry>;
-    totalPages: bigint;
+export interface UpdateFields {
+    stableId: bigint;
+    title?: string;
+    availableChapters?: bigint;
+    chaptersRead?: bigint;
+    completed?: boolean;
+    bookmarks?: Array<bigint>;
+    synopsis?: string;
+    genres?: Array<string>;
+    notes?: string;
+    coverImages?: Array<ExternalBlob>;
+    rating?: number;
+    alternateTitles?: Array<string>;
+    isBookmarked?: boolean;
 }
 export interface UserProfile {
     name: string;
@@ -41,17 +53,21 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addEntry(id: string, manga: MangaEntry): Promise<void>;
+    addEntry(manga: MangaEntry): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    deleteEntry(id: string): Promise<void>;
+    deleteEntry(stableId: bigint): Promise<void>;
     getAllEntries(): Promise<Array<MangaEntry>>;
+    getAllEntriesWithStableIds(): Promise<Array<[bigint, MangaEntry]>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getEntry(id: string): Promise<MangaEntry>;
-    getMangaPage(pageNumber: bigint): Promise<MangaPage>;
+    getEntry(stableId: bigint): Promise<MangaEntry>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    updateEntry(id: string, manga: MangaEntry): Promise<void>;
+    toggleBookmark(stableId: bigint): Promise<boolean>;
+    updateCompletionStatus(stableId: bigint, completed: boolean): Promise<boolean>;
+    updateEntry(stableId: bigint, updates: UpdateFields): Promise<MangaEntry>;
+    updateNotes(stableId: bigint, newNotes: string): Promise<string>;
+    updateRating(stableId: bigint, rating: number): Promise<number>;
 }

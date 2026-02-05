@@ -1,137 +1,32 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
-  "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "IF-1",
-      "title": "Internet Identity authentication (login/logout)",
-      "synonyms": [
-        "II auth",
-        "Internet Identity login"
-      ],
-      "description": "Frontend integrates Internet Identity for user sign-in/sign-out and actor initialization for authenticated calls.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-2",
-      "title": "User profile setup and current-user profile retrieval",
-      "synonyms": [
-        "profile setup",
-        "user profile"
-      ],
-      "description": "UI dialog for initial profile setup and hooks/utilities to fetch/use the current user's profile.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-3",
-      "title": "Manga library CRUD UI (create + list)",
-      "synonyms": [
-        "manga list",
-        "add manga"
-      ],
-      "description": "Frontend pages/components to add manga entries and display a list of manga cards.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-4",
-      "title": "Cover image upload + storage integration",
-      "synonyms": [
-        "cover images",
-        "blob upload"
-      ],
-      "description": "Cover image field and storage client wiring to upload/store cover images via blob-storage canister/module.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-5",
-      "title": "Pagination controls for manga listing",
-      "synonyms": [
-        "paging"
-      ],
-      "description": "Pagination controls and hooks for fetching manga pages and navigating results.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-6",
-      "title": "Motoko backend authorization module and access control",
-      "synonyms": [
-        "authorization mixin",
-        "access control"
-      ],
-      "description": "Backend includes reusable authorization/access-control modules used to gate operations.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "IF-7",
-      "title": "Build/deploy template for IC (backend + frontend)",
-      "synonyms": [
-        "build template",
-        "deploy scripts"
-      ],
-      "description": "Repository includes build-template assets (Dockerfile, scripts, canister.yaml, configs) for building and deploying the full-stack app.",
-      "reqIds": [],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-add-manga-popup-layout-so-the-dialog-header-and-footer-remain-pinned-while-only-the-middle-body-section-scrolls-and-constrain-the-scrollable-middle-section-to-a-maximum-height-of-400px",
-      "title": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
+      "id": "feature-move-the-green-cycle-title-arrow-control-up-by-25px-and-allow-it-to-visually-overlap-the-rating-area-without-pushing-or-dynamically-repositioning-the-rating-value-or-rating-controls-away-from-the-arrow",
+      "title": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-add-manga-dialog-layout-regression-checklist-to-reflect-the-new-400px-max-height-constraint-for-the-scrollable-body-replacing-the-previous-600px-references",
-      "title": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
+      "id": "feature-ensure-the-same-25px-upward-shift-and-overlap-behavior-for-the-green-title-cycle-arrow-in-the-cover-hover-popup-title-area-without-reflowing-surrounding-text-content-to-avoid-it",
+      "title": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-three-independent-search-inputs-to-the-manga-list-page-for-filtering-entries-by-title-synopsis-and-notes-case-insensitive-substring-matching-and-apply-the-combined-search-filters-to-the-displayed-manga-list",
-      "title": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+      "id": "feature-make-the-top-header-containing-the-mangalist-text-logo-area-and-the-login-logout-button-collapsible-with-a-clear-toggle-control-that-can-collapse-and-expand-the-header-while-keeping-the-page-content-usable",
+      "title": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-genre-filter-control-on-the-manga-list-page-as-a-button-that-opens-a-dropdown-containing-checkbox-options-for-available-genres-and-filter-the-displayed-list-to-entries-that-match-the-selected-genres",
-      "title": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-bookmark-filter-toggle-on-the-manga-list-page-that-when-enabled-shows-only-entries-that-have-at-least-one-bookmark-value-in-their-bookmarks-array",
-      "title": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-sorting-controls-on-the-manga-list-page-to-sort-by-title-or-rating-with-the-default-sorting-set-to-title-in-alphabetical-ascending-order",
-      "title": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-search-filtering-genres-bookmarked-only-and-sorting-are-applied-to-the-full-manga-collection-consistently-with-pagination-so-pagination-counts-and-displayed-results-reflect-the-filtered-sorted-dataset-rather-than-only-the-currently-fetched-backend-page",
-      "title": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
-      "reqIds": [
-        "REQ-7"
       ],
       "version": 1
     }
@@ -139,52 +34,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix Add Manga popup layout: middle/body section should scroll with header/footer pinned; constrain middle section to max-height 400px.",
+      "summary": "Adjust the green title-cycle arrow: move it up 25px and allow it to overlap the ratings without dynamically moving the rating away",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add manga list/watchlist search controls: three search bars (title, synopsis, notes).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Add manga list/watchlist filtering + sorting: genre filter button with dropdown checkboxes, bookmark filter, and sorting by title or rating (default: title alphabetical ascending).",
+      "summary": "Make the header containing the 'mangalist' text and the login/logout button collapsible",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "architectural_notes": [
-    "Backend is implemented in Motoko with modular authorization (MixinAuthorization/access-control) and blob storage (Mixin/Storage).",
-    "Frontend is a React + Vite + Tailwind app using shadcn/ui component library.",
-    "Frontend uses generated canister bindings (backend.did) and an actor hook pattern (useActor/useInternetIdentity) for authenticated calls.",
-    "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts.",
-    "Authorization and blob-storage Motoko modules updated/aligned to component versions v4.0.0 (internal refactors/updates across backend main + mixins).",
-    "Build-template refreshed (Dockerfile/scripts/workspace configs) and frontend template dependencies/configs updated (React+Vite+Tailwind+shadcn/ui template sync).",
-    "Frontend actor initialization now includes retry logic via a dedicated hook (useActorWithRetry) to improve resilience of authenticated calls.",
-    "Build-template React frontend was synced/refreshed to the latest template baseline, including expanded shadcn/ui component set and updated tooling/config (Vite/Tailwind/TS).",
-    "Build-template now includes custom ESLint rules to enforce Internet Identity provider usage and prevent BigInt usage in query keys.",
-    "Frontend includes backend readiness + error classification utilities (useBackendReadiness, backendErrorClassification, retryBackoff) to improve resilience and user experience when the backend/actor is not yet ready."
-  ],
-  "known_issues": [],
-  "isFixRequest": true,
-  "generatedImages": [
-    {
-      "filename": "frontend/public/assets/generated/app-logo.dim_512x512.png",
-      "description": "Generated app logo placeholder image.",
-      "targetWidth": 512,
-      "targetHeight": 512
-    },
-    {
-      "filename": "frontend/public/assets/generated/cover-placeholder.dim_600x900.png",
-      "description": "Generated cover placeholder image.",
-      "targetWidth": 600,
-      "targetHeight": 900
-    }
-  ],
-  "projectName": "Fix Add Manga dialog scrolling and add list search/filter/sort controls",
+  "projectName": "Adjust title-cycle arrow overlap and add collapsible app header",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,41 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useAddMangaEntry } from '../../hooks/useMangaMutations';
+import { useUpdateMangaEntry } from '../../hooks/useMangaMutations';
 import { useBackendConnectionSingleton } from '../../hooks/useBackendConnectionSingleton';
-import { MangaEntry, ExternalBlob } from '../../backend';
+import { MangaEntry, ExternalBlob, UpdateFields } from '../../backend';
 import { CoverImagesField } from './CoverImagesField';
 import { GenreCheckboxGrid } from './GenreCheckboxGrid';
 import { useLibraryGenres } from '../../hooks/useLibraryGenres';
 import { Loader2, AlertCircle, Plus } from 'lucide-react';
 import { BACKEND_NOT_READY_MESSAGE } from '../../utils/backendNotReadyMessage';
 
-interface AddMangaDialogProps {
+interface EditMangaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  manga: MangaEntry;
   currentPage: number;
 }
 
-export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDialogProps) {
-  const [title, setTitle] = useState('');
-  const [alternateTitle1, setAlternateTitle1] = useState('');
-  const [alternateTitle2, setAlternateTitle2] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [coverImages, setCoverImages] = useState<ExternalBlob[]>([]);
-  const [synopsis, setSynopsis] = useState('');
-  const [chaptersRead, setChaptersRead] = useState('0');
-  const [availableChapters, setAvailableChapters] = useState('0');
-  const [status, setStatus] = useState<'incomplete' | 'complete'>('incomplete');
-  const [rating, setRating] = useState('0');
+export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: EditMangaDialogProps) {
+  const [title, setTitle] = useState(manga.title);
+  const [alternateTitles, setAlternateTitles] = useState(manga.alternateTitles.join(', '));
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(manga.genres);
+  const [coverImages, setCoverImages] = useState<ExternalBlob[]>(manga.coverImages);
+  const [synopsis, setSynopsis] = useState(manga.synopsis);
+  const [chaptersRead, setChaptersRead] = useState(manga.chaptersRead.toString());
+  const [availableChapters, setAvailableChapters] = useState(manga.availableChapters.toString());
   const [newGenreInput, setNewGenreInput] = useState('');
   const [customGenres, setCustomGenres] = useState<string[]>([]);
 
   const { isReady } = useBackendConnectionSingleton();
-  const addMutation = useAddMangaEntry(currentPage);
+  const updateMutation = useUpdateMangaEntry(currentPage);
   const { genres: libraryGenres } = useLibraryGenres();
 
   // Union of library genres, selected genres, and custom genres
@@ -43,20 +40,20 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
     new Set([...libraryGenres, ...selectedGenres, ...customGenres])
   ).sort((a, b) => a.localeCompare(b));
 
-  const resetForm = () => {
-    setTitle('');
-    setAlternateTitle1('');
-    setAlternateTitle2('');
-    setSelectedGenres([]);
-    setCoverImages([]);
-    setSynopsis('');
-    setChaptersRead('0');
-    setAvailableChapters('0');
-    setStatus('incomplete');
-    setRating('0');
-    setNewGenreInput('');
-    setCustomGenres([]);
-  };
+  // Reset form when manga changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setTitle(manga.title);
+      setAlternateTitles(manga.alternateTitles.join(', '));
+      setSelectedGenres(manga.genres);
+      setCoverImages(manga.coverImages);
+      setSynopsis(manga.synopsis);
+      setChaptersRead(manga.chaptersRead.toString());
+      setAvailableChapters(manga.availableChapters.toString());
+      setNewGenreInput('');
+      setCustomGenres([]);
+    }
+  }, [open, manga]);
 
   const handleAddGenre = () => {
     const trimmed = newGenreInput.trim();
@@ -81,66 +78,85 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
       return;
     }
 
-    const stableId = BigInt(Date.now());
-    
-    // Build alternate titles array from the two inputs
-    const alternateTitlesArray: string[] = [];
-    const trimmed1 = alternateTitle1.trim();
-    const trimmed2 = alternateTitle2.trim();
-    if (trimmed1) alternateTitlesArray.push(trimmed1);
-    if (trimmed2) alternateTitlesArray.push(trimmed2);
+    const alternateTitlesArray = alternateTitles
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
 
-    // Parse and validate rating
-    const ratingValue = parseFloat(rating);
-    const validRating = !isNaN(ratingValue) ? Math.max(0, Math.min(10, ratingValue)) : 0;
-
-    const newManga: MangaEntry = {
-      stableId,
-      title,
-      alternateTitles: alternateTitlesArray,
-      genres: selectedGenres,
-      coverImages,
-      synopsis,
-      chaptersRead: BigInt(chaptersRead),
-      availableChapters: BigInt(availableChapters),
-      notes: '',
-      bookmarks: [],
-      rating: validRating,
-      completed: status === 'complete',
-      isBookmarked: false,
+    // Compute delta: only include fields that changed
+    const updates: UpdateFields = {
+      stableId: manga.stableId,
     };
 
+    if (title !== manga.title) {
+      updates.title = title;
+    }
+
+    const altTitlesChanged = 
+      alternateTitlesArray.length !== manga.alternateTitles.length ||
+      alternateTitlesArray.some((t, i) => t !== manga.alternateTitles[i]);
+    if (altTitlesChanged) {
+      updates.alternateTitles = alternateTitlesArray;
+    }
+
+    const genresChanged = 
+      selectedGenres.length !== manga.genres.length ||
+      selectedGenres.some((g, i) => g !== manga.genres[i]);
+    if (genresChanged) {
+      updates.genres = selectedGenres;
+    }
+
+    // Only send coverImages if they changed
+    const coversChanged = 
+      coverImages.length !== manga.coverImages.length ||
+      coverImages.some((c, i) => c.getDirectURL() !== manga.coverImages[i].getDirectURL());
+    if (coversChanged) {
+      updates.coverImages = coverImages;
+    }
+
+    if (synopsis !== manga.synopsis) {
+      updates.synopsis = synopsis;
+    }
+
+    const newChaptersRead = BigInt(chaptersRead);
+    if (newChaptersRead !== manga.chaptersRead) {
+      updates.chaptersRead = newChaptersRead;
+    }
+
+    const newAvailableChapters = BigInt(availableChapters);
+    if (newAvailableChapters !== manga.availableChapters) {
+      updates.availableChapters = newAvailableChapters;
+    }
+
     try {
-      await addMutation.mutateAsync(newManga);
-      resetForm();
+      await updateMutation.mutateAsync({ stableId: manga.stableId, updates });
       onOpenChange(false);
     } catch (error) {
-      console.error('Failed to add manga:', error);
+      console.error('Failed to update manga:', error);
     }
   };
 
   const handleClose = () => {
-    if (!addMutation.isPending) {
-      resetForm();
+    if (!updateMutation.isPending) {
       onOpenChange(false);
     }
   };
 
-  const canSubmit = title.trim() && isReady && !addMutation.isPending;
+  const canSubmit = title.trim() && isReady && !updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0">
         {/* Fixed Header */}
         <DialogHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle>Add New Manga</DialogTitle>
+          <DialogTitle>Edit Manga</DialogTitle>
           <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleClose}
-              disabled={addMutation.isPending}
+              disabled={updateMutation.isPending}
             >
               Cancel
             </Button>
@@ -150,13 +166,13 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
               onClick={handleSubmit}
               disabled={!canSubmit}
             >
-              {addMutation.isPending ? (
+              {updateMutation.isPending ? (
                 <>
                   <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                  Adding...
+                  Saving...
                 </>
               ) : (
-                'Add Manga'
+                'Save Changes'
               )}
             </Button>
           </div>
@@ -183,71 +199,26 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
         >
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="edit-title">Title *</Label>
               <Input
-                id="title"
+                id="edit-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter manga title"
                 required
-                disabled={addMutation.isPending || !isReady}
+                disabled={updateMutation.isPending || !isReady}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="alternate-title-1">Alternate Title 1</Label>
+              <Label htmlFor="edit-alternate-titles">Alternate Titles</Label>
               <Input
-                id="alternate-title-1"
-                value={alternateTitle1}
-                onChange={(e) => setAlternateTitle1(e.target.value)}
-                placeholder="First alternate title (optional)"
-                disabled={addMutation.isPending || !isReady}
+                id="edit-alternate-titles"
+                value={alternateTitles}
+                onChange={(e) => setAlternateTitles(e.target.value)}
+                placeholder="Comma-separated alternate titles"
+                disabled={updateMutation.isPending || !isReady}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="alternate-title-2">Alternate Title 2</Label>
-              <Input
-                id="alternate-title-2"
-                value={alternateTitle2}
-                onChange={(e) => setAlternateTitle2(e.target.value)}
-                placeholder="Second alternate title (optional)"
-                disabled={addMutation.isPending || !isReady}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(value: 'incomplete' | 'complete') => setStatus(value)}
-                  disabled={addMutation.isPending || !isReady}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="incomplete">Incomplete</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rating">Rating (0-10)</Label>
-                <Input
-                  id="rating"
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
-                  placeholder="0"
-                  disabled={addMutation.isPending || !isReady}
-                />
-              </div>
             </div>
 
             <div className="space-y-2">
@@ -257,7 +228,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={newGenreInput}
                   onChange={(e) => setNewGenreInput(e.target.value)}
                   placeholder="Add new genre"
-                  disabled={addMutation.isPending || !isReady}
+                  disabled={updateMutation.isPending || !isReady}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -269,7 +240,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   type="button"
                   size="sm"
                   onClick={handleAddGenre}
-                  disabled={!newGenreInput.trim() || addMutation.isPending || !isReady}
+                  disabled={!newGenreInput.trim() || updateMutation.isPending || !isReady}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -284,7 +255,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                     setSelectedGenres([...selectedGenres, genre]);
                   }
                 }}
-                disabled={addMutation.isPending || !isReady}
+                disabled={updateMutation.isPending || !isReady}
               />
             </div>
 
@@ -297,38 +268,38 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="synopsis">Synopsis</Label>
+              <Label htmlFor="edit-synopsis">Synopsis</Label>
               <Textarea
-                id="synopsis"
+                id="edit-synopsis"
                 value={synopsis}
                 onChange={(e) => setSynopsis(e.target.value)}
                 placeholder="Enter synopsis"
                 rows={4}
-                disabled={addMutation.isPending || !isReady}
+                disabled={updateMutation.isPending || !isReady}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="chapters-read">Chapters Read</Label>
+                <Label htmlFor="edit-chapters-read">Chapters Read</Label>
                 <Input
-                  id="chapters-read"
+                  id="edit-chapters-read"
                   type="number"
                   min="0"
                   value={chaptersRead}
                   onChange={(e) => setChaptersRead(e.target.value)}
-                  disabled={addMutation.isPending || !isReady}
+                  disabled={updateMutation.isPending || !isReady}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="available-chapters">Available Chapters</Label>
+                <Label htmlFor="edit-available-chapters">Available Chapters</Label>
                 <Input
-                  id="available-chapters"
+                  id="edit-available-chapters"
                   type="number"
                   min="0"
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
-                  disabled={addMutation.isPending || !isReady}
+                  disabled={updateMutation.isPending || !isReady}
                 />
               </div>
             </div>

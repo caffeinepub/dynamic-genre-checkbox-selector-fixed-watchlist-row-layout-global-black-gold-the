@@ -1,17 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBackendConnection } from './useBackendConnection';
+import { useInternetIdentity } from './useInternetIdentity';
 import { UserProfile } from '../backend';
+import { assertBackendReady, BACKEND_NOT_READY_MESSAGE } from '../utils/backendNotReadyMessage';
 
 export function useGetCallerUserProfile() {
   const { actor, isReady, isConnecting } = useBackendConnection();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!isReady || !actor) {
+        throw new Error(BACKEND_NOT_READY_MESSAGE);
+      }
+      if (!identity) {
+        throw new Error('Not authenticated');
+      }
       return actor.getCallerUserProfile();
     },
-    enabled: isReady,
+    enabled: isReady && !!identity && !!actor && !isConnecting,
     retry: false,
   });
 
@@ -25,14 +33,16 @@ export function useGetCallerUserProfile() {
 
 export function useSaveCallerUserProfile() {
   const { actor, isReady } = useBackendConnection();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!isReady || !actor) {
-        throw new Error('Backend is not ready. Please wait a moment and try again.');
+      assertBackendReady(isReady, actor);
+      if (!identity) {
+        throw new Error('Not authenticated');
       }
-      return actor.saveCallerUserProfile(profile);
+      return actor!.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });

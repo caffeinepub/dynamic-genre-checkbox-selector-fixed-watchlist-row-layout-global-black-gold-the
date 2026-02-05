@@ -90,6 +90,7 @@ export class ExternalBlob {
     }
 }
 export interface MangaEntry {
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -101,14 +102,25 @@ export interface MangaEntry {
     coverImages: Array<ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
-export interface MangaPage {
-    pageNumber: bigint;
-    entries: Array<MangaEntry>;
-    totalPages: bigint;
+export interface UpdateFields {
+    stableId: bigint;
+    title?: string;
+    availableChapters?: bigint;
+    chaptersRead?: bigint;
+    completed?: boolean;
+    bookmarks?: Array<bigint>;
+    synopsis?: string;
+    genres?: Array<string>;
+    notes?: string;
+    coverImages?: Array<ExternalBlob>;
+    rating?: number;
+    alternateTitles?: Array<string>;
+    isBookmarked?: boolean;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
@@ -134,21 +146,25 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addEntry(id: string, manga: MangaEntry): Promise<void>;
+    addEntry(manga: MangaEntry): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    deleteEntry(id: string): Promise<void>;
+    deleteEntry(stableId: bigint): Promise<void>;
     getAllEntries(): Promise<Array<MangaEntry>>;
+    getAllEntriesWithStableIds(): Promise<Array<[bigint, MangaEntry]>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getEntry(id: string): Promise<MangaEntry>;
-    getMangaPage(pageNumber: bigint): Promise<MangaPage>;
+    getEntry(stableId: bigint): Promise<MangaEntry>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    updateEntry(id: string, manga: MangaEntry): Promise<void>;
+    toggleBookmark(stableId: bigint): Promise<boolean>;
+    updateCompletionStatus(stableId: bigint, completed: boolean): Promise<boolean>;
+    updateEntry(stableId: bigint, updates: UpdateFields): Promise<MangaEntry>;
+    updateNotes(stableId: bigint, newNotes: string): Promise<string>;
+    updateRating(stableId: bigint, rating: number): Promise<number>;
 }
-import type { ExternalBlob as _ExternalBlob, MangaEntry as _MangaEntry, MangaPage as _MangaPage, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { ExternalBlob as _ExternalBlob, MangaEntry as _MangaEntry, UpdateFields as _UpdateFields, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -249,17 +265,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addEntry(arg0: string, arg1: MangaEntry): Promise<void> {
+    async addEntry(arg0: MangaEntry): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addEntry(arg0, await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.addEntry(await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addEntry(arg0, await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.addEntry(await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -277,7 +293,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteEntry(arg0: string): Promise<void> {
+    async deleteEntry(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteEntry(arg0);
@@ -305,35 +321,49 @@ export class Backend implements backendInterface {
             return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getAllEntriesWithStableIds(): Promise<Array<[bigint, MangaEntry]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllEntriesWithStableIds();
+                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllEntriesWithStableIds();
+            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n20(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n22(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n20(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n22(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getEntry(arg0: string): Promise<MangaEntry> {
+    async getEntry(arg0: bigint): Promise<MangaEntry> {
         if (this.processError) {
             try {
                 const result = await this.actor.getEntry(arg0);
@@ -347,32 +377,18 @@ export class Backend implements backendInterface {
             return from_candid_MangaEntry_n15(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getMangaPage(arg0: bigint): Promise<MangaPage> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getMangaPage(arg0);
-                return from_candid_MangaPage_n22(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getMangaPage(arg0);
-            return from_candid_MangaPage_n22(this._uploadFile, this._downloadFile, result);
-        }
-    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -417,17 +433,73 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateEntry(arg0: string, arg1: MangaEntry): Promise<void> {
+    async toggleBookmark(arg0: bigint): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateEntry(arg0, await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.toggleBookmark(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateEntry(arg0, await to_candid_MangaEntry_n8(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.toggleBookmark(arg0);
+            return result;
+        }
+    }
+    async updateCompletionStatus(arg0: bigint, arg1: boolean): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateCompletionStatus(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateCompletionStatus(arg0, arg1);
+            return result;
+        }
+    }
+    async updateEntry(arg0: bigint, arg1: UpdateFields): Promise<MangaEntry> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateEntry(arg0, await to_candid_UpdateFields_n24(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_MangaEntry_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateEntry(arg0, await to_candid_UpdateFields_n24(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_MangaEntry_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async updateNotes(arg0: bigint, arg1: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateNotes(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateNotes(arg0, arg1);
+            return result;
+        }
+    }
+    async updateRating(arg0: bigint, arg1: number): Promise<number> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateRating(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateRating(arg0, arg1);
             return result;
         }
     }
@@ -438,16 +510,13 @@ async function from_candid_ExternalBlob_n18(_uploadFile: (file: ExternalBlob) =>
 async function from_candid_MangaEntry_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MangaEntry): Promise<MangaEntry> {
     return await from_candid_record_n16(_uploadFile, _downloadFile, value);
 }
-async function from_candid_MangaPage_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MangaPage): Promise<MangaPage> {
-    return await from_candid_record_n23(_uploadFile, _downloadFile, value);
-}
-function from_candid_UserRole_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n21(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n23(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -457,6 +526,7 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
     return value.length === 0 ? null : value[0];
 }
 async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -468,7 +538,9 @@ async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promi
     coverImages: Array<_ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }): Promise<{
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -480,8 +552,10 @@ async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promi
     coverImages: Array<ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }> {
     return {
+        stableId: value.stableId,
         title: value.title,
         availableChapters: value.availableChapters,
         chaptersRead: value.chaptersRead,
@@ -492,22 +566,8 @@ async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promi
         notes: value.notes,
         coverImages: await from_candid_vec_n17(_uploadFile, _downloadFile, value.coverImages),
         rating: value.rating,
-        alternateTitles: value.alternateTitles
-    };
-}
-async function from_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    pageNumber: bigint;
-    entries: Array<_MangaEntry>;
-    totalPages: bigint;
-}): Promise<{
-    pageNumber: bigint;
-    entries: Array<MangaEntry>;
-    totalPages: bigint;
-}> {
-    return {
-        pageNumber: value.pageNumber,
-        entries: await from_candid_vec_n14(_uploadFile, _downloadFile, value.entries),
-        totalPages: value.totalPages
+        alternateTitles: value.alternateTitles,
+        isBookmarked: value.isBookmarked
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -522,7 +582,13 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function from_candid_tuple_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [bigint, _MangaEntry]): Promise<[bigint, MangaEntry]> {
+    return [
+        value[0],
+        await from_candid_MangaEntry_n15(_uploadFile, _downloadFile, value[1])
+    ];
+}
+function from_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -537,11 +603,17 @@ async function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<
 async function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ExternalBlob>): Promise<Array<ExternalBlob>> {
     return await Promise.all(value.map(async (x)=>await from_candid_ExternalBlob_n18(_uploadFile, _downloadFile, x)));
 }
+async function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[bigint, _MangaEntry]>): Promise<Array<[bigint, MangaEntry]>> {
+    return await Promise.all(value.map(async (x)=>await from_candid_tuple_n20(_uploadFile, _downloadFile, x)));
+}
 async function to_candid_ExternalBlob_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
 async function to_candid_MangaEntry_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MangaEntry): Promise<_MangaEntry> {
     return await to_candid_record_n9(_uploadFile, _downloadFile, value);
+}
+async function to_candid_UpdateFields_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateFields): Promise<_UpdateFields> {
+    return await to_candid_record_n25(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n13(_uploadFile, _downloadFile, value);
@@ -551,6 +623,51 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 }
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
+}
+async function to_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    stableId: bigint;
+    title?: string;
+    availableChapters?: bigint;
+    chaptersRead?: bigint;
+    completed?: boolean;
+    bookmarks?: Array<bigint>;
+    synopsis?: string;
+    genres?: Array<string>;
+    notes?: string;
+    coverImages?: Array<ExternalBlob>;
+    rating?: number;
+    alternateTitles?: Array<string>;
+    isBookmarked?: boolean;
+}): Promise<{
+    stableId: bigint;
+    title: [] | [string];
+    availableChapters: [] | [bigint];
+    chaptersRead: [] | [bigint];
+    completed: [] | [boolean];
+    bookmarks: [] | [Array<bigint>];
+    synopsis: [] | [string];
+    genres: [] | [Array<string>];
+    notes: [] | [string];
+    coverImages: [] | [Array<_ExternalBlob>];
+    rating: [] | [number];
+    alternateTitles: [] | [Array<string>];
+    isBookmarked: [] | [boolean];
+}> {
+    return {
+        stableId: value.stableId,
+        title: value.title ? candid_some(value.title) : candid_none(),
+        availableChapters: value.availableChapters ? candid_some(value.availableChapters) : candid_none(),
+        chaptersRead: value.chaptersRead ? candid_some(value.chaptersRead) : candid_none(),
+        completed: value.completed ? candid_some(value.completed) : candid_none(),
+        bookmarks: value.bookmarks ? candid_some(value.bookmarks) : candid_none(),
+        synopsis: value.synopsis ? candid_some(value.synopsis) : candid_none(),
+        genres: value.genres ? candid_some(value.genres) : candid_none(),
+        notes: value.notes ? candid_some(value.notes) : candid_none(),
+        coverImages: value.coverImages ? candid_some(await to_candid_vec_n10(_uploadFile, _downloadFile, value.coverImages)) : candid_none(),
+        rating: value.rating ? candid_some(value.rating) : candid_none(),
+        alternateTitles: value.alternateTitles ? candid_some(value.alternateTitles) : candid_none(),
+        isBookmarked: value.isBookmarked ? candid_some(value.isBookmarked) : candid_none()
+    };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     proposed_top_up_amount?: bigint;
@@ -562,6 +679,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     };
 }
 async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -573,7 +691,9 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
     coverImages: Array<ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }): Promise<{
+    stableId: bigint;
     title: string;
     availableChapters: bigint;
     chaptersRead: bigint;
@@ -585,8 +705,10 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
     coverImages: Array<_ExternalBlob>;
     rating: number;
     alternateTitles: Array<string>;
+    isBookmarked: boolean;
 }> {
     return {
+        stableId: value.stableId,
         title: value.title,
         availableChapters: value.availableChapters,
         chaptersRead: value.chaptersRead,
@@ -597,7 +719,8 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
         notes: value.notes,
         coverImages: await to_candid_vec_n10(_uploadFile, _downloadFile, value.coverImages),
         rating: value.rating,
-        alternateTitles: value.alternateTitles
+        alternateTitles: value.alternateTitles,
+        isBookmarked: value.isBookmarked
     };
 }
 function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

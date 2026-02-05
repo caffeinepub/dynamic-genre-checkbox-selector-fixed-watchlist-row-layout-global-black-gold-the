@@ -2,6 +2,10 @@ import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { LogIn, LogOut } from 'lucide-react';
+import { clearMangaCache } from '../../utils/offlineMangaCache';
+import { clearMangaIndexedDbCache } from '../../utils/offlineMangaIndexedDbCache';
+import { clearCoverImagesForPrincipal } from '../../utils/offlineCoverImageIndexedDbCache';
+import { clearServiceWorkerCache } from '../../sw/registerServiceWorker';
 
 export function LoginLogoutButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
@@ -12,8 +16,20 @@ export function LoginLogoutButton() {
 
   const handleAuth = async () => {
     if (isAuthenticated) {
+      // Capture principal before clearing identity
+      const principal = identity!.getPrincipal().toString();
+      
+      // Clear identity and React Query cache
       await clear();
       queryClient.clear();
+      
+      // Clear all caches for this principal
+      clearMangaCache();
+      await clearMangaIndexedDbCache(principal);
+      await clearCoverImagesForPrincipal(principal);
+      
+      // Clear service worker caches
+      await clearServiceWorkerCache();
     } else {
       try {
         await login();

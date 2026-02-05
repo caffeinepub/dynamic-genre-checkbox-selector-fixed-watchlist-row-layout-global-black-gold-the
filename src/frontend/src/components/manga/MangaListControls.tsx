@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Filter, ChevronDown } from 'lucide-react';
+import { Filter, ChevronDown, Bookmark, Plus, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 
 interface MangaListControlsProps {
   titleSearch: string;
@@ -21,6 +21,10 @@ interface MangaListControlsProps {
   onBookmarkedOnlyChange: (value: boolean) => void;
   sortBy: 'title' | 'rating';
   onSortByChange: (value: 'title' | 'rating') => void;
+  onAddManga: () => void;
+  isBackendReady: boolean;
+  watchlistAlignment: 'left' | 'center' | 'right';
+  onWatchlistAlignmentChange: (value: 'left' | 'center' | 'right') => void;
 }
 
 export function MangaListControls({
@@ -37,6 +41,10 @@ export function MangaListControls({
   onBookmarkedOnlyChange,
   sortBy,
   onSortByChange,
+  onAddManga,
+  isBackendReady,
+  watchlistAlignment,
+  onWatchlistAlignmentChange,
 }: MangaListControlsProps) {
   const [genrePopoverOpen, setGenrePopoverOpen] = useState(false);
 
@@ -52,57 +60,66 @@ export function MangaListControls({
     onSelectedGenresChange([]);
   };
 
+  const getAlignmentIcon = () => {
+    if (watchlistAlignment === 'left') return <AlignLeft className="h-3.5 w-3.5" />;
+    if (watchlistAlignment === 'right') return <AlignRight className="h-3.5 w-3.5" />;
+    return <AlignCenter className="h-3.5 w-3.5" />;
+  };
+
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-card">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="title-search">Search Title</Label>
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="title-search" className="text-xs">Search Title</Label>
           <Input
             id="title-search"
             placeholder="Filter by title..."
             value={titleSearch}
             onChange={(e) => onTitleSearchChange(e.target.value)}
+            className="h-9"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="synopsis-search">Search Synopsis</Label>
+        <div className="space-y-1">
+          <Label htmlFor="synopsis-search" className="text-xs">Search Synopsis</Label>
           <Input
             id="synopsis-search"
             placeholder="Filter by synopsis..."
             value={synopsisSearch}
             onChange={(e) => onSynopsisSearchChange(e.target.value)}
+            className="h-9"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="notes-search">Search Notes</Label>
+        <div className="space-y-1">
+          <Label htmlFor="notes-search" className="text-xs">Search Notes</Label>
           <Input
             id="notes-search"
             placeholder="Filter by notes..."
             value={notesSearch}
             onChange={(e) => onNotesSearchChange(e.target.value)}
+            className="h-9"
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="space-y-2">
-          <Label>Genre Filter</Label>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Genre Filter</Label>
           <Popover open={genrePopoverOpen} onOpenChange={setGenrePopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-[200px] justify-between">
+              <Button variant="outline" className="w-[180px] h-9 justify-between text-sm">
                 <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
+                  <Filter className="h-3.5 w-3.5" />
                   {selectedGenres.length === 0
                     ? 'All Genres'
                     : `${selectedGenres.length} selected`}
                 </span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-4" align="start">
-              <div className="space-y-4">
+            <PopoverContent className="w-[280px] p-3" align="start">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm">Select Genres</h4>
+                  <h4 className="font-medium text-xs">Select Genres</h4>
                   {selectedGenres.length > 0 && (
                     <Button
                       variant="ghost"
@@ -115,9 +132,9 @@ export function MangaListControls({
                   )}
                 </div>
                 {availableGenres.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No genres available</p>
+                  <p className="text-xs text-muted-foreground">No genres available</p>
                 ) : (
-                  <div className="max-h-[300px] overflow-y-auto space-y-2">
+                  <div className="max-h-[280px] overflow-y-auto space-y-2">
                     {availableGenres.map((genre) => (
                       <div key={genre} className="flex items-center space-x-2">
                         <Checkbox
@@ -127,7 +144,7 @@ export function MangaListControls({
                         />
                         <label
                           htmlFor={`filter-genre-${genre}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                         >
                           {genre}
                         </label>
@@ -140,27 +157,22 @@ export function MangaListControls({
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <Label>Bookmarked Only</Label>
-          <div className="flex items-center space-x-2 h-10">
-            <Checkbox
-              id="bookmarked-filter"
-              checked={bookmarkedOnly}
-              onCheckedChange={(checked) => onBookmarkedOnlyChange(checked as boolean)}
-            />
-            <label
-              htmlFor="bookmarked-filter"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-            >
-              Show only bookmarked
-            </label>
-          </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Bookmarked</Label>
+          <Button
+            variant={bookmarkedOnly ? "default" : "outline"}
+            onClick={() => onBookmarkedOnlyChange(!bookmarkedOnly)}
+            className="h-9 gap-2"
+          >
+            <Bookmark className={`h-3.5 w-3.5 ${bookmarkedOnly ? 'fill-current rainbow-glow' : ''}`} />
+            {bookmarkedOnly ? 'Bookmarked' : 'All'}
+          </Button>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="sort-by">Sort By</Label>
+        <div className="space-y-1">
+          <Label htmlFor="sort-by" className="text-xs">Sort By</Label>
           <Select value={sortBy} onValueChange={(value) => onSortByChange(value as 'title' | 'rating')}>
-            <SelectTrigger id="sort-by" className="w-[180px]">
+            <SelectTrigger id="sort-by" className="w-[160px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -168,6 +180,50 @@ export function MangaListControls({
               <SelectItem value="rating">Rating (High–Low)</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">Alignment</Label>
+          <Select value={watchlistAlignment} onValueChange={(value) => onWatchlistAlignmentChange(value as 'left' | 'center' | 'right')}>
+            <SelectTrigger className="w-[120px] h-9">
+              <div className="flex items-center gap-2">
+                {getAlignmentIcon()}
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">
+                <div className="flex items-center gap-2">
+                  <AlignLeft className="h-3.5 w-3.5" />
+                  Left
+                </div>
+              </SelectItem>
+              <SelectItem value="center">
+                <div className="flex items-center gap-2">
+                  <AlignCenter className="h-3.5 w-3.5" />
+                  Center
+                </div>
+              </SelectItem>
+              <SelectItem value="right">
+                <div className="flex items-center gap-2">
+                  <AlignRight className="h-3.5 w-3.5" />
+                  Right
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs opacity-0">Add</Label>
+          <Button 
+            onClick={onAddManga}
+            className="h-9 gap-2"
+            disabled={!isBackendReady}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Manga
+          </Button>
         </div>
       </div>
     </div>

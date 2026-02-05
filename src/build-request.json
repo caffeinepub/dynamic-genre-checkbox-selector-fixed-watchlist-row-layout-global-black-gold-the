@@ -1,143 +1,73 @@
 {
   "kind": "build_request",
-  "title": "Fix Add Manga dialog scrolling and add list search/filter/sort controls",
+  "title": "Adjust title-cycle arrow overlap and add collapsible app header",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
+      "text": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "apply the fix and make the inner-body scroll while the header/footer remained pinned. but just in case, add a maximum height of 400 pixels to the middle section of the popup."
+          "move the green arrow that cycles through the titles up 25 pixels, and let it overlap with the ratings, do not dynamically move the rating away from the green arrow."
         ]
       },
       "acceptanceCriteria": [
-        "When the Add Manga dialog content exceeds the available space, the scroll happens inside the dialog body area (middle section) and not on the page behind the modal.",
-        "The dialog header (title/alerts) stays visible at the top while scrolling the form.",
-        "The dialog footer (Cancel/Add Manga buttons) stays visible at the bottom while scrolling the form.",
-        "The scrollable middle section of the dialog never exceeds 400px height."
+        "In the manga list row UI (MangaCard), the green cycle-title arrow is vertically shifted upward by exactly 25px relative to its current position.",
+        "The arrow is allowed to overlap on top of the rating area (star button and/or numeric rating) via layering (e.g., z-index), rather than spacing/padding changes.",
+        "The rating area does not change its layout to avoid the arrow (no conditional margins/padding/gaps introduced to move rating away).",
+        "Clicking the arrow still cycles titles reliably, and the rating star/button remains usable (no unintended click-blocking beyond the intentional overlap)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
+      "text": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "add a maximum height of 400 pixels to the middle section of the popup."
+          "move the green arrow that cycles through the titles up 25 pixels, and let it overlap with the ratings, do not dynamically move the rating away from the green arrow."
         ]
       },
       "acceptanceCriteria": [
-        "The checklist in frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md refers to a 400px max-height for the scrollable body wherever it previously referenced 600px."
+        "In CoverHoverPopup, the green ChevronRight title-cycle button is shifted upward by 25px from its current placement.",
+        "The button may overlap adjacent content if needed (layered), and the title text container does not dynamically resize/reposition to avoid it.",
+        "Cycling titles in the popup still works and does not close the popup unintentionally."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+      "text": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "three search bars (title, synopsis, notes)"
+          "make the header that has the 'mangalist' text and login/logout button collapsable."
         ]
       },
       "acceptanceCriteria": [
-        "The manga list page displays three labeled search inputs: Title, Synopsis, Notes.",
-        "Typing into any search input filters the displayed manga entries using case-insensitive substring matching on the corresponding field.",
-        "When multiple search inputs are filled, entries must match all provided search inputs to remain visible (logical AND).",
-        "All user-facing labels/placeholders for the new controls are in English."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "add genre filtering button with dropdown checkboxes"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A Genre filter button is visible on the manga list page and opens a dropdown/popup containing genre checkbox options.",
-        "Selecting one or more genres filters the displayed manga entries to those that contain at least one of the selected genres.",
-        "Clearing all selected genres removes the genre filter (entries are no longer filtered by genre)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "bookmark filter"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A bookmark filter control is present on the manga list page (English text).",
-        "When enabled, only manga entries with bookmarks.length > 0 are shown.",
-        "When disabled, entries are not filtered by bookmarks."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "sorting by title or rating. default sorting is alphabetical ascending."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A sort control is visible on the manga list page with options at minimum: Title and Rating.",
-        "Default sort on initial page load is Title (A–Z).",
-        "Selecting Title sorts the displayed entries in ascending alphabetical order by title."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "three search bars (title, synopsis, notes), add genre filtering button with dropdown checkboxes, bookmark filter, sorting by title or rating."
-        ]
-      },
-      "acceptanceCriteria": [
-        "After applying any search/filter settings, the total pages and current page contents reflect the filtered dataset.",
-        "Changing pages preserves the active search/filter/sort settings and continues to show results consistent with those settings.",
-        "If the filtered dataset reduces the number of pages below the current page, the UI does not crash and shows a valid page of results."
+        "A visible, clickable header toggle control exists in the header area to collapse/expand it.",
+        "When collapsed, the header reduces its vertical footprint and hides (or minimizes) the MangaList branding area and the login/logout button; when expanded, they appear as they do today.",
+        "The header remains sticky at the top in both states.",
+        "The toggle control has accessible text (e.g., aria-label) in English indicating the action (Collapse header / Expand header)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (compose existing shadcn components instead).",
-    "Do not edit any files listed under frontend.immutablePaths in SYSTEM_CONTEXT."
+    "Do not edit any files under frontend/src/components/ui (read-only UI components).",
+    "Do not change authentication implementation (Internet Identity) or backend APIs as part of making the header collapsible.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers beyond Internet Identity.",
-    "Do not implement real-time updates (WebSockets/push).",
-    "Do not add external databases or non-Motoko backend services."
+    "Redesigning the entire MangaCard layout beyond the specific arrow positioning/overlap request.",
+    "Adding new backend fields or persistence/migrations for header collapsed state (unless already handled purely on the frontend)."
   ],
   "imageRequirements": {
     "required": [],

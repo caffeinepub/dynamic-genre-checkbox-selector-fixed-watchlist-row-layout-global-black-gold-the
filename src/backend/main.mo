@@ -1,5 +1,6 @@
 import Array "mo:core/Array";
 import Text "mo:core/Text";
+import Float "mo:core/Float";
 import Map "mo:core/Map";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
@@ -11,29 +12,24 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 actor {
-  // Initialize the access control system
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Include blob storage functionality
   include MixinStorage();
 
-  // User profile type
   public type UserProfile = {
     name : Text;
   };
 
-  // Ready Endpoint
   public query ({ caller }) func isReady() : async Bool {
     true;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
 
-  // User profile functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
+      Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.get(caller);
   };
@@ -52,8 +48,8 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Data types
-  type MangaEntry = {
+  public type MangaEntry = {
+    stableId : Nat;
     title : Text;
     alternateTitles : [Text];
     genres : [Text];
@@ -65,6 +61,7 @@ actor {
     bookmarks : [Nat];
     rating : Float;
     completed : Bool;
+    isBookmarked : Bool;
   };
 
   module MangaEntry {
@@ -79,15 +76,29 @@ actor {
     totalPages : Nat;
   };
 
-  // Store manga entries per user (private single-user data model)
-  let userMangaEntries = Map.empty<Principal, Map.Map<Text, MangaEntry>>();
+  type UpdateFields = {
+    stableId : Nat;
+    title : ?Text;
+    alternateTitles : ?[Text];
+    genres : ?[Text];
+    coverImages : ?[Storage.ExternalBlob];
+    synopsis : ?Text;
+    chaptersRead : ?Nat;
+    availableChapters : ?Nat;
+    notes : ?Text;
+    bookmarks : ?[Nat];
+    rating : ?Float;
+    completed : ?Bool;
+    isBookmarked : ?Bool;
+  };
+
+  let userMangaEntries = Map.empty<Principal, Map.Map<Nat, MangaEntry>>();
   let entriesPerPage = 30;
 
-  // Helper function to get or create user's manga map
-  func getUserMangaMap(user : Principal) : Map.Map<Text, MangaEntry> {
+  func getUserMangaMap(user : Principal) : Map.Map<Nat, MangaEntry> {
     switch (userMangaEntries.get(user)) {
       case (null) {
-        let newMap = Map.empty<Text, MangaEntry>();
+        let newMap = Map.empty<Nat, MangaEntry>();
         userMangaEntries.add(user, newMap);
         newMap;
       };
@@ -95,96 +106,198 @@ actor {
     };
   };
 
-  // Manga CRUD operations - all require authenticated user and operate only on caller's data
-  public shared ({ caller }) func addEntry(id : Text, manga : MangaEntry) : async () {
+  func getUserMangaMapReadOnly(user : Principal) : Map.Map<Nat, MangaEntry> {
+    switch (userMangaEntries.get(user)) {
+      case (null) {
+        Map.empty<Nat, MangaEntry>();
+      };
+      case (?existingMap) { existingMap };
+    };
+  };
+
+  public shared ({ caller }) func addEntry(manga : MangaEntry) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add manga entries");
     };
 
     let userMap = getUserMangaMap(caller);
-    userMap.add(id, manga);
+    userMap.add(manga.stableId, manga);
   };
 
-  public shared ({ caller }) func updateEntry(id : Text, manga : MangaEntry) : async () {
+  public shared ({ caller }) func updateEntry(stableId : Nat, updates : UpdateFields) : async MangaEntry {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update manga entries");
     };
 
     let userMap = getUserMangaMap(caller);
-    switch (userMap.get(id)) {
+    switch (userMap.get(stableId)) {
       case (null) { Runtime.trap("Manga entry does not exist") };
-      case (?_) {
-        userMap.add(id, manga);
+      case (?existing) {
+        let updatedEntry : MangaEntry = updateManga(existing, updates);
+        userMap.add(stableId, updatedEntry);
+        updatedEntry;
       };
     };
   };
 
-  public shared ({ caller }) func deleteEntry(id : Text) : async () {
+  func updateManga(entry : MangaEntry, updates : UpdateFields) : MangaEntry {
+    {
+      stableId = updates.stableId;
+      title = switch (updates.title) {
+        case (null) { entry.title };
+        case (?new) { new };
+      };
+      alternateTitles = switch (updates.alternateTitles) {
+        case (null) { entry.alternateTitles };
+        case (?new) { new };
+      };
+      genres = switch (updates.genres) {
+        case (null) { entry.genres };
+        case (?new) { new };
+      };
+      coverImages = switch (updates.coverImages) {
+        case (null) { entry.coverImages };
+        case (?new) { new };
+      };
+      synopsis = switch (updates.synopsis) {
+        case (null) { entry.synopsis };
+        case (?new) { new };
+      };
+      chaptersRead = switch (updates.chaptersRead) {
+        case (null) { entry.chaptersRead };
+        case (?new) { new };
+      };
+      availableChapters = switch (updates.availableChapters) {
+        case (null) { entry.availableChapters };
+        case (?new) { new };
+      };
+      notes = switch (updates.notes) {
+        case (null) { entry.notes };
+        case (?new) { new };
+      };
+      bookmarks = switch (updates.bookmarks) {
+        case (null) { entry.bookmarks };
+        case (?new) { new };
+      };
+      rating = switch (updates.rating) {
+        case (null) { entry.rating };
+        case (?new) { new };
+      };
+      completed = switch (updates.completed) {
+        case (null) { entry.completed };
+        case (?new) { new };
+      };
+      isBookmarked = switch (updates.isBookmarked) {
+        case (null) { entry.isBookmarked };
+        case (?new) { new };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteEntry(stableId : Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete manga entries");
     };
 
     let userMap = getUserMangaMap(caller);
-    if (not userMap.containsKey(id)) {
+    if (not userMap.containsKey(stableId)) {
       Runtime.trap("Manga entry does not exist");
     };
-    userMap.remove(id);
+    userMap.remove(stableId);
   };
 
-  public query ({ caller }) func getEntry(id : Text) : async MangaEntry {
+  public query ({ caller }) func getEntry(stableId : Nat) : async MangaEntry {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can read manga entries");
     };
 
-    let userMap = getUserMangaMap(caller);
-    switch (userMap.get(id)) {
+    let userMap = getUserMangaMapReadOnly(caller);
+    switch (userMap.get(stableId)) {
       case (null) { Runtime.trap("Manga entry does not exist") };
       case (?entry) { entry };
     };
   };
 
-  // Pagination - only returns caller's manga entries
-  public query ({ caller }) func getMangaPage(pageNumber : Nat) : async MangaPage {
+  public query ({ caller }) func getAllEntriesWithStableIds() : async [(Nat, MangaEntry)] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view manga pages");
+      Runtime.trap("Unauthorized: Only users can view manga entries");
     };
 
-    let userMap = getUserMangaMap(caller);
-    let filteredEntries = userMap.values().toArray().sort(MangaEntry.compareByTitle);
-    let totalEntries = filteredEntries.size();
-    let totalPages = if (totalEntries == 0) {
-      1;
-    } else {
-      (totalEntries + entriesPerPage - 1) / entriesPerPage;
-    };
-
-    if (pageNumber == 0 or pageNumber > totalPages) {
-      Runtime.trap("Invalid page number");
-    };
-
-    let start = (pageNumber - 1) * entriesPerPage;
-    let end = if (pageNumber * entriesPerPage > totalEntries) {
-      totalEntries;
-    } else {
-      pageNumber * entriesPerPage;
-    };
-
-    let pagedEntries = filteredEntries.sliceToArray(start, end);
-
-    {
-      entries = pagedEntries;
-      pageNumber;
-      totalPages;
-    };
+    let userMap = getUserMangaMapReadOnly(caller);
+    userMap.toArray();
   };
 
-  // Get all entries for the caller
   public query ({ caller }) func getAllEntries() : async [MangaEntry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view manga entries");
     };
 
-    let userMap = getUserMangaMap(caller);
+    let userMap = getUserMangaMapReadOnly(caller);
     userMap.values().toArray();
+  };
+
+  public shared ({ caller }) func toggleBookmark(stableId : Nat) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can toggle bookmarks");
+    };
+
+    let userMap = getUserMangaMap(caller);
+
+    switch (userMap.get(stableId)) {
+      case (null) { Runtime.trap("Manga entry does not exist") };
+      case (?entry) {
+        let newEntry = { entry with isBookmarked = not entry.isBookmarked };
+        userMap.add(stableId, newEntry);
+        newEntry.isBookmarked;
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateNotes(stableId : Nat, newNotes : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update notes");
+    };
+
+    let userMap = getUserMangaMap(caller);
+    switch (userMap.get(stableId)) {
+      case (null) { Runtime.trap("Manga entry does not exist") };
+      case (?entry) {
+        let updatedEntry = { entry with notes = newNotes };
+        userMap.add(stableId, updatedEntry);
+        updatedEntry.notes;
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateCompletionStatus(stableId : Nat, completed : Bool) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update completion status");
+    };
+
+    let userMap = getUserMangaMap(caller);
+    switch (userMap.get(stableId)) {
+      case (null) { Runtime.trap("Manga entry does not exist") };
+      case (?entry) {
+        let updatedEntry = { entry with completed };
+        userMap.add(stableId, updatedEntry);
+        updatedEntry.completed;
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateRating(stableId : Nat, rating : Float) : async Float {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update ratings");
+    };
+
+    let userMap = getUserMangaMap(caller);
+    switch (userMap.get(stableId)) {
+      case (null) { Runtime.trap("Manga entry does not exist") };
+      case (?entry) {
+        let updatedEntry = { entry with rating };
+        userMap.add(stableId, updatedEntry);
+        updatedEntry.rating;
+      };
+    };
   };
 };

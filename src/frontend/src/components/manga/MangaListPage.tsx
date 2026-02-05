@@ -1,24 +1,25 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useGetAllMangaEntries } from '../../hooks/useAllMangaEntries';
 import { useActorWithRetry } from '../../hooks/useActorWithRetry';
 import { useLibraryGenres } from '../../hooks/useLibraryGenres';
+import { useUniformWatchlistRowWidth } from '../../hooks/useUniformWatchlistRowWidth';
 import { AddMangaDialog } from './AddMangaDialog';
 import { PaginationControls } from './PaginationControls';
-import { MangaCard } from './MangaCard';
-import { MangaListControls } from './MangaListControls';
+import { MangaRowActions } from './MangaRowActions';
+import { FloatingControlsPanel } from './FloatingControlsPanel';
 import { Button } from '../ui/button';
-import { Plus, BookOpen, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { BookOpen, AlertCircle, Loader2, RefreshCw, WifiOff, RotateCw } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription } from '../ui/alert';
-import { MangaEntry } from '../../backend';
 
 const ENTRIES_PER_PAGE = 30;
+const MIN_ROW_WIDTH = 900;
 
 export function MangaListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [watchlistAlignment, setWatchlistAlignment] = useState<'left' | 'center' | 'right'>('center');
   
-  // Search/filter/sort state
   const [titleSearch, setTitleSearch] = useState('');
   const [synopsisSearch, setSynopsisSearch] = useState('');
   const [notesSearch, setNotesSearch] = useState('');
@@ -35,18 +36,28 @@ export function MangaListPage() {
     isRetrying,
     isActorReady,
     readinessStatus,
+    elapsedTime,
+    connectionPhase,
+    hasGivenUp,
+    retryCount,
   } = useActorWithRetry();
   
-  const { data: allEntries, isLoading, error } = useGetAllMangaEntries();
+  const { data: allEntries, isLoading, error: dataError } = useGetAllMangaEntries();
   const { genres: availableGenres } = useLibraryGenres();
 
-  // Apply filters and sorting
+  const isOfflineMode = dataError && allEntries && allEntries.length > 0;
+
+  // Format elapsed time for display
+  const formatElapsedTime = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    return `${seconds}s`;
+  };
+
   const filteredAndSortedEntries = useMemo(() => {
     if (!allEntries) return [];
 
     let filtered = [...allEntries];
 
-    // Apply title search
     if (titleSearch.trim()) {
       const searchLower = titleSearch.toLowerCase();
       filtered = filtered.filter(entry =>
@@ -54,7 +65,6 @@ export function MangaListPage() {
       );
     }
 
-    // Apply synopsis search
     if (synopsisSearch.trim()) {
       const searchLower = synopsisSearch.toLowerCase();
       filtered = filtered.filter(entry =>
@@ -62,7 +72,6 @@ export function MangaListPage() {
       );
     }
 
-    // Apply notes search
     if (notesSearch.trim()) {
       const searchLower = notesSearch.toLowerCase();
       filtered = filtered.filter(entry =>
@@ -70,19 +79,16 @@ export function MangaListPage() {
       );
     }
 
-    // Apply genre filter
     if (selectedGenres.length > 0) {
       filtered = filtered.filter(entry =>
         entry.genres.some(genre => selectedGenres.includes(genre))
       );
     }
 
-    // Apply bookmarked filter
     if (bookmarkedOnly) {
-      filtered = filtered.filter(entry => entry.bookmarks.length > 0);
+      filtered = filtered.filter(entry => entry.isBookmarked);
     }
 
-    // Apply sorting
     if (sortBy === 'title') {
       filtered.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'rating') {
@@ -92,10 +98,8 @@ export function MangaListPage() {
     return filtered;
   }, [allEntries, titleSearch, synopsisSearch, notesSearch, selectedGenres, bookmarkedOnly, sortBy]);
 
-  // Calculate pagination
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE));
   
-  // Clamp current page when filters reduce total pages
   const safePage = Math.min(currentPage, totalPages);
   if (safePage !== currentPage && filteredAndSortedEntries.length > 0) {
     setCurrentPage(safePage);
@@ -107,37 +111,69 @@ export function MangaListPage() {
     return filteredAndSortedEntries.slice(start, end);
   }, [filteredAndSortedEntries, safePage]);
 
-  // Show connecting/initializing state with timeout awareness
-  if (isConnecting && !actorError) {
+  // Use uniform width hook
+  const { uniformWidth, registerRow } = useUniformWatchlistRowWidth([
+    paginatedEntries.length,
+    currentPage,
+    titleSearch,
+    synopsisSearch,
+    notesSearch,
+    selectedGenres,
+    bookmarkedOnly,
+    sortBy,
+  ]);
+
+  // Clamp to minimum 900px
+  const finalRowWidth = Math.max(uniformWidth ?? 0, MIN_ROW_WIDTH);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    if (!isActorReady) {
+      return;
+    }
+    setCurrentPage(newPage);
+  }, [isActorReady]);
+
+  const handleAddManga = useCallback(() => {
+    setIsAddDialogOpen(true);
+  }, []);
+
+  // Show connecting state only when actually connecting and no terminal error
+  if (isConnecting && (!actorError || !hasGivenUp)) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
             <p className="text-muted-foreground mt-1">
-              {readinessStatus === 'connecting' ? 'Connecting to backend...' : 'Initializing...'}
+              Connecting to backend...
             </p>
           </div>
         </div>
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
           <AlertDescription>
-            {readinessStatus === 'connecting' 
-              ? 'Establishing connection to backend. This should take no more than 45 seconds...'
-              : 'Initializing backend connection...'}
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="font-medium mb-1">
+                  {connectionPhase} {retryCount > 0 && `(Attempt ${retryCount})`}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Elapsed: {formatElapsedTime(elapsedTime)} • Max: 45s
+                </div>
+              </div>
+            </div>
           </AlertDescription>
         </Alert>
         <div className="flex flex-col items-center gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="w-[900px] h-[78px]" />
+            <Skeleton key={i} className="h-[78px] w-full max-w-[900px]" />
           ))}
         </div>
       </div>
     );
   }
 
-  // Show actor connection error prominently with category-specific messaging
-  if (actorError) {
+  // Show connection error state only when terminal (given up)
+  if (actorError && hasGivenUp && !isActorReady) {
     const isAuthError = errorCategory === 'authorization';
     const isTimeout = errorCategory === 'timeout';
     const isTransient = errorCategory === 'transient' || errorCategory === 'connecting' || isTimeout;
@@ -146,7 +182,6 @@ export function MangaListPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
             <p className="text-muted-foreground mt-1">
               {isAuthError 
                 ? 'Authorization required' 
@@ -159,7 +194,17 @@ export function MangaListPage() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between gap-2">
-            <span>{actorErrorMessage || 'Failed to connect to backend'}</span>
+            <div className="flex-1">
+              <div className="font-medium mb-1">
+                {actorErrorMessage || 
+                 (isTimeout ? 'Connection timed out' : 
+                  isTransient ? 'Connection issue detected' :
+                  'Unable to connect to the backend')}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Maximum retry attempts reached. Please try manually.
+              </div>
+            </div>
             {isTransient && (
               <Button
                 type="button"
@@ -196,39 +241,50 @@ export function MangaListPage() {
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
             {isAuthError 
               ? 'You need to be logged in to access your manga collection.'
-              : isTimeout
-              ? 'The connection attempt took too long. Please check your network and try again.'
-              : 'Unable to connect to the backend. Please check your connection and try again.'}
+              : 'The connection attempt took too long and all automatic retries have been exhausted. You can retry manually or reload the page.'}
           </p>
-          {isTransient && (
-            <Button onClick={retryActor} variant="default" disabled={isRetrying}>
-              {isRetrying ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Retrying Connection...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Retry Connection
-                </>
-              )}
+          <div className="flex gap-3 justify-center">
+            {isTransient && (
+              <Button onClick={retryActor} variant="default" disabled={isRetrying}>
+                {isRetrying ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry Connection
+                  </>
+                )}
+              </Button>
+            )}
+            <Button onClick={() => window.location.reload()} variant="outline">
+              <RotateCw className="h-4 w-4 mr-2" />
+              Reload Page
             </Button>
-          )}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  // Show data fetch error (only if not offline mode and actor is ready)
+  if (dataError && !isOfflineMode && isActorReady) {
     return (
       <div className="text-center py-12">
-        <p className="text-destructive">Error loading manga list. Please try again.</p>
+        <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4" />
+        <p className="text-destructive mb-4">Error loading manga list. Please try again.</p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Reload Page
+        </Button>
       </div>
     );
   }
 
-  if (isLoading) {
+  // Show loading state
+  if (isLoading && !allEntries) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -237,7 +293,7 @@ export function MangaListPage() {
         </div>
         <div className="flex flex-col items-center gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="w-[900px] h-[78px]" />
+            <Skeleton key={i} className="h-[78px] w-full max-w-[900px]" />
           ))}
         </div>
       </div>
@@ -246,19 +302,24 @@ export function MangaListPage() {
 
   const hasFilters = titleSearch || synopsisSearch || notesSearch || selectedGenres.length > 0 || bookmarkedOnly;
 
-  // Prevent page changes while not ready
-  const handlePageChange = (newPage: number) => {
-    if (!isActorReady) {
-      return;
-    }
-    setCurrentPage(newPage);
-  };
+  const alignmentClass = 
+    watchlistAlignment === 'left' ? 'items-start' :
+    watchlistAlignment === 'right' ? 'items-end' :
+    'items-center';
 
   return (
     <div className="space-y-6">
+      {isOfflineMode && (
+        <Alert>
+          <WifiOff className="h-4 w-4" />
+          <AlertDescription>
+            Offline mode: Showing cached data from your last sync. Some features may be unavailable.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
           <p className="text-muted-foreground mt-1">
             {filteredAndSortedEntries.length === 0 
               ? hasFilters 
@@ -267,18 +328,10 @@ export function MangaListPage() {
               : `${filteredAndSortedEntries.length} manga ${hasFilters ? 'found' : 'total'}`}
           </p>
         </div>
-        <Button 
-          onClick={() => setIsAddDialogOpen(true)} 
-          className="gap-2"
-          disabled={!isActorReady}
-        >
-          <Plus className="h-4 w-4" />
-          Add Manga
-        </Button>
       </div>
 
       {(allEntries && allEntries.length > 0) && (
-        <MangaListControls
+        <FloatingControlsPanel
           titleSearch={titleSearch}
           onTitleSearchChange={setTitleSearch}
           synopsisSearch={synopsisSearch}
@@ -292,6 +345,10 @@ export function MangaListPage() {
           onBookmarkedOnlyChange={setBookmarkedOnly}
           sortBy={sortBy}
           onSortByChange={setSortBy}
+          onAddManga={handleAddManga}
+          isBackendReady={isActorReady}
+          watchlistAlignment={watchlistAlignment}
+          onWatchlistAlignmentChange={setWatchlistAlignment}
         />
       )}
 
@@ -308,20 +365,32 @@ export function MangaListPage() {
           </p>
           {!hasFilters && (
             <Button 
-              onClick={() => setIsAddDialogOpen(true)} 
+              onClick={handleAddManga} 
               className="gap-2"
               disabled={!isActorReady}
             >
-              <Plus className="h-4 w-4" />
               Add Your First Manga
             </Button>
           )}
         </div>
       ) : (
         <>
-          <div className="flex flex-col items-center gap-4 overflow-x-auto pb-4">
-            {paginatedEntries.map((manga, index) => (
-              <MangaCard key={index} manga={manga} />
+          <div className={`flex flex-col ${alignmentClass} gap-4 overflow-x-auto pb-4`}>
+            {paginatedEntries.map((manga) => (
+              <div 
+                key={manga.stableId.toString()}
+                ref={registerRow}
+                style={{ 
+                  width: `${finalRowWidth}px`, 
+                  minWidth: `${finalRowWidth}px` 
+                }}
+              >
+                <MangaRowActions 
+                  manga={manga}
+                  currentPage={currentPage}
+                  isBackendReady={isActorReady}
+                />
+              </div>
             ))}
           </div>
 
@@ -336,11 +405,14 @@ export function MangaListPage() {
         </>
       )}
 
-      <AddMangaDialog 
-        open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen}
-        currentPage={currentPage}
-      />
+      {/* Only mount AddMangaDialog when open */}
+      {isAddDialogOpen && (
+        <AddMangaDialog 
+          open={isAddDialogOpen} 
+          onOpenChange={setIsAddDialogOpen}
+          currentPage={currentPage}
+        />
+      )}
     </div>
   );
 }

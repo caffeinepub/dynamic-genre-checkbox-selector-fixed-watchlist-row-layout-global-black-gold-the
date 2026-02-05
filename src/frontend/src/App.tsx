@@ -1,15 +1,23 @@
+import { useEffect } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useCurrentUserProfile';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProfileSetupDialog } from './components/auth/ProfileSetupDialog';
 import { MangaListPage } from './components/manga/MangaListPage';
+import { BackendConnectionProvider } from './context/BackendConnectionContext';
 import { Skeleton } from './components/ui/skeleton';
+import { registerServiceWorker } from './sw/registerServiceWorker';
 
 export default function App() {
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
 
   const isAuthenticated = !!identity;
+
+  // Register service worker on mount
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
 
   // Show loading state during initialization
   if (isInitializing) {
@@ -59,9 +67,12 @@ export default function App() {
   }
 
   // Show main manga list when authenticated and profile exists
+  // Wrap with BackendConnectionProvider to ensure single connection instance
   return (
     <AppLayout>
-      <MangaListPage />
+      <BackendConnectionProvider>
+        <MangaListPage />
+      </BackendConnectionProvider>
     </AppLayout>
   );
 }

@@ -1,11 +1,11 @@
-import { useBackendConnection } from './useBackendConnection';
+import { useBackendConnectionSingleton } from './useBackendConnectionSingleton';
 
 /**
- * Extended version of useActor that adds connection state tracking and retry functionality
- * Now delegates to the unified connection hook
+ * Extended version of useActor that adds connection state tracking and retry functionality.
+ * Now delegates to the singleton connection hook to prevent multiple connection loops.
  */
 export function useActorWithRetry() {
-  const connection = useBackendConnection();
+  const connection = useBackendConnectionSingleton();
 
   return {
     actor: connection.actor,
@@ -19,6 +19,9 @@ export function useActorWithRetry() {
     isRetrying: connection.isRetrying,
     isActorReady: connection.isReady,
     readinessStatus: connection.status,
-    retryCount: 0,
+    retryCount: connection.attemptNumber,
+    elapsedTime: connection.elapsedTime,
+    connectionPhase: connection.connectionPhase,
+    hasGivenUp: connection.hasGivenUp,
   };
 }
