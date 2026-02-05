@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAddMangaEntry } from '../../hooks/useMangaMutations';
 import { useLibraryGenres } from '../../hooks/useLibraryGenres';
-import { useActor } from '../../hooks/useActor';
+import { useActorWithRetry } from '../../hooks/useActorWithRetry';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -36,11 +36,11 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
   const [completed, setCompleted] = useState('incomplete');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching, isConnecting, isError, errorMessage: actorError, retry } = useActorWithRetry();
   const addManga = useAddMangaEntry(currentPage);
   const { genres: libraryGenres } = useLibraryGenres();
 
-  const isActorReady = !!actor && !actorFetching;
+  const isActorReady = !!actor && !actorFetching && !isConnecting;
 
   const resetForm = () => {
     setTitle('');
@@ -185,31 +185,51 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Add New Manga</DialogTitle>
-          <DialogDescription>
-            Fill in the details for your manga entry. All fields are optional except the title.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90dvh] flex flex-col p-0 gap-0">
+        <div className="px-6 pt-6 shrink-0">
+          <DialogHeader>
+            <DialogTitle>Add New Manga</DialogTitle>
+            <DialogDescription>
+              Fill in the details for your manga entry. All fields are optional except the title.
+            </DialogDescription>
+          </DialogHeader>
 
-        {!isActorReady && (
-          <Alert className="mt-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <AlertDescription>Connecting to backend...</AlertDescription>
-          </Alert>
-        )}
+          {isConnecting && !isError && (
+            <Alert className="mt-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <AlertDescription>Connecting to backend...</AlertDescription>
+            </Alert>
+          )}
 
-        {errorMessage && (
-          <Alert variant="destructive" className="mt-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
+          {isError && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between gap-2">
+                <span>{actorError || 'Connection failed'}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={retry}
+                  className="shrink-0"
+                >
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {errorMessage && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+        </div>
 
         <form id="add-manga-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4 pb-2">
+          <ScrollArea className="flex-1 min-h-0 px-6" type="auto">
+            <div className="space-y-4 py-6">
               <div>
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -387,7 +407,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             </div>
           </ScrollArea>
 
-          <DialogFooter className="mt-4 pt-4 border-t bg-background">
+          <DialogFooter className="px-6 py-4 border-t bg-background shrink-0">
             <Button
               type="button"
               variant="outline"

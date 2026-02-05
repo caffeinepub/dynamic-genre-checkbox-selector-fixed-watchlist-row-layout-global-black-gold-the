@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T01:35:14.986Z",
+  "generatedAt": "2026-02-05T01:52:46.010Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
+        "summary": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/manga/AddMangaDialog.tsx"
@@ -23,15 +23,13 @@
       },
       {
         "id": "REQ-2",
-        "summary": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
+        "summary": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/AddMangaDialog.tsx",
-          "frontend/src/hooks/useMangaMutations.ts"
+          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/AddMangaDialog.tsx",
-          "frontend/src/hooks/useMangaMutations.ts"
+          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
         ]
       }
     ]
@@ -41,8 +39,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
     "frontend/src/components/manga/AddMangaDialog.tsx",
-    "frontend/src/hooks/useMangaMutations.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

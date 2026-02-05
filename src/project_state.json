@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 23,
   "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
   "existing_features": [
     {
@@ -80,34 +80,62 @@
       "version": 1
     },
     {
-      "id": "feature-fix-the-add-manga-dialog-layout-so-the-primary-submit-button-remains-reliably-clickable-after-entering-metadata-no-overlapping-hidden-layers-blocking-pointer-events-update-the-dialog-s-internal-layout-to-use-a-stable-flex-column-structure-header-scrollable-body-footer-where-only-the-form-body-scrolls-and-the-footer-remains-fully-interactive",
-      "title": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
+      "id": "feature-ensure-the-add-manga-dialog-s-form-content-is-scrollable-within-the-dialog-viewport-so-that-the-bottom-action-buttons-cancel-and-add-manga-are-always-reachable-on-all-common-screen-sizes-including-short-laptop-screens-and-mobile-without-the-dialog-content-overflowing-off-screen",
+      "title": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-eliminate-the-user-visible-warning-error-condition-actor-not-available-during-add-manga-by-preventing-submission-until-the-backend-actor-is-ready-and-providing-clear-english-ui-feedback-when-the-actor-is-still-initializing-ensure-the-add-manga-submit-button-and-mutation-cannot-run-while-the-actor-is-null-initializing",
-      "title": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
+      "id": "feature-add-a-minimal-regression-check-for-the-add-manga-dialog-layout-to-prevent-future-changes-from-reintroducing-hidden-overflowing-bottom-actions-verify-dialog-max-height-constraint-and-internal-scrolling-behavior",
+      "title": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add dynamic genre checkbox list populated from existing genres (in addition to manual genre entry) to avoid retyping genres.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Watchlist row layout polish: fixed height 78px; fixed width 900px and non-compressible; cover on left max 35px wide; title next to cover max 250px wide; hide alternate titles.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Global UI theming: black backgrounds with gold outline; watchlist rows with glowing gold outline on black background; apply to dropdowns/menus/popups going forward.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Make the Add Manga popup/dialog scrollable so the bottom actions (Add Manga/Cancel) are always reachable/visible.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
   "architectural_notes": [
     "Backend is implemented in Motoko with modular authorization (MixinAuthorization/access-control) and blob storage (Mixin/Storage).",
     "Frontend is a React + Vite + Tailwind app using shadcn/ui component library.",
     "Frontend uses generated canister bindings (backend.did) and an actor hook pattern (useActor/useInternetIdentity) for authenticated calls.",
     "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts.",
     "Authorization and blob-storage Motoko modules updated/aligned to component versions v4.0.0 (internal refactors/updates across backend main + mixins).",
-    "Build-template refreshed (Dockerfile/scripts/workspace configs) and frontend template dependencies/configs updated (React+Vite+Tailwind+shadcn/ui template sync)."
+    "Build-template refreshed (Dockerfile/scripts/workspace configs) and frontend template dependencies/configs updated (React+Vite+Tailwind+shadcn/ui template sync).",
+    "Frontend actor initialization now includes retry logic via a dedicated hook (useActorWithRetry) to improve resilience of authenticated calls."
   ],
   "known_issues": [
-    "Add Manga button becomes non-clickable/\"floaty\" after entering metadata, suggesting overlapping UI elements blocking interaction.",
-    "Warning shown: \"actor not available\" (frontend actor initialization/auth state issue), preventing Add Manga from executing."
+    "Intermittent frontend backend-connection failures (e.g., 'Failed to connect to backend. Please check your connection and try again.').",
+    "'Actor not available' warning indicates actor initialization/race condition before authenticated calls.",
+    "Add Manga UI/button becomes floaty/unclickable due to overlapping layers/z-index or layout issues.",
+    "Add Manga popup/dialog content overflows and hides bottom action buttons without scrolling."
   ],
   "isFixRequest": true,
   "generatedImages": [
@@ -124,7 +152,7 @@
       "targetHeight": 900
     }
   ],
-  "projectName": "Fix Add Manga dialog click/overlap issues and prevent 'Actor not available' warnings",
+  "projectName": "Fix Add Manga dialog scrolling so action buttons are always reachable",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

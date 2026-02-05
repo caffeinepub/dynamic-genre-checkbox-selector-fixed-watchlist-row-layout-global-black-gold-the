@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the Add Manga dialog reliably clickable and prevent “Actor not available” warnings by improving dialog layout and gating submission until the backend actor is ready.
+**Goal:** Make the “Add Manga” modal dialog usable on small screens by ensuring its form content scrolls within the dialog and the bottom action buttons remain reachable and clickable.
 
 **Planned changes:**
-- Update the Add Manga dialog layout to a stable flex column structure (header + scrollable body + fixed footer) so only the form body scrolls and footer buttons remain fully interactive.
-- Fix any overlapping/hidden layers within the dialog that could block pointer events on the Cancel/Add Manga buttons after entering metadata.
-- Disable Add Manga submission while the backend actor is initializing/null and show a clear English loading/connecting message instead of the raw “Actor not available” warning; enable submission automatically once the actor becomes available.
+- Constrain the Add Manga dialog height to fit within the viewport on short laptop screens and mobile, preventing off-screen overflow.
+- Make the dialog body (form fields) scrollable inside the modal so all inputs can be reached without scrolling the page behind the modal.
+- Ensure the “Cancel” and “Add Manga” buttons are always reachable (visible or reachable via internal dialog scrolling) and not blocked/overlaid, across mouse and touch scrolling.
+- Add a minimal in-repo manual regression checklist to verify the dialog max-height constraint and internal scrolling keep the “Add Manga” button accessible at small viewport heights.
 
-**User-visible outcome:** The Add Manga dialog remains usable after filling out all fields, the Add Manga button consistently works, and users see a clear loading/connecting state (not “Actor not available”) until the actor is ready—without needing a page refresh.
+**User-visible outcome:** On small screens, users can always scroll through the Add Manga form and reliably reach and click the “Cancel” and “Add Manga” buttons without the dialog extending off-screen.

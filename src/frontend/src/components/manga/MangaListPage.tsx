@@ -1,17 +1,59 @@
 import { useState } from 'react';
 import { useGetMangaPage } from '../../hooks/useMangaPage';
+import { useActorWithRetry } from '../../hooks/useActorWithRetry';
 import { AddMangaDialog } from './AddMangaDialog';
 import { PaginationControls } from './PaginationControls';
 import { MangaCard } from './MangaCard';
 import { Button } from '../ui/button';
-import { Plus, BookOpen } from 'lucide-react';
+import { Plus, BookOpen, AlertCircle } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { Alert, AlertDescription } from '../ui/alert';
 
 export function MangaListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
+  const { isError: actorError, errorMessage: actorErrorMessage, retry: retryActor } = useActorWithRetry();
   const { data: mangaPage, isLoading, error } = useGetMangaPage(currentPage);
+
+  // Show actor connection error prominently
+  if (actorError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
+            <p className="text-muted-foreground mt-1">Manage your personal manga watchlist</p>
+          </div>
+        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between gap-2">
+            <span>{actorErrorMessage || 'Failed to connect to backend'}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={retryActor}
+              className="shrink-0"
+            >
+              Retry Connection
+            </Button>
+          </AlertDescription>
+        </Alert>
+        <div className="text-center py-16 border-2 border-dashed border-border rounded-lg">
+          <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Connection Error</h3>
+          <p className="text-muted-foreground mb-6">
+            Unable to connect to the backend. Please check your connection and try again.
+          </p>
+          <Button onClick={retryActor} variant="default">
+            Retry Connection
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

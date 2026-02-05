@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-add-manga-dialog-layout-so-the-primary-submit-button-remains-reliably-clickable-after-entering-metadata-no-overlapping-hidden-layers-blocking-pointer-events-update-the-dialog-s-internal-layout-to-use-a-stable-flex-column-structure-header-scrollable-body-footer-where-only-the-form-body-scrolls-and-the-footer-remains-fully-interactive",
-      "featureTitle": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
+      "featureId": "feature-ensure-the-add-manga-dialog-s-form-content-is-scrollable-within-the-dialog-viewport-so-that-the-bottom-action-buttons-cancel-and-add-manga-are-always-reachable-on-all-common-screen-sizes-including-short-laptop-screens-and-mobile-without-the-dialog-content-overflowing-off-screen",
+      "featureTitle": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
       "files": [
         "frontend/src/components/manga/AddMangaDialog.tsx"
       ],
@@ -22,11 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-eliminate-the-user-visible-warning-error-condition-actor-not-available-during-add-manga-by-preventing-submission-until-the-backend-actor-is-ready-and-providing-clear-english-ui-feedback-when-the-actor-is-still-initializing-ensure-the-add-manga-submit-button-and-mutation-cannot-run-while-the-actor-is-null-initializing",
-      "featureTitle": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
+      "featureId": "feature-add-a-minimal-regression-check-for-the-add-manga-dialog-layout-to-prevent-future-changes-from-reintroducing-hidden-overflowing-bottom-actions-verify-dialog-max-height-constraint-and-internal-scrolling-behavior",
+      "featureTitle": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
       "files": [
-        "frontend/src/components/manga/AddMangaDialog.tsx",
-        "frontend/src/hooks/useMangaMutations.ts"
+        "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
       ],
       "components": [
         "authorization@4.0.0",

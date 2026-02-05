@@ -1,52 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Fix Add Manga dialog click/overlap issues and prevent 'Actor not available' warnings",
-  "priority": "normal",
+  "title": "Fix Add Manga dialog scrolling so action buttons are always reachable",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
+      "text": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-5"
         ],
         "quotes": [
-          "the 'add manga' seems to be floaty and non clickable after inputting all the manga metadata when adding manga. feels like it is interfering with other interfaces and are overlapping."
+          "i CLEARLY said to add the scrolling feature so that i can see the add manga button."
         ]
       },
       "acceptanceCriteria": [
-        "In the Add Manga dialog, after filling in fields (including cover image URL/file upload, genres, notes, etc.), the \"Add Manga\" button is clickable and triggers submission.",
-        "No UI element overlays the dialog footer buttons; pointer interactions on Cancel/Add Manga always work.",
-        "Only the dialog body content scrolls; the footer stays visible and does not overlap with scrollable content."
+        "When the Add Manga dialog is open and the viewport height is small (e.g., ~700px or less), the dialog does not extend beyond the visible screen area.",
+        "The dialog body (fields such as Alternate Titles, Synopsis, Genres, Cover Images, Notes) can be scrolled to reach all inputs.",
+        "The “Cancel” and “Add Manga” buttons remain visible at the bottom of the dialog (sticky or fixed within the dialog) OR are always reachable via scrolling within the dialog, with no need to scroll the page behind the modal.",
+        "The scroll behavior works with mouse wheel/trackpad and touch scrolling on mobile.",
+        "No UI element overlays or blocks clicks on the “Cancel” and “Add Manga” buttons (buttons remain reliably clickable)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
+      "text": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-5"
         ],
         "quotes": [
-          "also, i get a warning 'actor not available'."
+          "add the scrolling feature so that i can see the add manga button."
         ]
       },
       "acceptanceCriteria": [
-        "Attempting to submit a new manga while the actor is still initializing does not throw or display the raw error \"Actor not available\".",
-        "The Add Manga submit button is disabled when the actor is not ready, and the dialog shows an English message indicating it is connecting/loading (exact wording up to implementation, but must be clear).",
-        "Once the actor becomes available, submission works without requiring a page refresh."
+        "A documented manual test checklist exists in-repo (or equivalent lightweight test note) describing how to verify the Add Manga dialog scroll and action button accessibility at small viewport heights.",
+        "Running through the checklist confirms the “Add Manga” button can always be reached and clicked."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
-    "Keep the Internet Computer backend architecture single-actor; do not introduce additional backend services."
+    "Do not edit any files under frontend/src/components/ui (read-only UI components); implement fixes by adjusting usage/composition in app-level components such as frontend/src/components/manga/AddMangaDialog.tsx.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not add new manga features beyond fixing the Add Manga dialog interaction and actor readiness handling.",
-    "Do not change backend data schema or manga entry model as part of this fix unless strictly required to resolve the reported issues."
+    "Do not add new backend features or modify backend schemas for this request.",
+    "Do not redesign unrelated pages or change manga CRUD behavior beyond fixing the dialog scrolling/accessibility issue."
   ],
   "imageRequirements": {
     "required": [],
