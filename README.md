@@ -1,2 +1,3 @@
-# dynamic-genre-checkbox-selector-fixed-watchlist-row-layout-global-black-gold-the
-Exported from Caffeine project: Dynamic genre checkbox selector + fixed watchlist row layout + global black/gold theme
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

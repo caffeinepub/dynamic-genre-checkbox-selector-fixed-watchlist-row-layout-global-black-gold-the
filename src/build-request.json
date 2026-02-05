@@ -1,0 +1,111 @@
+{
+  "kind": "build_request",
+  "title": "Dynamic genre checkbox selector + fixed watchlist row layout + global black/gold theme",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "In the Add Manga dialog, keep the existing manual genre entry (comma-separated) and add an additional organized, dynamic checkbox list of genres that already exist in the user’s library, so the user can select genres without retyping them.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "on top of the ability to add the genres manually, also include an organized dynamic checkbox that list genres that already exist so i don't have to keep tying them every time."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Add Manga dialog still supports typing genres manually as comma-separated text.",
+        "The dialog shows a checkbox list of existing genres derived from the current user’s existing manga entries.",
+        "Checking/unchecking genres updates the genres that will be saved for the new manga entry (combined with any manually entered genres, with duplicates removed).",
+        "The checkbox list is organized (e.g., sorted alphabetically) and remains usable when there are many genres (scrollable area)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the watchlist entry UI to use a fixed-size row layout: each entry must be 78px tall and 900px wide, must not shrink/compress, must have a black background, and must have a glowing gold outline.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "limit the watchlist height to 78 pixels in height and make the watchlist width 900 pixels and unable to be compressed.",
+          "give the watchlist a glowing gold outline with black background."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each watchlist item renders as a horizontal row with height exactly 78px.",
+        "Each watchlist item renders at width exactly 900px and does not shrink when placed in flex/grid layouts (e.g., uses no-shrink behavior).",
+        "Each watchlist item has a black background and a visible gold outline with a glow effect."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Within each watchlist row, place the cover picture flush to the left edge with a display area no more than 35px wide, and place the title immediately to the right of the cover with a display area no more than 250px wide.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "put the cover picture on the left edge of the watchlist, with the display area being no more than 35 pixels in width.",
+          "and right next to that cover display is the title, making the display area no more than 250 pixels in width."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The cover image column is anchored to the far left of the row and is constrained to <= 35px width.",
+        "The title is placed immediately to the right of the cover column and is constrained to <= 250px width (with truncation/ellipsis if needed).",
+        "The layout remains stable and aligned across all watchlist items."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Hide alternate titles in the watchlist item display (do not render alternate titles anywhere in the watchlist entry UI).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "also hide the alternate titles."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Alternate titles are not visible in the watchlist UI even if they exist in the data."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Apply a global visual theme update so that all app backgrounds and all dropdown menus/popups (e.g., dialogs, selects/popovers) use a black background with a gold outline going forward.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "give all backgrounds/dropdown menus/popups back background with gold outline from here on out."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Primary page backgrounds render as black.",
+        "Dialogs/popovers/dropdown menus render with black backgrounds and gold outlines (without editing read-only UI component sources).",
+        "Borders/outlines across the UI reflect gold styling consistently (including focus rings where applicable)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit files under frontend/src/components/ui (compose/override styling via props, wrappers, and global CSS variables instead).",
+    "Keep the backend as a single Motoko actor in backend/main.mo; only add backend methods if strictly necessary."
+  ],
+  "nonGoals": [
+    "Do not add new authentication providers or change Internet Identity behavior.",
+    "Do not add new backend services or external databases.",
+    "Do not change pagination behavior or page size unless required for the watchlist row layout."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

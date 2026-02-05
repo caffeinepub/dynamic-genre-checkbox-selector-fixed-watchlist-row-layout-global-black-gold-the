@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Internet Identity authentication (login/logout)",
+      "synonyms": [
+        "II auth",
+        "Internet Identity login"
+      ],
+      "description": "Frontend integrates Internet Identity for user sign-in/sign-out and actor initialization for authenticated calls.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "User profile setup and current-user profile retrieval",
+      "synonyms": [
+        "profile setup",
+        "user profile"
+      ],
+      "description": "UI dialog for initial profile setup and hooks/utilities to fetch/use the current user's profile.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Manga library CRUD UI (create + list)",
+      "synonyms": [
+        "manga list",
+        "add manga"
+      ],
+      "description": "Frontend pages/components to add manga entries and display a list of manga cards.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Cover image upload + storage integration",
+      "synonyms": [
+        "cover images",
+        "blob upload"
+      ],
+      "description": "Cover image field and storage client wiring to upload/store cover images via blob-storage canister/module.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Pagination controls for manga listing",
+      "synonyms": [
+        "paging"
+      ],
+      "description": "Pagination controls and hooks for fetching manga pages and navigating results.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Motoko backend authorization module and access control",
+      "synonyms": [
+        "authorization mixin",
+        "access control"
+      ],
+      "description": "Backend includes reusable authorization/access-control modules used to gate operations.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Build/deploy template for IC (backend + frontend)",
+      "synonyms": [
+        "build template",
+        "deploy scripts"
+      ],
+      "description": "Repository includes build-template assets (Dockerfile, scripts, canister.yaml, configs) for building and deploying the full-stack app.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-add-manga-dialog-keep-the-existing-manual-genre-entry-comma-separated-and-add-an-additional-organized-dynamic-checkbox-list-of-genres-that-already-exist-in-the-user-s-library-so-the-user-can-select-genres-without-retyping-them",
+      "title": "In the Add Manga dialog, keep the existing manual genre entry (comma-separated) and add an additional organized, dynamic checkbox list of genres that already exist in the user’s library, so the user can select genres without retyping them.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-watchlist-entry-ui-to-use-a-fixed-size-row-layout-each-entry-must-be-78px-tall-and-900px-wide-must-not-shrink-compress-must-have-a-black-background-and-must-have-a-glowing-gold-outline",
+      "title": "Update the watchlist entry UI to use a fixed-size row layout: each entry must be 78px tall and 900px wide, must not shrink/compress, must have a black background, and must have a glowing gold outline.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-within-each-watchlist-row-place-the-cover-picture-flush-to-the-left-edge-with-a-display-area-no-more-than-35px-wide-and-place-the-title-immediately-to-the-right-of-the-cover-with-a-display-area-no-more-than-250px-wide",
+      "title": "Within each watchlist row, place the cover picture flush to the left edge with a display area no more than 35px wide, and place the title immediately to the right of the cover with a display area no more than 250px wide.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-hide-alternate-titles-in-the-watchlist-item-display-do-not-render-alternate-titles-anywhere-in-the-watchlist-entry-ui",
+      "title": "Hide alternate titles in the watchlist item display (do not render alternate titles anywhere in the watchlist entry UI).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-global-visual-theme-update-so-that-all-app-backgrounds-and-all-dropdown-menus-popups-e-g-dialogs-selects-popovers-use-a-black-background-with-a-gold-outline-going-forward",
+      "title": "Apply a global visual theme update so that all app backgrounds and all dropdown menus/popups (e.g., dialogs, selects/popovers) use a black background with a gold outline going forward.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add dynamic genre selector: organized checkbox list of existing genres (in addition to manual entry) to avoid retyping",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Watchlist UI layout updates: fixed size (78px height, 900px width non-compressible), cover on left (<=35px width), title next to cover (<=250px), hide alternate titles",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Apply global visual theme: black backgrounds with gold outline (glowing gold outline for watchlist); ensure dropdowns/popups/menus follow same black+gold styling",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Backend is implemented in Motoko with modular authorization (MixinAuthorization/access-control) and blob storage (Mixin/Storage).",
+    "Frontend is a React + Vite + Tailwind app using shadcn/ui component library.",
+    "Frontend uses generated canister bindings (backend.did) and an actor hook pattern (useActor/useInternetIdentity) for authenticated calls.",
+    "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "generatedImages": [
+    {
+      "filename": "frontend/public/assets/generated/app-logo.dim_512x512.png",
+      "description": "Generated app logo placeholder image.",
+      "targetWidth": 512,
+      "targetHeight": 512
+    },
+    {
+      "filename": "frontend/public/assets/generated/cover-placeholder.dim_600x900.png",
+      "description": "Generated cover placeholder image.",
+      "targetWidth": 600,
+      "targetHeight": 900
+    }
+  ],
+  "projectName": "Dynamic genre checkbox selector + fixed watchlist row layout + global black/gold theme",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

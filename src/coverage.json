@@ -1,0 +1,96 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-05T00:36:25.618Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 5,
+    "implemented": 5,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "In the Add Manga dialog, keep the existing manual genre entry (comma-separated) and add an additional organized, dynamic checkbox list of genres that already exist in the user’s library, so the user can select genres without retyping them.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useAllMangaEntries.ts",
+          "frontend/src/hooks/useLibraryGenres.ts",
+          "frontend/src/components/manga/AddMangaDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useAllMangaEntries.ts",
+          "frontend/src/hooks/useLibraryGenres.ts",
+          "frontend/src/components/manga/AddMangaDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the watchlist entry UI to use a fixed-size row layout: each entry must be 78px tall and 900px wide, must not shrink/compress, must have a black background, and must have a glowing gold outline.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Within each watchlist row, place the cover picture flush to the left edge with a display area no more than 35px wide, and place the title immediately to the right of the cover with a display area no more than 250px wide.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Hide alternate titles in the watchlist item display (do not render alternate titles anywhere in the watchlist entry UI).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Apply a global visual theme update so that all app backgrounds and all dropdown menus/popups (e.g., dialogs, selects/popovers) use a black background with a gold outline going forward.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/index.css",
+          "frontend/tailwind.config.js"
+        ],
+        "matchedFiles": [
+          "frontend/src/index.css",
+          "frontend/tailwind.config.js"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "build-template/README.md",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/manga/AddMangaDialog.tsx",
+    "frontend/src/components/manga/MangaCard.tsx",
+    "frontend/src/components/manga/MangaListPage.tsx",
+    "frontend/src/hooks/useAllMangaEntries.ts",
+    "frontend/src/hooks/useLibraryGenres.ts",
+    "frontend/src/index.css",
+    "frontend/tailwind.config.js",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

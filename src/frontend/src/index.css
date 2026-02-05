@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.5rem;
+        --background: 0 0 0;
+        --foreground: 0.85 0.15 45;
+        --card: 0 0 0;
+        --card-foreground: 0.85 0.15 45;
+        --popover: 0 0 0;
+        --popover-foreground: 0.85 0.15 45;
+        --primary: 0.85 0.15 45;
+        --primary-foreground: 0 0 0;
+        --secondary: 0.2 0.01 45;
+        --secondary-foreground: 0.85 0.15 45;
+        --muted: 0.2 0.01 45;
+        --muted-foreground: 0.6 0.08 45;
+        --accent: 0.85 0.15 45;
+        --accent-foreground: 0 0 0;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 0.98 0.005 40;
+        --border: 0.85 0.15 45;
+        --input: 0.85 0.15 45;
+        --ring: 0.85 0.15 45;
+        --chart-1: 0.85 0.15 45;
+        --chart-2: 0.7 0.12 50;
+        --chart-3: 0.65 0.1 55;
+        --chart-4: 0.6 0.08 60;
+        --chart-5: 0.75 0.14 40;
+        --gold: 0.85 0.15 45;
+    }
+
+    .dark {
+        --background: 0 0 0;
+        --foreground: 0.85 0.15 45;
+        --card: 0 0 0;
+        --card-foreground: 0.85 0.15 45;
+        --popover: 0 0 0;
+        --popover-foreground: 0.85 0.15 45;
+        --primary: 0.85 0.15 45;
+        --primary-foreground: 0 0 0;
+        --secondary: 0.2 0.01 45;
+        --secondary-foreground: 0.85 0.15 45;
+        --muted: 0.2 0.01 45;
+        --muted-foreground: 0.6 0.08 45;
+        --accent: 0.85 0.15 45;
+        --accent-foreground: 0 0 0;
+        --destructive: 0.6 0.24 25;
+        --destructive-foreground: 0.98 0.005 40;
+        --border: 0.85 0.15 45;
+        --input: 0.85 0.15 45;
+        --ring: 0.85 0.15 45;
+        --chart-1: 0.85 0.15 45;
+        --chart-2: 0.7 0.12 50;
+        --chart-3: 0.65 0.1 55;
+        --chart-4: 0.6 0.08 60;
+        --chart-5: 0.75 0.14 40;
+        --gold: 0.85 0.15 45;
+    }
+
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+@layer utilities {
+    .shadow-gold-glow {
+        box-shadow: 0 0 10px oklch(0.85 0.15 45 / 0.5), 0 0 20px oklch(0.85 0.15 45 / 0.3);
+    }
+    
+    .text-gold {
+        color: oklch(var(--gold));
+    }
+    
+    .bg-gold {
+        background-color: oklch(var(--gold));
+    }
+    
+    .border-gold {
+        border-color: oklch(var(--gold));
+    }
+    
+    .fill-gold {
+        fill: oklch(var(--gold));
+    }
+}

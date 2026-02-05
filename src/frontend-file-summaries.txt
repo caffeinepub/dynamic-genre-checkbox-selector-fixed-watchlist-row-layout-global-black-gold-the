@@ -1,0 +1,20 @@
+{
+  "frontend/src/App.tsx": "Main application component that handles authentication state, profile setup flow, and renders the manga list page for authenticated users with proper loading states.",
+  "frontend/src/components/layout/AppLayout.tsx": "Shared layout wrapper providing consistent header with logo and auth controls, main content area, and footer across all app screens.",
+  "frontend/src/components/auth/LoginLogoutButton.tsx": "Reusable authentication button that handles Internet Identity login/logout with proper state management and query cache clearing.",
+  "frontend/src/components/auth/ProfileSetupDialog.tsx": "First-time user profile setup dialog that prompts for display name and hides the close button using CSS to prevent dismissal before profile creation.",
+  "frontend/src/components/manga/MangaListPage.tsx": "Main manga collection view with vertical stack layout for fixed-width watchlist rows, add button, empty state, and pagination controls.",
+  "frontend/src/components/manga/MangaCard.tsx": "Fixed-size horizontal watchlist row (900x78px) with black background, glowing gold outline, cover image constrained to 35px, title constrained to 250px, and no alternate titles displayed.",
+  "frontend/src/components/manga/AddMangaDialog.tsx": "Comprehensive manga entry form dialog with manual genre input, dynamic checkbox list of existing genres from the user's library, and validation for all fields.",
+  "frontend/src/components/manga/CoverImagesField.tsx": "Cover image input component supporting both URL and file upload with preview grid, upload progress tracking, and image removal.",
+  "frontend/src/components/manga/PaginationControls.tsx": "Pagination UI with previous/next buttons and smart page number display including ellipsis for large page counts.",
+  "frontend/src/hooks/useCurrentUserProfile.ts": "React Query hooks for fetching and saving user profile with proper actor dependency handling to prevent modal flash.",
+  "frontend/src/hooks/useMangaPage.ts": "React Query hook for fetching paginated manga data with authentication checks and bigint page number support.",
+  "frontend/src/hooks/useMangaMutations.ts": "React Query mutation hooks for adding, updating, and deleting manga entries with automatic query invalidation for pagination updates.",
+  "frontend/index.css": "Global styles with OKLCH color system using warm sepia/ink palette with vermillion accents, avoiding blue/purple, supporting both light and dark modes.",
+  "frontend/tailwind.config.js": "Tailwind configuration with gold color token, custom gold-glow shadow, and design system extensions for the black/gold theme.",
+  "frontend/src/main.tsx": "Application entry point that sets up React Query, Internet Identity provider, and renders the main App component with correct CSS import path.",
+  "frontend/src/index.css": "Global styles with black background and gold accent color system using OKLCH, including custom gold utility classes and glow shadow effect for the watchlist theme.",
+  "frontend/src/hooks/useAllMangaEntries.ts": "React Query hook that fetches the complete manga library for the authenticated user via the backend's getAllEntries method.",
+  "frontend/src/hooks/useLibraryGenres.ts": "Hook that derives a unique, alphabetically sorted list of genres from the user's manga library for use in the genre checkbox selector."
+}
