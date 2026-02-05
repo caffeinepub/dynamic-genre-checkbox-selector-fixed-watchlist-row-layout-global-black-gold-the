@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 15,
   "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
   "existing_features": [
     {
@@ -80,74 +80,36 @@
       "version": 1
     },
     {
-      "id": "feature-in-the-add-manga-dialog-keep-the-existing-manual-genre-entry-comma-separated-and-add-an-additional-organized-dynamic-checkbox-list-of-genres-that-already-exist-in-the-user-s-library-so-the-user-can-select-genres-without-retyping-them",
-      "title": "In the Add Manga dialog, keep the existing manual genre entry (comma-separated) and add an additional organized, dynamic checkbox list of genres that already exist in the user’s library, so the user can select genres without retyping them.",
+      "id": "feature-fix-the-add-manga-dialog-layout-so-the-primary-submit-button-remains-reliably-clickable-after-entering-metadata-no-overlapping-hidden-layers-blocking-pointer-events-update-the-dialog-s-internal-layout-to-use-a-stable-flex-column-structure-header-scrollable-body-footer-where-only-the-form-body-scrolls-and-the-footer-remains-fully-interactive",
+      "title": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-watchlist-entry-ui-to-use-a-fixed-size-row-layout-each-entry-must-be-78px-tall-and-900px-wide-must-not-shrink-compress-must-have-a-black-background-and-must-have-a-glowing-gold-outline",
-      "title": "Update the watchlist entry UI to use a fixed-size row layout: each entry must be 78px tall and 900px wide, must not shrink/compress, must have a black background, and must have a glowing gold outline.",
+      "id": "feature-eliminate-the-user-visible-warning-error-condition-actor-not-available-during-add-manga-by-preventing-submission-until-the-backend-actor-is-ready-and-providing-clear-english-ui-feedback-when-the-actor-is-still-initializing-ensure-the-add-manga-submit-button-and-mutation-cannot-run-while-the-actor-is-null-initializing",
+      "title": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-within-each-watchlist-row-place-the-cover-picture-flush-to-the-left-edge-with-a-display-area-no-more-than-35px-wide-and-place-the-title-immediately-to-the-right-of-the-cover-with-a-display-area-no-more-than-250px-wide",
-      "title": "Within each watchlist row, place the cover picture flush to the left edge with a display area no more than 35px wide, and place the title immediately to the right of the cover with a display area no more than 250px wide.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-hide-alternate-titles-in-the-watchlist-item-display-do-not-render-alternate-titles-anywhere-in-the-watchlist-entry-ui",
-      "title": "Hide alternate titles in the watchlist item display (do not render alternate titles anywhere in the watchlist entry UI).",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-global-visual-theme-update-so-that-all-app-backgrounds-and-all-dropdown-menus-popups-e-g-dialogs-selects-popovers-use-a-black-background-with-a-gold-outline-going-forward",
-      "title": "Apply a global visual theme update so that all app backgrounds and all dropdown menus/popups (e.g., dialogs, selects/popovers) use a black background with a gold outline going forward.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Add dynamic genre selector: organized checkbox list of existing genres (in addition to manual entry) to avoid retyping",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Watchlist UI layout updates: fixed size (78px height, 900px width non-compressible), cover on left (<=35px width), title next to cover (<=250px), hide alternate titles",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Apply global visual theme: black backgrounds with gold outline (glowing gold outline for watchlist); ensure dropdowns/popups/menus follow same black+gold styling",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
+  "new_feature_requests": [],
   "architectural_notes": [
     "Backend is implemented in Motoko with modular authorization (MixinAuthorization/access-control) and blob storage (Mixin/Storage).",
     "Frontend is a React + Vite + Tailwind app using shadcn/ui component library.",
     "Frontend uses generated canister bindings (backend.did) and an actor hook pattern (useActor/useInternetIdentity) for authenticated calls.",
-    "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts."
+    "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts.",
+    "Authorization and blob-storage Motoko modules updated/aligned to component versions v4.0.0 (internal refactors/updates across backend main + mixins).",
+    "Build-template refreshed (Dockerfile/scripts/workspace configs) and frontend template dependencies/configs updated (React+Vite+Tailwind+shadcn/ui template sync)."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Add Manga button becomes non-clickable/\"floaty\" after entering metadata, suggesting overlapping UI elements blocking interaction.",
+    "Warning shown: \"actor not available\" (frontend actor initialization/auth state issue), preventing Add Manga from executing."
+  ],
+  "isFixRequest": true,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/app-logo.dim_512x512.png",
@@ -162,7 +124,7 @@
       "targetHeight": 900
     }
   ],
-  "projectName": "Dynamic genre checkbox selector + fixed watchlist row layout + global black/gold theme",
+  "projectName": "Fix Add Manga dialog click/overlap issues and prevent 'Actor not available' warnings",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

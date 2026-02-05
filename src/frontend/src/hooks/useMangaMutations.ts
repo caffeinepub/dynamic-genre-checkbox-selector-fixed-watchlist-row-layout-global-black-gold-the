@@ -8,12 +8,16 @@ export function useAddMangaEntry(currentPage: number) {
 
   return useMutation({
     mutationFn: async ({ id, manga }: { id: string; manga: MangaEntry }) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) {
+        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      }
       return actor.addEntry(id, manga);
     },
     onSuccess: () => {
       // Invalidate all manga page queries to refresh pagination
       queryClient.invalidateQueries({ queryKey: ['mangaPage'] });
+      // Also invalidate the all entries query used for genre list
+      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
     },
   });
 }
@@ -24,11 +28,14 @@ export function useUpdateMangaEntry(currentPage: number) {
 
   return useMutation({
     mutationFn: async ({ id, manga }: { id: string; manga: MangaEntry }) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) {
+        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      }
       return actor.updateEntry(id, manga);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mangaPage', currentPage] });
+      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
     },
   });
 }
@@ -39,11 +46,14 @@ export function useDeleteMangaEntry(currentPage: number) {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) {
+        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      }
       return actor.deleteEntry(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mangaPage'] });
+      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
     },
   });
 }

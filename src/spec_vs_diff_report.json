@@ -1,39 +1,47 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:36:25.581Z",
-  "summary": "Most frontend UI/layout and global theme changes appear implemented (fixed 900x78 watchlist rows with black+gold glow; cover/title width constraints; alternate titles not shown; global CSS variables set to black backgrounds and gold borders). The dynamic genre checkbox feature is partially evidenced via new hooks and form state/combining logic, but the diff does not show the checkbox list UI rendering and also introduces a backend dependency (actor.getAllEntries) without corresponding backend changes in the provided diff.",
+  "generatedAt": "2026-02-05T01:35:14.952Z",
+  "summary": "Diff shows AddMangaDialog now checks actor readiness before submitting and useMangaMutations throws a friendlier error when actor is null. However, due to truncation of AddMangaDialog.tsx, the key UI/layout acceptance criteria (flex column header/body/footer with only body scrolling, footer always clickable, submit disabled + visible “connecting/loading” message) are not directly verifiable from the provided diff summary. Some additional changes (e.g., extra validation and broadening actor-null error handling to update/delete) appear beyond the explicit request.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "The dialog shows a checkbox list of existing genres derived from the current user’s existing manga entries; checkbox list remains usable when many genres exist (scrollable).",
-      "reason": "Although genre derivation hooks and selectedGenres state/combining logic are added, the provided AddMangaDialog diff is truncated before any JSX that would actually render the checkbox list and its scrollable container; additionally, the genre list depends on actor.getAllEntries, but no backend changes are shown to confirm that method exists.",
+      "requirement": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
+      "reason": "The diff snippet for AddMangaDialog.tsx is truncated before any JSX/layout is shown, so there is no direct evidence that a fixed header + scrollable body + fixed interactive footer structure was implemented, or that overlap/pointer-event issues were resolved.",
       "evidence": [
-        "frontend/src/components/manga/AddMangaDialog.tsx",
-        "frontend/src/hooks/useAllMangaEntries.ts",
-        "frontend/src/hooks/useLibraryGenres.ts"
+        "frontend/src/components/manga/AddMangaDialog.tsx (truncated; no layout/JSX shown)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Disable Add Manga submission until the backend actor is ready and show clear English UI feedback while the actor is initializing; ensure the submit button and mutation cannot run while actor is null/initializing; prevent raw \"Actor not available\" from being displayed.",
+      "reason": "Logic to prevent submission when actor is not ready is shown, but the acceptance criteria require a disabled submit button and an in-dialog English connection/loading message. The JSX that would show the message and disable the button is not present in the truncated diff, so this cannot be confirmed from evidence provided.",
+      "evidence": [
+        "frontend/src/components/manga/AddMangaDialog.tsx (truncated; readiness logic shown but UI state/disabled button not verifiable)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Hard-capping rendered manga entries to 30 items per page via entries.slice(0, 30).",
-      "reason": "The BuildRequest explicitly says not to change pagination behavior or page size unless required for the watchlist row layout; the fixed row layout does not inherently require limiting a page’s rendered entries to 30.",
+      "description": "Added/strengthened rating validation (range 1.0–10.0 and 0.5 increments) in Add Manga submission handling.",
+      "reason": "BuildRequest focuses on dialog click/overlap issues and actor readiness handling; it does not request new/changed validation rules.",
       "evidence": [
-        "frontend/src/components/manga/MangaListPage.tsx"
+        "frontend/src/components/manga/AddMangaDialog.tsx (truncated; shows rating range + step validation)"
+      ]
+    },
+    {
+      "description": "Changed actor-null error handling for update and delete mutations (not just add) to throw a user-friendly error message.",
+      "reason": "REQ-2 specifically targets the Add Manga flow; extending this to update/delete may be beneficial but is not explicitly requested.",
+      "evidence": [
+        "frontend/src/hooks/useMangaMutations.ts (useUpdateMangaEntry/useDeleteMangaEntry actor-null error message changes)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.58,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/manga/AddMangaDialog.tsx",
-    "frontend/src/components/manga/MangaCard.tsx",
-    "frontend/src/components/manga/MangaListPage.tsx",
-    "frontend/src/hooks/useAllMangaEntries.ts",
-    "frontend/src/hooks/useLibraryGenres.ts",
-    "frontend/src/index.css",
-    "frontend/tailwind.config.js",
+    "frontend/src/hooks/useMangaMutations.ts",
     "project_state.json"
   ]
 }

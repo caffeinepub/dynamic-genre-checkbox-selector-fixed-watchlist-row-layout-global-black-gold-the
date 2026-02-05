@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-add-manga-dialog-keep-the-existing-manual-genre-entry-comma-separated-and-add-an-additional-organized-dynamic-checkbox-list-of-genres-that-already-exist-in-the-user-s-library-so-the-user-can-select-genres-without-retyping-them",
-      "featureTitle": "In the Add Manga dialog, keep the existing manual genre entry (comma-separated) and add an additional organized, dynamic checkbox list of genres that already exist in the user’s library, so the user can select genres without retyping them.",
+      "featureId": "feature-fix-the-add-manga-dialog-layout-so-the-primary-submit-button-remains-reliably-clickable-after-entering-metadata-no-overlapping-hidden-layers-blocking-pointer-events-update-the-dialog-s-internal-layout-to-use-a-stable-flex-column-structure-header-scrollable-body-footer-where-only-the-form-body-scrolls-and-the-footer-remains-fully-interactive",
+      "featureTitle": "Fix the Add Manga dialog layout so the primary submit button remains reliably clickable after entering metadata (no overlapping/hidden layers blocking pointer events). Update the dialog’s internal layout to use a stable flex column structure (header + scrollable body + footer) where only the form body scrolls and the footer remains fully interactive.",
       "files": [
-        "frontend/src/components/manga/AddMangaDialog.tsx",
-        "frontend/src/hooks/useAllMangaEntries.ts",
-        "frontend/src/hooks/useLibraryGenres.ts"
+        "frontend/src/components/manga/AddMangaDialog.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,11 +22,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-watchlist-entry-ui-to-use-a-fixed-size-row-layout-each-entry-must-be-78px-tall-and-900px-wide-must-not-shrink-compress-must-have-a-black-background-and-must-have-a-glowing-gold-outline",
-      "featureTitle": "Update the watchlist entry UI to use a fixed-size row layout: each entry must be 78px tall and 900px wide, must not shrink/compress, must have a black background, and must have a glowing gold outline.",
+      "featureId": "feature-eliminate-the-user-visible-warning-error-condition-actor-not-available-during-add-manga-by-preventing-submission-until-the-backend-actor-is-ready-and-providing-clear-english-ui-feedback-when-the-actor-is-still-initializing-ensure-the-add-manga-submit-button-and-mutation-cannot-run-while-the-actor-is-null-initializing",
+      "featureTitle": "Eliminate the user-visible warning/error condition \"Actor not available\" during Add Manga by preventing submission until the backend actor is ready and providing clear, English UI feedback when the actor is still initializing. Ensure the Add Manga submit button and mutation cannot run while the actor is null/initializing.",
       "files": [
-        "frontend/src/components/manga/MangaCard.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx"
+        "frontend/src/components/manga/AddMangaDialog.tsx",
+        "frontend/src/hooks/useMangaMutations.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,67 +39,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-within-each-watchlist-row-place-the-cover-picture-flush-to-the-left-edge-with-a-display-area-no-more-than-35px-wide-and-place-the-title-immediately-to-the-right-of-the-cover-with-a-display-area-no-more-than-250px-wide",
-      "featureTitle": "Within each watchlist row, place the cover picture flush to the left edge with a display area no more than 35px wide, and place the title immediately to the right of the cover with a display area no more than 250px wide.",
-      "files": [
-        "frontend/src/components/manga/MangaCard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-hide-alternate-titles-in-the-watchlist-item-display-do-not-render-alternate-titles-anywhere-in-the-watchlist-entry-ui",
-      "featureTitle": "Hide alternate titles in the watchlist item display (do not render alternate titles anywhere in the watchlist entry UI).",
-      "files": [
-        "frontend/src/components/manga/MangaCard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-a-global-visual-theme-update-so-that-all-app-backgrounds-and-all-dropdown-menus-popups-e-g-dialogs-selects-popovers-use-a-black-background-with-a-gold-outline-going-forward",
-      "featureTitle": "Apply a global visual theme update so that all app backgrounds and all dropdown menus/popups (e.g., dialogs, selects/popovers) use a black background with a gold outline going forward.",
-      "files": [
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

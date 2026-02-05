@@ -1,104 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Genre checkbox selector, fixed watchlist rows, and global black/gold theme",
+  "title": "Stabilize Add Manga dialog layout and guard submission until actor is ready",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add a dynamic, organized genre checkbox list in the Add Manga dialog based on genres already present in the user’s library, while keeping manual comma-separated genre entry.",
+      "summary": "Restructure the Add Manga dialog into a stable flex column (header + scrollable body + fixed footer) so footer buttons remain clickable with no overlapping layers.",
       "acceptanceCriteria": [
-        "The Add Manga dialog still supports typing genres manually as comma-separated text.",
-        "The dialog shows a checkbox list of existing genres derived from the current user’s existing manga entries.",
-        "Checking/unchecking genres updates the genres that will be saved for the new manga entry (combined with any manually entered genres, with duplicates removed).",
-        "The checkbox list is organized (e.g., sorted alphabetically) and remains usable when there are many genres (scrollable area)."
+        "In the Add Manga dialog, after filling in fields (including cover image URL/file upload, genres, notes, etc.), the \"Add Manga\" button is clickable and triggers submission.",
+        "No UI element overlays the dialog footer buttons; pointer interactions on Cancel/Add Manga always work.",
+        "Only the dialog body content scrolls; the footer stays visible and does not overlap with scrollable content."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useAllMangaEntries.ts",
-          "operation": "create",
-          "description": "Create a React Query hook that fetches the user’s full manga library via the existing backend actor method and exposes loading/error state for consumers that need library-wide data (e.g., deriving genre options)."
-        },
-        {
-          "path": "frontend/src/hooks/useLibraryGenres.ts",
-          "operation": "create",
-          "description": "Create a small hook/helper that derives a unique, alphabetically sorted list of genres from the full manga library result (normalized + de-duplicated) for use in the Add Manga dialog."
-        },
-        {
           "path": "frontend/src/components/manga/AddMangaDialog.tsx",
           "operation": "modify",
-          "description": "Add a scrollable, alphabetically sorted checkbox list of existing genres (derived from the user’s library) alongside the existing manual comma-separated genre input; maintain selected checkbox genres in component state and merge them with manually entered genres on submit while removing duplicates."
+          "description": "Refactor the DialogContent/form layout to a predictable flex-column structure: make DialogContent a fixed-height flex container, make the form fill available height, and constrain the ScrollArea to only the body region (using flex-1/min-h-0 patterns) while keeping DialogFooter outside the scrollable region with appropriate stacking/background to prevent overlay/pointer-event issues. Ensure no max-height on the body causes it to overlap the footer."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update watchlist entries to render as fixed-size, non-shrinking 900x78 rows with black background and glowing gold outline.",
+      "summary": "Prevent Add Manga submission while the backend actor is still initializing and replace the raw \"Actor not available\" error with clear English UI feedback.",
       "acceptanceCriteria": [
-        "Each watchlist item renders as a horizontal row with height exactly 78px.",
-        "Each watchlist item renders at width exactly 900px and does not shrink when placed in flex/grid layouts (e.g., uses no-shrink behavior).",
-        "Each watchlist item has a black background and a visible gold outline with a glow effect."
+        "Attempting to submit a new manga while the actor is still initializing does not throw or display the raw error \"Actor not available\".",
+        "The Add Manga submit button is disabled when the actor is not ready, and the dialog shows an English message indicating it is connecting/loading (exact wording up to implementation, but must be clear).",
+        "Once the actor becomes available, submission works without requiring a page refresh."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
           "operation": "modify",
-          "description": "Refactor the watchlist item UI to a fixed-size horizontal row (w-[900px], h-[78px], shrink-0) with black background and a gold border + glow styling, ensuring it remains stable inside parent layouts."
+          "description": "Use the existing actor readiness state from the app (via useActor) to gate submission: disable the submit button and block handleSubmit from calling the mutation when actor is null or still fetching. Add a visible, English helper message within the dialog when connecting/loading so the user understands why submission is disabled. Ensure the dialog updates automatically when the actor becomes available."
         },
         {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "path": "frontend/src/hooks/useMangaMutations.ts",
           "operation": "modify",
-          "description": "Update the list container layout so watchlist rows are rendered in a vertical stack (not a responsive grid) and do not get compressed; ensure the 900px-wide row presentation is preserved (e.g., centered with horizontal overflow handling as needed)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Within each watchlist row, constrain the cover area to <= 35px on the far left and the title to <= 250px immediately to the right.",
-      "acceptanceCriteria": [
-        "The cover image column is anchored to the far left of the row and is constrained to <= 35px width.",
-        "The title is placed immediately to the right of the cover column and is constrained to <= 250px width (with truncation/ellipsis if needed).",
-        "The layout remains stable and aligned across all watchlist items."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
-          "operation": "modify",
-          "description": "Implement the internal row layout: cover image flush-left with a max width of 35px and fixed row height, followed immediately by the title region constrained to max 250px with truncation/ellipsis; keep alignment consistent across all items."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Do not render alternate titles anywhere in the watchlist entry UI.",
-      "acceptanceCriteria": [
-        "Alternate titles are not visible in the watchlist UI even if they exist in the data."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
-          "operation": "modify",
-          "description": "Remove/hide any rendering of alternate titles from the watchlist row UI so only the primary title is displayed in the watchlist entry."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Apply a global black background + gold outline theme for pages and for dropdowns/popups (dialogs, selects/popovers) via global styling overrides (without editing UI component sources).",
-      "acceptanceCriteria": [
-        "Primary page backgrounds render as black.",
-        "Dialogs/popovers/dropdown menus render with black backgrounds and gold outlines (without editing read-only UI component sources).",
-        "Borders/outlines across the UI reflect gold styling consistently (including focus rings where applicable)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Update global theme CSS variables so background/card/popover surfaces render as black and borders/inputs/rings render as gold; ensure focus ring styling uses the gold ring variable and that Radix/shadcn popovers/dialogs inherit the black background + gold outline through CSS variables and global selectors (without modifying files under frontend/src/components/ui)."
-        },
-        {
-          "path": "frontend/tailwind.config.js",
-          "operation": "modify",
-          "description": "Adjust/extend Tailwind theme mappings if needed so the existing color tokens (background, border, ring, popover, card) correctly reflect the updated black/gold CSS variables across all components."
+          "description": "Harden the add-manga mutation to avoid surfacing the raw \"Actor not available\" string: when actor is null, throw a user-friendly, English error message aligned with the dialog’s connecting/loading state, and ensure the mutation function cannot proceed without an actor reference."
         }
       ]
     }
