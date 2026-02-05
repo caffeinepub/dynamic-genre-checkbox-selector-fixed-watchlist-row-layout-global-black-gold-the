@@ -5,9 +5,10 @@ interface PaginationControlsProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 }
 
-export function PaginationControls({ currentPage, totalPages, onPageChange }: PaginationControlsProps) {
+export function PaginationControls({ currentPage, totalPages, onPageChange, disabled = false }: PaginationControlsProps) {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisible = 7;
@@ -49,7 +50,7 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
         variant="outline"
         size="icon"
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={currentPage === 1 || disabled}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -60,6 +61,7 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
             key={index}
             variant={currentPage === page ? 'default' : 'outline'}
             onClick={() => onPageChange(page)}
+            disabled={disabled}
             className="min-w-[2.5rem]"
           >
             {page}
@@ -75,7 +77,7 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
         variant="outline"
         size="icon"
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === totalPages || disabled}
       >
         <ChevronRight className="h-4 w-4" />
       </Button>

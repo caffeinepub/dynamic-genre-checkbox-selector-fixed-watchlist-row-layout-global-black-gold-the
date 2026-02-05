@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Make the “Add Manga” modal dialog usable on small screens by ensuring its form content scrolls within the dialog and the bottom action buttons remain reachable and clickable.
+**Goal:** Prevent the frontend from calling the backend before the canister/actor is actually reachable and fully initialized, with clear readiness states, bounded retries, and non-spammy UI behavior.
 
 **Planned changes:**
-- Constrain the Add Manga dialog height to fit within the viewport on short laptop screens and mobile, preventing off-screen overflow.
-- Make the dialog body (form fields) scrollable inside the modal so all inputs can be reached without scrolling the page behind the modal.
-- Ensure the “Cancel” and “Add Manga” buttons are always reachable (visible or reachable via internal dialog scrolling) and not blocked/overlaid, across mouse and touch scrolling.
-- Add a minimal in-repo manual regression checklist to verify the dialog max-height constraint and internal scrolling keep the “Add Manga” button accessible at small viewport heights.
+- Add an unauthenticated, non-mutating backend readiness query endpoint (e.g., health/ready) that is safe for anonymous callers and can be used to detect “unreachable/not ready”.
+- Update frontend actor initialization to expose a single readiness state (e.g., `isActorReady`) that only becomes true after actor creation, any access-control initialization succeeds, and a backend readiness check passes.
+- Guard all backend queries/mutations (including React Query hooks, pagination, and manga submission) so they do not run while readiness is false and do not produce “Actor not available” during normal startup.
+- Implement bounded retry/backoff for readiness/connection checks and classify errors so the UI differentiates: connecting/not ready vs connection failed vs application-level errors (e.g., Unauthorized), without retrying non-transient auth/app errors.
+- Harden UI interactions during connecting/retrying: disable relevant buttons/forms, show “connecting to backend” messaging, debounce/disable retry while in-flight, and avoid console-spam refetch loops during initialization.
 
-**User-visible outcome:** On small screens, users can always scroll through the Add Manga form and reliably reach and click the “Cancel” and “Add Manga” buttons without the dialog extending off-screen.
+**User-visible outcome:** The app reliably shows a clear “connecting to backend” state on startup, avoids premature backend calls, and provides an actionable retry flow when connection/initialization fails—while still supporting anonymous sessions without misclassifying them as authenticated-ready.

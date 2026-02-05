@@ -1,53 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix Add Manga dialog scrolling so action buttons are always reachable",
+  "title": "Harden backend connectivity and actor readiness to prevent premature calls",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
-      "target": "frontend",
+      "text": "Implement a backend readiness endpoint that is safe to call without authentication, so the frontend can verify the canister is reachable before issuing any authenticated queries or mutations.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-3"
         ],
         "quotes": [
-          "i CLEARLY said to add the scrolling feature so that i can see the add manga button."
+          "Adjusting the timing forces the frontend to not call the backend until the actor is actually ready."
         ]
       },
       "acceptanceCriteria": [
-        "When the Add Manga dialog is open and the viewport height is small (e.g., ~700px or less), the dialog does not extend beyond the visible screen area.",
-        "The dialog body (fields such as Alternate Titles, Synopsis, Genres, Cover Images, Notes) can be scrolled to reach all inputs.",
-        "The “Cancel” and “Add Manga” buttons remain visible at the bottom of the dialog (sticky or fixed within the dialog) OR are always reachable via scrolling within the dialog, with no need to scroll the page behind the modal.",
-        "The scroll behavior works with mouse wheel/trackpad and touch scrolling on mobile.",
-        "No UI element overlays or blocks clicks on the “Cancel” and “Add Manga” buttons (buttons remain reliably clickable)."
+        "Backend exposes a simple query method (e.g., health/ready) that returns successfully even when the caller is anonymous and without requiring access-control initialization.",
+        "Calling the readiness endpoint does not mutate state and does not trap for unauthenticated callers.",
+        "Frontend can use this endpoint to distinguish 'canister unreachable/not ready' from ordinary application errors."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
+      "text": "Update the actor initialization flow so the frontend has an explicit, reliable 'actor is ready' state that only becomes true after: (1) the actor instance is created, (2) access control initialization (if applicable) succeeds, and (3) a backend readiness check passes; do not trigger dependent query refetches until this ready state is true.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-3"
         ],
         "quotes": [
-          "add the scrolling feature so that i can see the add manga button."
+          "Adjusting the timing forces the frontend to not call the backend until the actor is actually ready."
         ]
       },
       "acceptanceCriteria": [
-        "A documented manual test checklist exists in-repo (or equivalent lightweight test note) describing how to verify the Add Manga dialog scroll and action button accessibility at small viewport heights.",
-        "Running through the checklist confirms the “Add Manga” button can always be reached and clicked."
+        "Frontend exposes a single source of truth for readiness (e.g., isActorReady) that is false while any initialization step is pending or failed.",
+        "Dependent React Query hooks do not call the backend while readiness is false (no queries/mutations run early).",
+        "If access-control initialization fails, the UI surfaces a clear error state and provides a retry action; the app does not spam backend calls in the background.",
+        "The existing behavior of creating an anonymous actor when not authenticated is preserved, and readiness logic does not incorrectly treat anonymous sessions as authenticated-ready."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Strengthen retry/backoff and error classification across backend calls: add defensive retries for transient connection/replica errors, ensure retries are bounded, and ensure the UI clearly differentiates between (a) connecting/not ready, (b) connection failed, and (c) application-level errors (e.g., Unauthorized).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "add ALL the fixes NOW, assume that 100 of the next fixes don't work, and put in all the fixes you can fucking think of"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Frontend retries backend readiness/connection checks with bounded exponential backoff (or equivalent), and does not retry indefinitely.",
+        "Frontend does not retry on authorization/application traps that are not transient (e.g., Unauthorized) and instead shows an actionable message (e.g., prompt to login).",
+        "All existing data-fetching hooks that call the backend are guarded by readiness and do not throw 'Actor not available' during normal startup.",
+        "UI provides a consistent retry mechanism that re-attempts initialization (actor creation + readiness check) rather than only re-running a single query."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add additional UI-level hardening so no user action can trigger a backend call before readiness: disable relevant buttons/forms during connecting state, show a clear 'connecting to backend' state where appropriate, and prevent double-submit or repeated retries from spamming calls.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Adjusting the timing forces the frontend to not call the backend until the actor is actually ready."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Add Manga submission is blocked while connecting/not ready, with a user-facing English message explaining to wait or retry.",
+        "Pagination/page changes do not issue backend calls while connecting/not ready; the UI stays stable and indicates loading/connecting appropriately.",
+        "Retry buttons are debounced/disabled while an active retry attempt is already in progress.",
+        "No console spam loops occur from query invalidation/refetch during actor initialization."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only UI components); implement fixes by adjusting usage/composition in app-level components such as frontend/src/components/manga/AddMangaDialog.tsx.",
-    "Use English for any user-facing text."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit files in frontend immutablePaths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui). Compose changes around them safely.",
+    "All user-facing text introduced/changed by this work must be in English."
   ],
   "nonGoals": [
-    "Do not add new backend features or modify backend schemas for this request.",
-    "Do not redesign unrelated pages or change manga CRUD behavior beyond fixing the dialog scrolling/accessibility issue."
+    "Adding new product features beyond connectivity/readiness hardening.",
+    "Introducing external databases, additional backend canisters, or third-party auth providers."
   ],
   "imageRequirements": {
     "required": [],

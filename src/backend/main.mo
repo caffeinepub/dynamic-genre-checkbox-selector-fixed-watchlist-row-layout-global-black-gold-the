@@ -23,6 +23,11 @@ actor {
     name : Text;
   };
 
+  // Ready Endpoint
+  public query ({ caller }) func isReady() : async Bool {
+    true;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
 
   // User profile functions

@@ -36,11 +36,18 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
   const [completed, setCompleted] = useState('incomplete');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { actor, isFetching: actorFetching, isConnecting, isError, errorMessage: actorError, retry } = useActorWithRetry();
+  const { 
+    isConnecting, 
+    isError, 
+    errorMessage: actorError, 
+    errorCategory,
+    retry,
+    isRetrying,
+    isActorReady,
+  } = useActorWithRetry();
+  
   const addManga = useAddMangaEntry(currentPage);
   const { genres: libraryGenres } = useLibraryGenres();
-
-  const isActorReady = !!actor && !actorFetching && !isConnecting;
 
   const resetForm = () => {
     setTitle('');
@@ -73,12 +80,12 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
 
     // Prevent submission if actor is not ready
     if (!isActorReady) {
-      setErrorMessage('Please wait while connecting to the backend...');
+      setErrorMessage('Backend is not ready. Please wait for the connection to complete.');
       return;
     }
 
     // Prevent double submission
-    if (addManga.isPending) {
+    if (addManga.isPending || isRetrying) {
       return;
     }
 
@@ -183,6 +190,10 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
     onOpenChange(newOpen);
   };
 
+  // Determine if form should be disabled
+  const isFormDisabled = !isActorReady || addManga.isPending || isRetrying;
+  const isAuthError = errorCategory === 'authorization';
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90dvh] flex flex-col p-0 gap-0">
@@ -206,15 +217,18 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="flex items-center justify-between gap-2">
                 <span>{actorError || 'Connection failed'}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={retry}
-                  className="shrink-0"
-                >
-                  Retry
-                </Button>
+                {!isAuthError && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={retry}
+                    disabled={isRetrying}
+                    className="shrink-0"
+                  >
+                    {isRetrying ? 'Retrying...' : 'Retry'}
+                  </Button>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -223,6 +237,15 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+
+          {!isActorReady && !isError && !isConnecting && (
+            <Alert className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Waiting for backend connection. Please wait before submitting.
+              </AlertDescription>
             </Alert>
           )}
         </div>
@@ -238,6 +261,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter manga title"
                   required
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
@@ -251,6 +275,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                         value={altTitle}
                         onChange={(e) => updateAlternateTitle(index, e.target.value)}
                         placeholder={`Alternate title ${index + 1}`}
+                        disabled={isFormDisabled}
                       />
                       {alternateTitles.length > 1 && (
                         <Button
@@ -258,6 +283,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                           variant="outline"
                           size="icon"
                           onClick={() => removeAlternateTitle(index)}
+                          disabled={isFormDisabled}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -270,6 +296,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                       variant="outline"
                       size="sm"
                       onClick={addAlternateTitle}
+                      disabled={isFormDisabled}
                     >
                       Add Alternate Title
                     </Button>
@@ -285,6 +312,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   onChange={(e) => setSynopsis(e.target.value)}
                   placeholder="Enter a brief synopsis"
                   rows={3}
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
@@ -296,6 +324,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={genres}
                   onChange={(e) => setGenres(e.target.value)}
                   placeholder="e.g., Action, Adventure, Fantasy"
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
@@ -311,6 +340,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                             id={`genre-${genre}`}
                             checked={selectedGenres.has(genre)}
                             onCheckedChange={() => toggleGenre(genre)}
+                            disabled={isFormDisabled}
                           />
                           <label
                             htmlFor={`genre-${genre}`}
@@ -339,6 +369,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                     min="0"
                     value={chaptersRead}
                     onChange={(e) => setChaptersRead(e.target.value)}
+                    disabled={isFormDisabled}
                     className="mt-1"
                   />
                 </div>
@@ -350,6 +381,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                     min="0"
                     value={availableChapters}
                     onChange={(e) => setAvailableChapters(e.target.value)}
+                    disabled={isFormDisabled}
                     className="mt-1"
                   />
                 </div>
@@ -365,13 +397,14 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   step="0.5"
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
 
               <div>
                 <Label htmlFor="completed">Completion Status</Label>
-                <Select value={completed} onValueChange={setCompleted}>
+                <Select value={completed} onValueChange={setCompleted} disabled={isFormDisabled}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
@@ -389,6 +422,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={bookmarks}
                   onChange={(e) => setBookmarks(e.target.value)}
                   placeholder="e.g., 5, 12, 23"
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
@@ -401,6 +435,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Personal notes about this manga"
                   rows={3}
+                  disabled={isFormDisabled}
                   className="mt-1"
                 />
               </div>
@@ -415,16 +450,23 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                 resetForm();
                 onOpenChange(false);
               }}
-              disabled={addManga.isPending}
+              disabled={addManga.isPending || isRetrying}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               form="add-manga-form"
-              disabled={!title.trim() || !isActorReady || addManga.isPending}
+              disabled={!title.trim() || isFormDisabled}
             >
-              {addManga.isPending ? 'Adding...' : 'Add Manga'}
+              {addManga.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Manga'
+              )}
             </Button>
           </DialogFooter>
         </form>

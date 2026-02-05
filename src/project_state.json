@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 23,
+  "projectStateVersion": 27,
   "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
   "existing_features": [
     {
@@ -80,18 +80,26 @@
       "version": 1
     },
     {
-      "id": "feature-ensure-the-add-manga-dialog-s-form-content-is-scrollable-within-the-dialog-viewport-so-that-the-bottom-action-buttons-cancel-and-add-manga-are-always-reachable-on-all-common-screen-sizes-including-short-laptop-screens-and-mobile-without-the-dialog-content-overflowing-off-screen",
-      "title": "Ensure the “Add Manga” dialog’s form content is scrollable within the dialog viewport so that the bottom action buttons (“Cancel” and “Add Manga”) are always reachable on all common screen sizes (including short laptop screens and mobile), without the dialog content overflowing off-screen.",
+      "id": "feature-update-the-actor-initialization-flow-so-the-frontend-has-an-explicit-reliable-actor-is-ready-state-that-only-becomes-true-after-1-the-actor-instance-is-created-2-access-control-initialization-if-applicable-succeeds-and-3-a-backend-readiness-check-passes-do-not-trigger-dependent-query-refetches-until-this-ready-state-is-true",
+      "title": "Update the actor initialization flow so the frontend has an explicit, reliable 'actor is ready' state that only becomes true after: (1) the actor instance is created, (2) access control initialization (if applicable) succeeds, and (3) a backend readiness check passes; do not trigger dependent query refetches until this ready state is true.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-minimal-regression-check-for-the-add-manga-dialog-layout-to-prevent-future-changes-from-reintroducing-hidden-overflowing-bottom-actions-verify-dialog-max-height-constraint-and-internal-scrolling-behavior",
-      "title": "Add a minimal regression check for the Add Manga dialog layout to prevent future changes from reintroducing hidden/overflowing bottom actions (verify dialog max height constraint and internal scrolling behavior).",
+      "id": "feature-strengthen-retry-backoff-and-error-classification-across-backend-calls-add-defensive-retries-for-transient-connection-replica-errors-ensure-retries-are-bounded-and-ensure-the-ui-clearly-differentiates-between-a-connecting-not-ready-b-connection-failed-and-c-application-level-errors-e-g-unauthorized",
+      "title": "Strengthen retry/backoff and error classification across backend calls: add defensive retries for transient connection/replica errors, ensure retries are bounded, and ensure the UI clearly differentiates between (a) connecting/not ready, (b) connection failed, and (c) application-level errors (e.g., Unauthorized).",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-additional-ui-level-hardening-so-no-user-action-can-trigger-a-backend-call-before-readiness-disable-relevant-buttons-forms-during-connecting-state-show-a-clear-connecting-to-backend-state-where-appropriate-and-prevent-double-submit-or-repeated-retries-from-spamming-calls",
+      "title": "Add additional UI-level hardening so no user action can trigger a backend call before readiness: disable relevant buttons/forms during connecting state, show a clear 'connecting to backend' state where appropriate, and prevent double-submit or repeated retries from spamming calls.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -99,26 +107,46 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add dynamic genre checkbox list populated from existing genres (in addition to manual genre entry) to avoid retyping genres.",
+      "summary": "Add dynamic genre checkbox list sourced from existing genres (in addition to manual entry)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Watchlist row layout polish: fixed height 78px; fixed width 900px and non-compressible; cover on left max 35px wide; title next to cover max 250px wide; hide alternate titles.",
+      "summary": "Watchlist UI layout constraints: fixed 900px width (non-compressible) and 78px height; cover left max 35px; title next max 250px; hide alternate titles",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Global UI theming: black backgrounds with gold outline; watchlist rows with glowing gold outline on black background; apply to dropdowns/menus/popups going forward.",
+      "summary": "Global UI theme update: black backgrounds for all surfaces (backgrounds/dropdowns/popups) with gold outline + glowing gold watchlist outline",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Make the Add Manga popup/dialog scrollable so the bottom actions (Add Manga/Cancel) are always reachable/visible.",
+      "summary": "Make Add Manga popup/dialog scrollable so bottom actions (Add Manga/Cancel) are accessible",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Fix Add Manga button overlap/unclickable behavior (z-index/layout) and ensure form submission works reliably",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Harden backend connectivity: prevent any backend calls until authenticated actor is initialized; improve handling of 'actor not available' / failed-to-connect errors (loading/disable actions/retry)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement a backend readiness endpoint that is safe to call without authentication, so the frontend can verify the canister is reachable before issuing any authenticated queries or mutations.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
@@ -129,13 +157,15 @@
     "Assets include generated placeholders (app logo and cover placeholder) produced by build-template image scripts.",
     "Authorization and blob-storage Motoko modules updated/aligned to component versions v4.0.0 (internal refactors/updates across backend main + mixins).",
     "Build-template refreshed (Dockerfile/scripts/workspace configs) and frontend template dependencies/configs updated (React+Vite+Tailwind+shadcn/ui template sync).",
-    "Frontend actor initialization now includes retry logic via a dedicated hook (useActorWithRetry) to improve resilience of authenticated calls."
+    "Frontend actor initialization now includes retry logic via a dedicated hook (useActorWithRetry) to improve resilience of authenticated calls.",
+    "Build-template React frontend was synced/refreshed to the latest template baseline, including expanded shadcn/ui component set and updated tooling/config (Vite/Tailwind/TS).",
+    "Build-template now includes custom ESLint rules to enforce Internet Identity provider usage and prevent BigInt usage in query keys.",
+    "Guard all canister calls behind confirmed authenticated actor readiness (block/disable UI actions until actor initialized; optionally add retry/backoff + user-visible loading state)."
   ],
   "known_issues": [
-    "Intermittent frontend backend-connection failures (e.g., 'Failed to connect to backend. Please check your connection and try again.').",
-    "'Actor not available' warning indicates actor initialization/race condition before authenticated calls.",
-    "Add Manga UI/button becomes floaty/unclickable due to overlapping layers/z-index or layout issues.",
-    "Add Manga popup/dialog content overflows and hides bottom action buttons without scrolling."
+    "Intermittent 'actor not available' / failed-to-connect-to-backend errors due to actor initialization race conditions after deployment.",
+    "Add Manga UI can become overlapped/unclickable (likely z-index/layout), preventing form submission.",
+    "Add Manga dialog content can exceed viewport, hiding action buttons without scroll."
   ],
   "isFixRequest": true,
   "generatedImages": [
@@ -152,7 +182,7 @@
       "targetHeight": 900
     }
   ],
-  "projectName": "Fix Add Manga dialog scrolling so action buttons are always reachable",
+  "projectName": "Harden backend connectivity and actor readiness to prevent premature calls",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

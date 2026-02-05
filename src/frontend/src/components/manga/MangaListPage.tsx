@@ -5,7 +5,7 @@ import { AddMangaDialog } from './AddMangaDialog';
 import { PaginationControls } from './PaginationControls';
 import { MangaCard } from './MangaCard';
 import { Button } from '../ui/button';
-import { Plus, BookOpen, AlertCircle } from 'lucide-react';
+import { Plus, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription } from '../ui/alert';
 
@@ -13,43 +13,99 @@ export function MangaListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
-  const { isError: actorError, errorMessage: actorErrorMessage, retry: retryActor } = useActorWithRetry();
+  const { 
+    isConnecting, 
+    isError: actorError, 
+    errorMessage: actorErrorMessage, 
+    errorCategory,
+    retry: retryActor,
+    isRetrying,
+    isActorReady,
+    readinessStatus,
+  } = useActorWithRetry();
+  
   const { data: mangaPage, isLoading, error } = useGetMangaPage(currentPage);
 
-  // Show actor connection error prominently
-  if (actorError) {
+  // Show connecting state
+  if (isConnecting && !actorError) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
-            <p className="text-muted-foreground mt-1">Manage your personal manga watchlist</p>
+            <p className="text-muted-foreground mt-1">Connecting to backend...</p>
+          </div>
+        </div>
+        <Alert>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <AlertDescription>
+            Initializing connection to backend. Please wait...
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-col items-center gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="w-[900px] h-[78px]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show actor connection error prominently with category-specific messaging
+  if (actorError) {
+    const isAuthError = errorCategory === 'authorization';
+    const isTransient = errorCategory === 'transient' || errorCategory === 'connecting';
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
+            <p className="text-muted-foreground mt-1">
+              {isAuthError ? 'Authorization required' : 'Connection issue detected'}
+            </p>
           </div>
         </div>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between gap-2">
             <span>{actorErrorMessage || 'Failed to connect to backend'}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={retryActor}
-              className="shrink-0"
-            >
-              Retry Connection
-            </Button>
+            {isTransient && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={retryActor}
+                disabled={isRetrying}
+                className="shrink-0"
+              >
+                {isRetrying ? 'Retrying...' : 'Retry Connection'}
+              </Button>
+            )}
           </AlertDescription>
         </Alert>
         <div className="text-center py-16 border-2 border-dashed border-border rounded-lg">
           <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Connection Error</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            {isAuthError ? 'Authorization Required' : 'Connection Error'}
+          </h3>
           <p className="text-muted-foreground mb-6">
-            Unable to connect to the backend. Please check your connection and try again.
+            {isAuthError 
+              ? 'You need to be logged in to access your manga collection.'
+              : 'Unable to connect to the backend. Please check your connection and try again.'}
           </p>
-          <Button onClick={retryActor} variant="default">
-            Retry Connection
-          </Button>
+          {isTransient && (
+            <Button onClick={retryActor} variant="default" disabled={isRetrying}>
+              {isRetrying ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                'Retry Connection'
+              )}
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -82,6 +138,14 @@ export function MangaListPage() {
   const entries = mangaPage?.entries || [];
   const totalPages = Number(mangaPage?.totalPages || 1);
 
+  // Prevent page changes while not ready
+  const handlePageChange = (newPage: number) => {
+    if (!isActorReady) {
+      return;
+    }
+    setCurrentPage(newPage);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -91,7 +155,11 @@ export function MangaListPage() {
             {entries.length === 0 ? 'Start building your collection' : `${entries.length} manga on this page`}
           </p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+        <Button 
+          onClick={() => setIsAddDialogOpen(true)} 
+          className="gap-2"
+          disabled={!isActorReady}
+        >
           <Plus className="h-4 w-4" />
           Add Manga
         </Button>
@@ -102,7 +170,11 @@ export function MangaListPage() {
           <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold mb-2">No manga yet</h3>
           <p className="text-muted-foreground mb-6">Start by adding your first manga to your watchlist</p>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)} 
+            className="gap-2"
+            disabled={!isActorReady}
+          >
             <Plus className="h-4 w-4" />
             Add Your First Manga
           </Button>
@@ -119,7 +191,8 @@ export function MangaListPage() {
             <PaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
+              disabled={!isActorReady}
             />
           )}
         </>

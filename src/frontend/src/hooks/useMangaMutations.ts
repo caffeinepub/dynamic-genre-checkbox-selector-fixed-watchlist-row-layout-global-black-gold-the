@@ -1,15 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { useBackendReadiness } from './useBackendReadiness';
 import { MangaEntry } from '../backend';
 
 export function useAddMangaEntry(currentPage: number) {
   const { actor } = useActor();
+  const { isActorReady } = useBackendReadiness();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, manga }: { id: string; manga: MangaEntry }) => {
-      if (!actor) {
-        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      if (!isActorReady || !actor) {
+        throw new Error('Backend is not ready. Please wait a moment and try again.');
       }
       return actor.addEntry(id, manga);
     },
@@ -24,12 +26,13 @@ export function useAddMangaEntry(currentPage: number) {
 
 export function useUpdateMangaEntry(currentPage: number) {
   const { actor } = useActor();
+  const { isActorReady } = useBackendReadiness();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, manga }: { id: string; manga: MangaEntry }) => {
-      if (!actor) {
-        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      if (!isActorReady || !actor) {
+        throw new Error('Backend is not ready. Please wait a moment and try again.');
       }
       return actor.updateEntry(id, manga);
     },
@@ -42,12 +45,13 @@ export function useUpdateMangaEntry(currentPage: number) {
 
 export function useDeleteMangaEntry(currentPage: number) {
   const { actor } = useActor();
+  const { isActorReady } = useBackendReadiness();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!actor) {
-        throw new Error('Unable to connect to the backend. Please wait a moment and try again.');
+      if (!isActorReady || !actor) {
+        throw new Error('Backend is not ready. Please wait a moment and try again.');
       }
       return actor.deleteEntry(id);
     },

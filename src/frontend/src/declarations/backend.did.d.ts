@@ -71,6 +71,7 @@ export interface _SERVICE {
   'getMangaPage' : ActorMethod<[bigint], MangaPage>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isReady' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateEntry' : ActorMethod<[string, MangaEntry], undefined>,
 }

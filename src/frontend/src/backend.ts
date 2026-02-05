@@ -144,6 +144,7 @@ export interface backendInterface {
     getMangaPage(pageNumber: bigint): Promise<MangaPage>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateEntry(id: string, manga: MangaEntry): Promise<void>;
 }
@@ -385,6 +386,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
+            return result;
+        }
+    }
+    async isReady(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isReady();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isReady();
             return result;
         }
     }

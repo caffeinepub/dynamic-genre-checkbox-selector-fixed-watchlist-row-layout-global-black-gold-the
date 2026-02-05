@@ -51,6 +51,7 @@ export interface backendInterface {
     getMangaPage(pageNumber: bigint): Promise<MangaPage>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateEntry(id: string, manga: MangaEntry): Promise<void>;
 }
