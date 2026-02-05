@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { classifyError, isRetryableError } from '../utils/backendErrorClassification';
 import { useState, useCallback } from 'react';
@@ -45,12 +45,11 @@ export function useBackendReadiness(): BackendReadinessState {
         }
         return true;
       } catch (error) {
-        // Classify the error to determine if we should retry
-        const classified = classifyError(error);
-        throw new Error(classified.userMessage);
+        // Preserve original error for accurate classification
+        throw error;
       }
     },
-    enabled: !actorFetching,
+    enabled: !!actor && !actorFetching,
     retry: (failureCount, error) => {
       // Only retry if error is retryable and we haven't exceeded max retries
       if (failureCount >= MAX_RETRIES) {
@@ -76,9 +75,11 @@ export function useBackendReadiness(): BackendReadinessState {
     setRetryTrigger(prev => prev + 1);
   }, []);
 
-  // Determine status
+  // Determine status - keep in connecting state if actor is not available
   let status: ReadinessStatus = 'idle';
-  if (actorFetching || readinessQuery.isLoading) {
+  if (actorFetching || !actor) {
+    status = 'connecting';
+  } else if (readinessQuery.isLoading) {
     status = 'connecting';
   } else if (readinessQuery.isSuccess && readinessQuery.data === true) {
     status = 'ready';

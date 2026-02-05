@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useBackendReadiness } from './useBackendReadiness';
 
@@ -9,6 +10,7 @@ import { useBackendReadiness } from './useBackendReadiness';
 export function useActorWithRetry() {
   const { actor, isFetching: actorFetching } = useActor();
   const readiness = useBackendReadiness();
+  const queryClient = useQueryClient();
   const [isRetrying, setIsRetrying] = useState(false);
 
   const retry = useCallback(async () => {
@@ -18,14 +20,22 @@ export function useActorWithRetry() {
 
     setIsRetrying(true);
     try {
+      // Force refetch of actor query if needed
+      await queryClient.refetchQueries({ queryKey: ['actor'] });
+      
+      // Trigger readiness check retry
       await readiness.retry();
+      
+      // Invalidate manga queries so they refetch after readiness is restored
+      await queryClient.invalidateQueries({ queryKey: ['mangaPage'] });
+      await queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
     } finally {
       // Add a small delay before allowing another retry
       setTimeout(() => {
         setIsRetrying(false);
       }, 500);
     }
-  }, [readiness, isRetrying]);
+  }, [readiness, isRetrying, queryClient]);
 
   // Combine states for backward compatibility
   const isConnecting = actorFetching || readiness.isConnecting || isRetrying;

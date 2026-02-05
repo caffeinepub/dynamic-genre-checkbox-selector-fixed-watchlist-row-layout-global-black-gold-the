@@ -26,20 +26,24 @@ export function MangaListPage() {
   
   const { data: mangaPage, isLoading, error } = useGetMangaPage(currentPage);
 
-  // Show connecting state
+  // Show connecting/initializing state
   if (isConnecting && !actorError) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">My Manga Collection</h2>
-            <p className="text-muted-foreground mt-1">Connecting to backend...</p>
+            <p className="text-muted-foreground mt-1">
+              {readinessStatus === 'connecting' ? 'Connecting to backend...' : 'Initializing...'}
+            </p>
           </div>
         </div>
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
           <AlertDescription>
-            Initializing connection to backend. Please wait...
+            {readinessStatus === 'connecting' 
+              ? 'Establishing connection to backend. Please wait...'
+              : 'Initializing backend connection...'}
           </AlertDescription>
         </Alert>
         <div className="flex flex-col items-center gap-4">

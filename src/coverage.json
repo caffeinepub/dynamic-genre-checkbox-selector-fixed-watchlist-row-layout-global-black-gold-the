@@ -1,106 +1,66 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T02:00:07.155Z",
+  "generatedAt": "2026-02-05T02:21:09.695Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a backend readiness endpoint that is safe to call without authentication, so the frontend can verify the canister is reachable before issuing any authenticated queries or mutations.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/AddMangaDialog.tsx",
+          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/AddMangaDialog.tsx",
+          "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the actor initialization flow so the frontend has an explicit, reliable 'actor is ready' state that only becomes true after: (1) the actor instance is created, (2) access control initialization (if applicable) succeeds, and (3) a backend readiness check passes; do not trigger dependent query refetches until this ready state is true.",
+        "summary": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useBackendReadiness.ts",
-          "frontend/src/hooks/useActorWithRetry.ts",
-          "frontend/src/hooks/useMangaPage.ts",
-          "frontend/src/hooks/useAllMangaEntries.ts",
-          "frontend/src/hooks/useMangaMutations.ts",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useBackendReadiness.ts",
-          "frontend/src/hooks/useActorWithRetry.ts",
-          "frontend/src/hooks/useMangaPage.ts",
-          "frontend/src/hooks/useAllMangaEntries.ts",
-          "frontend/src/hooks/useMangaMutations.ts",
-          "frontend/src/components/manga/MangaListPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Strengthen retry/backoff and error classification across backend calls: add defensive retries for transient connection/replica errors, ensure retries are bounded, and ensure the UI clearly differentiates between (a) connecting/not ready, (b) connection failed, and (c) application-level errors (e.g., Unauthorized).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/backendErrorClassification.ts",
-          "frontend/src/utils/retryBackoff.ts",
           "frontend/src/hooks/useBackendReadiness.ts",
           "frontend/src/hooks/useActorWithRetry.ts",
           "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/hooks/useMangaPage.ts",
-          "frontend/src/hooks/useAllMangaEntries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/backendErrorClassification.ts",
-          "frontend/src/utils/retryBackoff.ts",
-          "frontend/src/hooks/useBackendReadiness.ts",
-          "frontend/src/hooks/useActorWithRetry.ts",
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/hooks/useMangaPage.ts",
-          "frontend/src/hooks/useAllMangaEntries.ts"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add additional UI-level hardening so no user action can trigger a backend call before readiness: disable relevant buttons/forms during connecting state, show a clear 'connecting to backend' state where appropriate, and prevent double-submit or repeated retries from spamming calls.",
-        "status": "implemented",
-        "plannedFiles": [
           "frontend/src/components/manga/AddMangaDialog.tsx",
-          "frontend/src/components/manga/PaginationControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/hooks/useActorWithRetry.ts"
+          "frontend/src/hooks/useMangaPage.ts",
+          "frontend/src/hooks/useMangaMutations.ts",
+          "frontend/src/utils/backendErrorClassification.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/AddMangaDialog.tsx",
-          "frontend/src/components/manga/PaginationControls.tsx",
+          "frontend/src/hooks/useBackendReadiness.ts",
+          "frontend/src/hooks/useActorWithRetry.ts",
           "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/hooks/useActorWithRetry.ts"
+          "frontend/src/components/manga/AddMangaDialog.tsx",
+          "frontend/src/hooks/useMangaPage.ts",
+          "frontend/src/hooks/useMangaMutations.ts",
+          "frontend/src/utils/backendErrorClassification.ts"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
+    "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
     "frontend/src/components/manga/AddMangaDialog.tsx",
     "frontend/src/components/manga/MangaListPage.tsx",
-    "frontend/src/components/manga/PaginationControls.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useActorWithRetry.ts",
-    "frontend/src/hooks/useAllMangaEntries.ts",
     "frontend/src/hooks/useBackendReadiness.ts",
-    "frontend/src/hooks/useCurrentUserProfile.ts",
     "frontend/src/hooks/useMangaMutations.ts",
     "frontend/src/hooks/useMangaPage.ts",
     "frontend/src/utils/backendErrorClassification.ts",
-    "frontend/src/utils/retryBackoff.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

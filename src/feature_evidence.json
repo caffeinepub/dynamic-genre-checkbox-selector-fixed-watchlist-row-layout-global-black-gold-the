@@ -2,15 +2,37 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-actor-initialization-flow-so-the-frontend-has-an-explicit-reliable-actor-is-ready-state-that-only-becomes-true-after-1-the-actor-instance-is-created-2-access-control-initialization-if-applicable-succeeds-and-3-a-backend-readiness-check-passes-do-not-trigger-dependent-query-refetches-until-this-ready-state-is-true",
-      "featureTitle": "Update the actor initialization flow so the frontend has an explicit, reliable 'actor is ready' state that only becomes true after: (1) the actor instance is created, (2) access control initialization (if applicable) succeeds, and (3) a backend readiness check passes; do not trigger dependent query refetches until this ready state is true.",
+      "featureId": "feature-update-the-add-manga-dialog-layout-so-the-dialog-body-the-middle-content-area-containing-the-form-fields-has-a-maximum-height-of-600px-and-scrolls-vertically-while-the-dialog-header-title-description-alerts-and-footer-cancel-add-manga-buttons-remain-fixed-and-always-visible",
+      "featureTitle": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
       "files": [
+        "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
+        "frontend/src/components/manga/AddMangaDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-new-frontend-stability-pass-to-reduce-recurring-backend-connection-actor-readiness-errors-by-improving-readiness-gating-retries-and-recovery-actions-across-the-existing-actor-readiness-hooks-and-the-manga-list-add-manga-flows",
+      "featureTitle": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
+      "files": [
+        "frontend/src/components/manga/AddMangaDialog.tsx",
         "frontend/src/components/manga/MangaListPage.tsx",
         "frontend/src/hooks/useActorWithRetry.ts",
-        "frontend/src/hooks/useAllMangaEntries.ts",
         "frontend/src/hooks/useBackendReadiness.ts",
         "frontend/src/hooks/useMangaMutations.ts",
-        "frontend/src/hooks/useMangaPage.ts"
+        "frontend/src/hooks/useMangaPage.ts",
+        "frontend/src/utils/backendErrorClassification.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,55 +45,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-strengthen-retry-backoff-and-error-classification-across-backend-calls-add-defensive-retries-for-transient-connection-replica-errors-ensure-retries-are-bounded-and-ensure-the-ui-clearly-differentiates-between-a-connecting-not-ready-b-connection-failed-and-c-application-level-errors-e-g-unauthorized",
-      "featureTitle": "Strengthen retry/backoff and error classification across backend calls: add defensive retries for transient connection/replica errors, ensure retries are bounded, and ensure the UI clearly differentiates between (a) connecting/not ready, (b) connection failed, and (c) application-level errors (e.g., Unauthorized).",
-      "files": [
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/hooks/useActorWithRetry.ts",
-        "frontend/src/hooks/useAllMangaEntries.ts",
-        "frontend/src/hooks/useBackendReadiness.ts",
-        "frontend/src/hooks/useMangaPage.ts",
-        "frontend/src/utils/backendErrorClassification.ts",
-        "frontend/src/utils/retryBackoff.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-additional-ui-level-hardening-so-no-user-action-can-trigger-a-backend-call-before-readiness-disable-relevant-buttons-forms-during-connecting-state-show-a-clear-connecting-to-backend-state-where-appropriate-and-prevent-double-submit-or-repeated-retries-from-spamming-calls",
-      "featureTitle": "Add additional UI-level hardening so no user action can trigger a backend call before readiness: disable relevant buttons/forms during connecting state, show a clear 'connecting to backend' state where appropriate, and prevent double-submit or repeated retries from spamming calls.",
-      "files": [
-        "frontend/src/components/manga/AddMangaDialog.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/components/manga/PaginationControls.tsx",
-        "frontend/src/hooks/useActorWithRetry.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
       ],
       "confidence": "high"
     }

@@ -31,7 +31,6 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
   const [chaptersRead, setChaptersRead] = useState('0');
   const [availableChapters, setAvailableChapters] = useState('0');
   const [notes, setNotes] = useState('');
-  const [bookmarks, setBookmarks] = useState('');
   const [rating, setRating] = useState('5.0');
   const [completed, setCompleted] = useState('incomplete');
   const [errorMessage, setErrorMessage] = useState('');
@@ -59,7 +58,6 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
     setChaptersRead('0');
     setAvailableChapters('0');
     setNotes('');
-    setBookmarks('');
     setRating('5.0');
     setCompleted('incomplete');
     setErrorMessage('');
@@ -123,12 +121,6 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
     // Combine selected checkbox genres with manual genres, remove duplicates
     const allGenres = Array.from(new Set([...Array.from(selectedGenres), ...manualGenreList]));
 
-    // Parse bookmarks
-    const bookmarkList = bookmarks
-      .split(',')
-      .map(b => parseInt(b.trim()))
-      .filter(b => !isNaN(b) && b >= 0);
-
     // Filter out empty alternate titles and limit to 4
     const filteredAlternateTitles = alternateTitles
       .map(t => t.trim())
@@ -149,7 +141,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
           chaptersRead: BigInt(chaptersReadNum),
           availableChapters: BigInt(availableChaptersNum),
           notes: notes.trim(),
-          bookmarks: bookmarkList.map(b => BigInt(b)),
+          bookmarks: [],
           rating: ratingValue,
           completed: completed === 'complete',
         },
@@ -251,7 +243,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
         </div>
 
         <form id="add-manga-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ScrollArea className="flex-1 min-h-0 px-6" type="auto">
+          <ScrollArea className="flex-1 min-h-0 px-6" style={{ maxHeight: '600px' }} type="auto">
             <div className="space-y-4 py-6">
               <div>
                 <Label htmlFor="title">Title *</Label>
@@ -413,18 +405,6 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                     <SelectItem value="complete">Complete</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="bookmarks">Bookmarks (comma-separated chapter numbers)</Label>
-                <Input
-                  id="bookmarks"
-                  value={bookmarks}
-                  onChange={(e) => setBookmarks(e.target.value)}
-                  placeholder="e.g., 5, 12, 23"
-                  disabled={isFormDisabled}
-                  className="mt-1"
-                />
               </div>
 
               <div>

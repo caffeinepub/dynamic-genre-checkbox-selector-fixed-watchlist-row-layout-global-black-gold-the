@@ -1,126 +1,76 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend actor readiness gating, bounded retries, and UI hardening for backend connectivity",
+  "title": "Add Manga dialog scroll-body (600px) + frontend backend-readiness stability improvements",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Introduce a single readiness source-of-truth so backend calls only run after actor creation, access-control initialization completion, and a successful backend readiness check.",
+      "id": "REQ-1",
+      "summary": "Constrain Add Manga dialog to a fixed header/footer with a max-600px scrollable body area.",
       "acceptanceCriteria": [
-        "Frontend exposes a single source of truth for readiness (e.g., isActorReady) that is false while any initialization step is pending or failed.",
-        "Dependent React Query hooks do not call the backend while readiness is false (no queries/mutations run early).",
-        "If access-control initialization fails, the UI surfaces a clear error state and provides a retry action; the app does not spam backend calls in the background.",
-        "The existing behavior of creating an anonymous actor when not authenticated is preserved, and readiness logic does not incorrectly treat anonymous sessions as authenticated-ready."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useBackendReadiness.ts",
-          "operation": "create",
-          "description": "Create a dedicated hook that performs an unauthenticated-safe backend readiness check via actor.isReady(), exposes readiness status (idle/connecting/ready/failed), and returns a single source of truth boolean (isActorReady) plus a retry method. Use this hook as the canonical readiness gate. (Authorization component context: readiness must align with access-control initialization performed inside the immutable useActor hook; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/hooks/useActorWithRetry.ts",
-          "operation": "modify",
-          "description": "Refactor to derive and return an explicit isActorReady state that only becomes true after (1) actor exists, (2) useActor's isFetching is false (representing completion of internal initialization), and (3) the backend readiness check succeeds. Ensure the returned retry action re-runs the readiness flow and does not trigger background spam loops. (Authorization component context: treat anonymous actors as non-authenticated; readiness must not imply authenticated-ready; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/hooks/useMangaPage.ts",
-          "operation": "modify",
-          "description": "Guard the manga page query with the new readiness source-of-truth so it cannot call the backend while readiness is false. Replace any 'actor exists' gating with 'isActorReady' gating while still requiring an authenticated identity for application data fetches."
-        },
-        {
-          "path": "frontend/src/hooks/useAllMangaEntries.ts",
-          "operation": "modify",
-          "description": "Guard the all-entries query with the new readiness source-of-truth so it cannot call the backend during startup/connecting states. Keep authentication gating intact so anonymous sessions do not fetch personal data."
-        },
-        {
-          "path": "frontend/src/hooks/useMangaMutations.ts",
-          "operation": "modify",
-          "description": "Update add/update/delete mutations to hard-block (with a clear English error) if readiness is false, using the shared readiness state rather than only checking whether actor is non-null. This prevents premature mutations during initialization."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Switch page-level data loading to use the unified readiness state for display logic (connecting vs ready vs failed), and ensure retry actions re-attempt the full initialization/readiness flow instead of only refetching a single query."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Add bounded exponential backoff retries for transient connectivity/readiness failures and classify errors so the UI distinguishes connecting/not ready vs connection failed vs application-level errors.",
-      "acceptanceCriteria": [
-        "Frontend retries backend readiness/connection checks with bounded exponential backoff (or equivalent), and does not retry indefinitely.",
-        "Frontend does not retry on authorization/application traps that are not transient (e.g., Unauthorized) and instead shows an actionable message (e.g., prompt to login).",
-        "All existing data-fetching hooks that call the backend are guarded by readiness and do not throw 'Actor not available' during normal startup.",
-        "UI provides a consistent retry mechanism that re-attempts initialization (actor creation + readiness check) rather than only re-running a single query."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/backendErrorClassification.ts",
-          "operation": "create",
-          "description": "Create shared utilities to classify backend/replica/connectivity errors into categories (connecting/not-ready, transient-connection, authorization/application) using message heuristics and error shapes, so retry behavior and UI messaging can be consistent across the app."
-        },
-        {
-          "path": "frontend/src/utils/retryBackoff.ts",
-          "operation": "create",
-          "description": "Add a small bounded exponential backoff helper (cap attempts and delay) for readiness/connection checks. Ensure it supports: maxRetries, baseDelay, maxDelay, and a predicate to prevent retrying non-transient errors."
-        },
-        {
-          "path": "frontend/src/hooks/useBackendReadiness.ts",
-          "operation": "modify",
-          "description": "Implement bounded exponential backoff for readiness checks and ensure retry is skipped for non-transient errors (e.g., Unauthorized traps). Expose a typed/structured state so UI can distinguish: (a) connecting/not ready, (b) connection failed, and (c) application-level errors."
-        },
-        {
-          "path": "frontend/src/hooks/useActorWithRetry.ts",
-          "operation": "modify",
-          "description": "Update retry and state reporting to use the shared error classification and bounded backoff logic. Ensure the hook surfaces a stable, user-actionable error message (English) and does not continuously refetch in the background when failing."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
-          "operation": "modify",
-          "description": "Render distinct UI states/messages for (a) connecting/not ready, (b) connection failed (transient connectivity), and (c) application-level errors such as Unauthorized (with an actionable message, e.g., prompting re-login). Ensure retry triggers the unified initialization/readiness retry, not a single query refetch."
-        },
-        {
-          "path": "frontend/src/hooks/useMangaPage.ts",
-          "operation": "modify",
-          "description": "Ensure query retry configuration aligns with error classification: do not retry unauthorized/application-level traps; rely on the readiness/connection layer for transient retries so data queries remain stable and do not spam."
-        },
-        {
-          "path": "frontend/src/hooks/useAllMangaEntries.ts",
-          "operation": "modify",
-          "description": "Ensure query retry configuration aligns with error classification and readiness gating, preventing early calls and avoiding infinite/undesired retries on application-level errors."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Harden UI interactions so no user action (add, pagination, retry) can trigger backend calls before readiness, and prevent double-submit/retry spamming.",
-      "acceptanceCriteria": [
-        "Add Manga submission is blocked while connecting/not ready, with a user-facing English message explaining to wait or retry.",
-        "Pagination/page changes do not issue backend calls while connecting/not ready; the UI stays stable and indicates loading/connecting appropriately.",
-        "Retry buttons are debounced/disabled while an active retry attempt is already in progress.",
-        "No console spam loops occur from query invalidation/refetch during actor initialization."
+        "When the Add Manga dialog is open, the header area stays visible at the top while scrolling the form fields.",
+        "When the Add Manga dialog is open, the footer action buttons stay visible at the bottom while scrolling the form fields.",
+        "The scrollable middle area has max-height: 600px (and uses vertical scrolling when content exceeds this height).",
+        "Scrolling inside the dialog scrolls only the dialog body (not the page behind the modal).",
+        "The layout remains usable on small viewports (mobile + small laptop) without introducing horizontal scrolling."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/manga/AddMangaDialog.tsx",
           "operation": "modify",
-          "description": "Wire the dialog's disabled states and submit guard to the unified readiness source-of-truth: disable submission while connecting/not ready, show a clear English 'connecting to backend' message, and ensure retry is disabled while a retry attempt is in progress to prevent spamming."
+          "description": "Adjust the dialog layout to keep the header and footer as non-scrolling (shrink-0) regions, and make only the middle form area vertically scrollable with a max height of 600px. Ensure the dialog container prevents overflow leakage (no horizontal scroll) and that the scroll region uses available viewport height safely on small screens while still respecting the 600px max."
         },
         {
-          "path": "frontend/src/components/manga/PaginationControls.tsx",
+          "path": "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
           "operation": "modify",
-          "description": "Add a readiness-aware disabled mode so pagination controls cannot change pages while connecting/not ready. Keep the UI stable (no pageNumber changes that would enqueue queries) and provide a clear indication (via disabled state and/or parent-provided message) that the app is connecting."
-        },
+          "description": "Update/append checklist items to explicitly verify: (1) body max-height 600px, (2) header/footer remain visible during body scroll, (3) no background/page scroll while interacting with the modal, (4) no horizontal scrolling on small viewports."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Improve frontend backend connection stability via readiness gating, recovery retries, and clearer error state classification across actor/readiness hooks and manga list + add-manga flows.",
+      "acceptanceCriteria": [
+        "Backend readiness checks do not enter a failed state solely because the actor is temporarily null/uninitialized during startup; instead the UI remains in a connecting/waiting state until the actor exists.",
+        "Retrying a backend connection from the UI triggers a full recovery attempt (including re-checking readiness and forcing a refresh/refetch of the actor query as needed), not just re-running the readiness check against a stale/missing actor.",
+        "Error messaging distinguishes at minimum: (a) connecting/initializing, (b) transient network issues, and (c) authorization-required cases, and does not incorrectly label initialization states as permanent failures.",
+        "Manga list loading, pagination changes, and add-manga submission remain gated on backend readiness and do not spam failing requests during reconnect scenarios.",
+        "After a successful reconnect (readiness becomes ready), previously blocked operations (loading list, opening Add Manga, submitting Add Manga) work without requiring a full page reload."
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "path": "frontend/src/hooks/useBackendReadiness.ts",
           "operation": "modify",
-          "description": "Prevent page changes from triggering backend calls before readiness by gating state transitions and passing readiness/disabled flags down to PaginationControls. Add a consistent connecting state display and ensure retry buttons are disabled while a retry attempt is active."
+          "description": "Harden readiness state machine so it does not transition to a failed state when the actor is null/uninitialized; keep status in connecting/waiting until an actor exists. Ensure the readiness query is only enabled when an actor is present, preserve original errors for accurate classification (connecting vs transient vs authorization), and avoid turning initialization states into permanent failures."
         },
         {
           "path": "frontend/src/hooks/useActorWithRetry.ts",
           "operation": "modify",
-          "description": "Add explicit 'isRetrying' (or equivalent) state so UI retry buttons can be disabled/debounced while a retry is underway, preventing repeated refetch/spam and reducing console noise during initialization failure loops."
+          "description": "Upgrade retry behavior to perform a full recovery attempt: trigger a refetch/refresh of the existing actor query via React Query (without editing immutable useActor.ts), then rerun readiness checks, and finally invalidate/refetch manga-related queries so the UI recovers automatically after readiness becomes ready. Prevent duplicate retries and keep connecting state accurate during recovery."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Ensure list loading/pagination/opening Add Manga remain properly gated on readiness without spamming failing requests during reconnect. Refine displayed messaging to clearly differentiate connecting/initializing vs transient connection issues vs authorization-required states using the improved readiness categorization."
+        },
+        {
+          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
+          "operation": "modify",
+          "description": "Align add-manga submission and inline connection alerts with the improved readiness/retry behavior: avoid labeling actor initialization as a hard failure, keep the dialog in a waiting/connecting state until ready, and ensure the Retry action triggers the full recovery flow so users can submit successfully after reconnect without reloading."
+        },
+        {
+          "path": "frontend/src/hooks/useMangaPage.ts",
+          "operation": "modify",
+          "description": "Tighten readiness gating and retry behavior to minimize repeated failing requests during reconnect scenarios, and ensure queries naturally resume after readiness becomes ready (without requiring a page reload)."
+        },
+        {
+          "path": "frontend/src/hooks/useMangaMutations.ts",
+          "operation": "modify",
+          "description": "Ensure add/update/delete mutations remain strictly gated on readiness and actor existence, and that error messaging is consistent with the improved readiness classification (distinguishing initialization vs transient vs authorization) to support recovery after reconnect."
+        },
+        {
+          "path": "frontend/src/utils/backendErrorClassification.ts",
+          "operation": "modify",
+          "description": "Expand/refine error classification patterns so initialization/actor-not-ready states are consistently categorized as connecting (retryable), transient network failures are reliably identified, and authorization-required errors remain non-retryable; ensure messages used by the UI do not mislabel connecting states as permanent failures."
         }
       ]
     }

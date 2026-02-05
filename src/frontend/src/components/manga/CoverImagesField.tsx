@@ -3,7 +3,7 @@ import { ExternalBlob } from '../../backend';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { X, Upload, Link as LinkIcon } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 
 interface CoverImagesFieldProps {
   coverImages: ExternalBlob[];
@@ -11,16 +11,7 @@ interface CoverImagesFieldProps {
 }
 
 export function CoverImagesField({ coverImages, onChange }: CoverImagesFieldProps) {
-  const [urlInput, setUrlInput] = useState('');
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
-  const addImageFromUrl = () => {
-    if (urlInput.trim()) {
-      const blob = ExternalBlob.fromURL(urlInput.trim());
-      onChange([...coverImages, blob]);
-      setUrlInput('');
-    }
-  };
 
   const addImageFromFile = async (file: File) => {
     const arrayBuffer = await file.arrayBuffer();
@@ -49,30 +40,8 @@ export function CoverImagesField({ coverImages, onChange }: CoverImagesFieldProp
       <Label>Cover Images</Label>
       
       <div className="space-y-2">
-        <div className="flex gap-2">
-          <Input
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="Enter image URL"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addImageFromUrl();
-              }
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addImageFromUrl}
-            disabled={!urlInput.trim()}
-          >
-            <LinkIcon className="h-4 w-4" />
-          </Button>
-        </div>
-
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+          <div className="relative w-[30%]">
             <Input
               type="file"
               accept="image/*"

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useBackendReadiness } from './useBackendReadiness';
 import { MangaEntry } from '../backend';
+import { classifyError } from '../utils/backendErrorClassification';
 
 export function useAddMangaEntry(currentPage: number) {
   const { actor } = useActor();
@@ -20,6 +21,11 @@ export function useAddMangaEntry(currentPage: number) {
       queryClient.invalidateQueries({ queryKey: ['mangaPage'] });
       // Also invalidate the all entries query used for genre list
       queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+    },
+    onError: (error) => {
+      // Log classified error for debugging
+      const classified = classifyError(error);
+      console.error('Add manga error:', classified);
     },
   });
 }
@@ -40,6 +46,10 @@ export function useUpdateMangaEntry(currentPage: number) {
       queryClient.invalidateQueries({ queryKey: ['mangaPage', currentPage] });
       queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
     },
+    onError: (error) => {
+      const classified = classifyError(error);
+      console.error('Update manga error:', classified);
+    },
   });
 }
 
@@ -58,6 +68,10 @@ export function useDeleteMangaEntry(currentPage: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mangaPage'] });
       queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+    },
+    onError: (error) => {
+      const classified = classifyError(error);
+      console.error('Delete manga error:', classified);
     },
   });
 }

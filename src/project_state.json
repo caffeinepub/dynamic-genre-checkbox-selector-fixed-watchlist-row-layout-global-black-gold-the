@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 27,
+  "projectStateVersion": 35,
   "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
   "existing_features": [
     {
@@ -80,26 +80,18 @@
       "version": 1
     },
     {
-      "id": "feature-update-the-actor-initialization-flow-so-the-frontend-has-an-explicit-reliable-actor-is-ready-state-that-only-becomes-true-after-1-the-actor-instance-is-created-2-access-control-initialization-if-applicable-succeeds-and-3-a-backend-readiness-check-passes-do-not-trigger-dependent-query-refetches-until-this-ready-state-is-true",
-      "title": "Update the actor initialization flow so the frontend has an explicit, reliable 'actor is ready' state that only becomes true after: (1) the actor instance is created, (2) access control initialization (if applicable) succeeds, and (3) a backend readiness check passes; do not trigger dependent query refetches until this ready state is true.",
+      "id": "feature-update-the-add-manga-dialog-layout-so-the-dialog-body-the-middle-content-area-containing-the-form-fields-has-a-maximum-height-of-600px-and-scrolls-vertically-while-the-dialog-header-title-description-alerts-and-footer-cancel-add-manga-buttons-remain-fixed-and-always-visible",
+      "title": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-frontend-stability-pass-to-reduce-recurring-backend-connection-actor-readiness-errors-by-improving-readiness-gating-retries-and-recovery-actions-across-the-existing-actor-readiness-hooks-and-the-manga-list-add-manga-flows",
+      "title": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-strengthen-retry-backoff-and-error-classification-across-backend-calls-add-defensive-retries-for-transient-connection-replica-errors-ensure-retries-are-bounded-and-ensure-the-ui-clearly-differentiates-between-a-connecting-not-ready-b-connection-failed-and-c-application-level-errors-e-g-unauthorized",
-      "title": "Strengthen retry/backoff and error classification across backend calls: add defensive retries for transient connection/replica errors, ensure retries are bounded, and ensure the UI clearly differentiates between (a) connecting/not ready, (b) connection failed, and (c) application-level errors (e.g., Unauthorized).",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-additional-ui-level-hardening-so-no-user-action-can-trigger-a-backend-call-before-readiness-disable-relevant-buttons-forms-during-connecting-state-show-a-clear-connecting-to-backend-state-where-appropriate-and-prevent-double-submit-or-repeated-retries-from-spamming-calls",
-      "title": "Add additional UI-level hardening so no user action can trigger a backend call before readiness: disable relevant buttons/forms during connecting state, show a clear 'connecting to backend' state where appropriate, and prevent double-submit or repeated retries from spamming calls.",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -107,46 +99,14 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add dynamic genre checkbox list sourced from existing genres (in addition to manual entry)",
+      "summary": "Make 'Add Manga' popup body scrollable: max-height 600px with overflow-y auto; keep header/footer fixed while middle content scrolls.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Watchlist UI layout constraints: fixed 900px width (non-compressible) and 78px height; cover left max 35px; title next max 250px; hide alternate titles",
+      "summary": "Address recurring backend connection/actor readiness errors by adding comprehensive frontend robustness fixes (gate calls on actor readiness, retries/backoff, better error handling) similar to prior stability pass.",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Global UI theme update: black backgrounds for all surfaces (backgrounds/dropdowns/popups) with gold outline + glowing gold watchlist outline",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Make Add Manga popup/dialog scrollable so bottom actions (Add Manga/Cancel) are accessible",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Fix Add Manga button overlap/unclickable behavior (z-index/layout) and ensure form submission works reliably",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Harden backend connectivity: prevent any backend calls until authenticated actor is initialized; improve handling of 'actor not available' / failed-to-connect errors (loading/disable actions/retry)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Implement a backend readiness endpoint that is safe to call without authentication, so the frontend can verify the canister is reachable before issuing any authenticated queries or mutations.",
-      "reqIds": [
-        "REQ-1"
-      ],
       "status": "pending"
     }
   ],
@@ -160,12 +120,10 @@
     "Frontend actor initialization now includes retry logic via a dedicated hook (useActorWithRetry) to improve resilience of authenticated calls.",
     "Build-template React frontend was synced/refreshed to the latest template baseline, including expanded shadcn/ui component set and updated tooling/config (Vite/Tailwind/TS).",
     "Build-template now includes custom ESLint rules to enforce Internet Identity provider usage and prevent BigInt usage in query keys.",
-    "Guard all canister calls behind confirmed authenticated actor readiness (block/disable UI actions until actor initialized; optionally add retry/backoff + user-visible loading state)."
+    "Frontend includes backend readiness + error classification utilities (useBackendReadiness, backendErrorClassification, retryBackoff) to improve resilience and user experience when the backend/actor is not yet ready."
   ],
   "known_issues": [
-    "Intermittent 'actor not available' / failed-to-connect-to-backend errors due to actor initialization race conditions after deployment.",
-    "Add Manga UI can become overlapped/unclickable (likely z-index/layout), preventing form submission.",
-    "Add Manga dialog content can exceed viewport, hiding action buttons without scroll."
+    "Intermittent backend connection/actor readiness errors still occur (e.g., 'Failed to connect to backend', 'actor not available')."
   ],
   "isFixRequest": true,
   "generatedImages": [
@@ -182,7 +140,7 @@
       "targetHeight": 900
     }
   ],
-  "projectName": "Harden backend connectivity and actor readiness to prevent premature calls",
+  "projectName": "Constrain Add Manga dialog body to 600px with fixed header/footer, and harden backend connection reliability",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

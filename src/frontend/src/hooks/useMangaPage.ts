@@ -15,12 +15,13 @@ export function useGetMangaPage(pageNumber: number) {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       if (!identity) throw new Error('Not authenticated');
+      if (!isActorReady) throw new Error('Backend not ready');
       return actor.getMangaPage(BigInt(pageNumber));
     },
     // Triple gate: actor exists, actor is ready, user is authenticated
     enabled: !!actor && !actorFetching && isActorReady && !!identity,
     retry: (failureCount, error) => {
-      // Don't retry application-level errors
+      // Don't retry application-level errors or after 2 attempts
       if (failureCount >= 2) return false;
       return isRetryableError(error);
     },

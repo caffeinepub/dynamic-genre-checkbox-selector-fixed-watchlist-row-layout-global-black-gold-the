@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Prevent the frontend from calling the backend before the canister/actor is actually reachable and fully initialized, with clear readiness states, bounded retries, and non-spammy UI behavior.
+**Goal:** Improve the Add Manga dialog usability with a fixed header/footer and a scrollable form body, and reduce recurring backend connection/readiness errors through more resilient frontend gating and recovery.
 
 **Planned changes:**
-- Add an unauthenticated, non-mutating backend readiness query endpoint (e.g., health/ready) that is safe for anonymous callers and can be used to detect “unreachable/not ready”.
-- Update frontend actor initialization to expose a single readiness state (e.g., `isActorReady`) that only becomes true after actor creation, any access-control initialization succeeds, and a backend readiness check passes.
-- Guard all backend queries/mutations (including React Query hooks, pagination, and manga submission) so they do not run while readiness is false and do not produce “Actor not available” during normal startup.
-- Implement bounded retry/backoff for readiness/connection checks and classify errors so the UI differentiates: connecting/not ready vs connection failed vs application-level errors (e.g., Unauthorized), without retrying non-transient auth/app errors.
-- Harden UI interactions during connecting/retrying: disable relevant buttons/forms, show “connecting to backend” messaging, debounce/disable retry while in-flight, and avoid console-spam refetch loops during initialization.
+- Update the Add Manga modal layout so the middle form section uses a max height of 600px with vertical scrolling, while the header and footer remain fixed and always visible.
+- Ensure scrolling inside the Add Manga modal only scrolls the dialog body (not the underlying page) and remains usable on small viewports without horizontal scrolling.
+- Add a frontend stability pass around existing actor/readiness usage to better handle startup null/uninitialized actor states (stay in connecting/waiting rather than failing).
+- Improve reconnect/retry behavior to perform full recovery (re-check readiness and refresh/refetch actor state as needed) and prevent spammy failing requests in manga list and add-manga flows during reconnect scenarios.
+- Refine connection status/error messaging to distinguish connecting/initializing vs transient network issues vs authorization-required states, avoiding false permanent-failure labeling.
 
-**User-visible outcome:** The app reliably shows a clear “connecting to backend” state on startup, avoids premature backend calls, and provides an actionable retry flow when connection/initialization fails—while still supporting anonymous sessions without misclassifying them as authenticated-ready.
+**User-visible outcome:** The Add Manga dialog keeps its title and action buttons visible while the form scrolls within a 600px body, and the app more reliably connects/reconnects to the backend so listing manga and adding manga work again after reconnect without a full page reload.

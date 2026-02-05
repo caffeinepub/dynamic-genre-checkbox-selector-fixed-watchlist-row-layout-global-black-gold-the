@@ -1,53 +1,29 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T02:00:07.105Z",
-  "summary": "Implemented a backend readiness query endpoint (`isReady`) and added frontend readiness/error-classification hooks with React Query gating to reduce premature backend calls. However, some acceptance-criteria aspects around re-attempting full initialization (actor creation + access-control init) on retry, and certain UI hardening behaviors, are not clearly implemented based on the diff summary. Additionally, several UI theme/layout changes appear unrelated to the requested connectivity/readiness hardening.",
-  "missing_requirements": [
-    {
-      "id": "REQ-2",
-      "requirement": "Retry action should re-attempt full initialization (actor creation + access-control initialization + readiness check), and not just re-run a single readiness query.",
-      "reason": "The provided retry mechanism in `useActorWithRetry` delegates only to `readiness.retry()` which increments a local trigger for the readiness query; there is no evidence it recreates the actor or re-runs access-control initialization. Also, the immutable-path constraint suggests `useActor` could not be changed, and no diff content shows actor/access-control init being retried.",
-      "evidence": [
-        "frontend/src/hooks/useActorWithRetry.ts",
-        "frontend/src/hooks/useBackendReadiness.ts"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Pagination/page changes should not issue backend calls while connecting/not ready and the UI should keep pagination controls disabled/stable during connecting/not ready.",
-      "reason": "While data fetching is gated by `enabled: ... isActorReady ...` in `useGetMangaPage`, the UI-level hardening requirement specifically calls for disabling pagination/page-change actions. `PaginationControls` supports a `disabled` prop, but the diff snippet for `MangaListPage` is truncated and does not show `disabled` being passed based on readiness/connecting state.",
-      "evidence": [
-        "frontend/src/components/manga/PaginationControls.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/hooks/useMangaPage.ts"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-05T02:21:09.662Z",
+  "summary": "REQ-1 and REQ-2 appear implemented via Add Manga dialog layout changes (fixed header/footer + scrollable body) and a new frontend readiness/retry layer (useBackendReadiness, useActorWithRetry, gating in manga queries/mutations, and error classification). One additional documentation/checklist file was added that was not explicitly requested.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Global UI theme changes (black/gold palette, OKLCH color system, custom shadows/tokens) beyond connectivity/readiness hardening.",
-      "reason": "BuildRequest explicitly states non-goal: adding new product features beyond connectivity/readiness hardening. The diff summary indicates changes to global styles and Tailwind config that are not required to implement readiness/actor initialization hardening.",
+      "description": "Added a standalone regression checklist markdown document for Add Manga dialog layout testing.",
+      "reason": "The BuildRequest does not ask for new documentation files; only UI/layout and stability behavior changes were requested.",
       "evidence": [
-        "frontend-file-summaries.txt (mentions modifications to frontend/index.css, frontend/src/index.css, frontend/tailwind.config.js)"
+        "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
     "frontend/src/components/manga/AddMangaDialog.tsx",
     "frontend/src/components/manga/MangaListPage.tsx",
-    "frontend/src/components/manga/PaginationControls.tsx",
     "frontend/src/hooks/useActorWithRetry.ts",
-    "frontend/src/hooks/useAllMangaEntries.ts",
     "frontend/src/hooks/useBackendReadiness.ts",
-    "frontend/src/hooks/useCurrentUserProfile.ts",
     "frontend/src/hooks/useMangaMutations.ts",
     "frontend/src/hooks/useMangaPage.ts",
     "frontend/src/utils/backendErrorClassification.ts",
-    "frontend/src/utils/retryBackoff.ts",
     "project_state.json"
   ]
 }
