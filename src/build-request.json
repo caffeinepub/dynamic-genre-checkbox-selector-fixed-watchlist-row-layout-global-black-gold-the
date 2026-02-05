@@ -1,56 +1,143 @@
 {
   "kind": "build_request",
-  "title": "Constrain Add Manga dialog body to 600px with fixed header/footer, and harden backend connection reliability",
-  "priority": "high",
+  "title": "Fix Add Manga dialog scrolling and add list search/filter/sort controls",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
+      "text": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "give the inner body of the 'add manga' popup window a max height of 600 pixels and enable vertical scrolling. make the header and footer stay fixed, and the middle area scrolls normally."
+          "apply the fix and make the inner-body scroll while the header/footer remained pinned. but just in case, add a maximum height of 400 pixels to the middle section of the popup."
         ]
       },
       "acceptanceCriteria": [
-        "When the Add Manga dialog is open, the header area stays visible at the top while scrolling the form fields.",
-        "When the Add Manga dialog is open, the footer action buttons stay visible at the bottom while scrolling the form fields.",
-        "The scrollable middle area has max-height: 600px (and uses vertical scrolling when content exceeds this height).",
-        "Scrolling inside the dialog scrolls only the dialog body (not the page behind the modal).",
-        "The layout remains usable on small viewports (mobile + small laptop) without introducing horizontal scrolling."
+        "When the Add Manga dialog content exceeds the available space, the scroll happens inside the dialog body area (middle section) and not on the page behind the modal.",
+        "The dialog header (title/alerts) stays visible at the top while scrolling the form.",
+        "The dialog footer (Cancel/Add Manga buttons) stays visible at the bottom while scrolling the form.",
+        "The scrollable middle section of the dialog never exceeds 400px height."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
+      "text": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "also i am getting backend connection errors again. add all the fixes you can think of right now like you did before to fix it."
+          "add a maximum height of 400 pixels to the middle section of the popup."
         ]
       },
       "acceptanceCriteria": [
-        "Backend readiness checks do not enter a failed state solely because the actor is temporarily null/uninitialized during startup; instead the UI remains in a connecting/waiting state until the actor exists.",
-        "Retrying a backend connection from the UI triggers a full recovery attempt (including re-checking readiness and forcing a refresh/refetch of the actor query as needed), not just re-running the readiness check against a stale/missing actor.",
-        "Error messaging distinguishes at minimum: (a) connecting/initializing, (b) transient network issues, and (c) authorization-required cases, and does not incorrectly label initialization states as permanent failures.",
-        "Manga list loading, pagination changes, and add-manga submission remain gated on backend readiness and do not spam failing requests during reconnect scenarios.",
-        "After a successful reconnect (readiness becomes ready), previously blocked operations (loading list, opening Add Manga, submitting Add Manga) work without requiring a full page reload."
+        "The checklist in frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md refers to a 400px max-height for the scrollable body wherever it previously referenced 600px."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "three search bars (title, synopsis, notes)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The manga list page displays three labeled search inputs: Title, Synopsis, Notes.",
+        "Typing into any search input filters the displayed manga entries using case-insensitive substring matching on the corresponding field.",
+        "When multiple search inputs are filled, entries must match all provided search inputs to remain visible (logical AND).",
+        "All user-facing labels/placeholders for the new controls are in English."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "add genre filtering button with dropdown checkboxes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A Genre filter button is visible on the manga list page and opens a dropdown/popup containing genre checkbox options.",
+        "Selecting one or more genres filters the displayed manga entries to those that contain at least one of the selected genres.",
+        "Clearing all selected genres removes the genre filter (entries are no longer filtered by genre)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "bookmark filter"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A bookmark filter control is present on the manga list page (English text).",
+        "When enabled, only manga entries with bookmarks.length > 0 are shown.",
+        "When disabled, entries are not filtered by bookmarks."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "sorting by title or rating. default sorting is alphabetical ascending."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A sort control is visible on the manga list page with options at minimum: Title and Rating.",
+        "Default sort on initial page load is Title (A–Z).",
+        "Selecting Title sorts the displayed entries in ascending alphabetical order by title."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "three search bars (title, synopsis, notes), add genre filtering button with dropdown checkboxes, bookmark filter, sorting by title or rating."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After applying any search/filter settings, the total pages and current page contents reflect the filtered dataset.",
+        "Changing pages preserves the active search/filter/sort settings and continues to show results consistent with those settings.",
+        "If the filtered dataset reduces the number of pages below the current page, the UI does not crash and shows a valid page of results."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (shadcn/ui components must be composed, not modified).",
-    "Do not edit immutable hook files listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useActor.ts and frontend/src/hooks/useInternetIdentity.ts). Any additional robustness must be implemented via non-immutable wrapper logic."
+    "Do not modify files under frontend/src/components/ui (compose existing shadcn components instead).",
+    "Do not edit any files listed under frontend.immutablePaths in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not change the backend data model or add new backend features unrelated to connection/readiness stability.",
-    "Do not redesign the Add Manga form fields or validation logic beyond the scrolling/fixed header-footer layout change."
+    "Do not add third-party authentication providers beyond Internet Identity.",
+    "Do not implement real-time updates (WebSockets/push).",
+    "Do not add external databases or non-Motoko backend services."
   ],
   "imageRequirements": {
     "required": [],

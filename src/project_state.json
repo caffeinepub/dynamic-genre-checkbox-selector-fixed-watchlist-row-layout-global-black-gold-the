@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 35,
+  "projectStateVersion": 43,
   "summary": "Internet Computer dapp template initialized: Motoko backend with authorization + blob storage, and a React (Vite) frontend implementing Internet Identity login, user profile setup, and a basic Manga library UI with cover image upload and pagination.",
   "existing_features": [
     {
@@ -80,18 +80,58 @@
       "version": 1
     },
     {
-      "id": "feature-update-the-add-manga-dialog-layout-so-the-dialog-body-the-middle-content-area-containing-the-form-fields-has-a-maximum-height-of-600px-and-scrolls-vertically-while-the-dialog-header-title-description-alerts-and-footer-cancel-add-manga-buttons-remain-fixed-and-always-visible",
-      "title": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
+      "id": "feature-fix-the-add-manga-popup-layout-so-the-dialog-header-and-footer-remain-pinned-while-only-the-middle-body-section-scrolls-and-constrain-the-scrollable-middle-section-to-a-maximum-height-of-400px",
+      "title": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-new-frontend-stability-pass-to-reduce-recurring-backend-connection-actor-readiness-errors-by-improving-readiness-gating-retries-and-recovery-actions-across-the-existing-actor-readiness-hooks-and-the-manga-list-add-manga-flows",
-      "title": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
+      "id": "feature-update-the-add-manga-dialog-layout-regression-checklist-to-reflect-the-new-400px-max-height-constraint-for-the-scrollable-body-replacing-the-previous-600px-references",
+      "title": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-three-independent-search-inputs-to-the-manga-list-page-for-filtering-entries-by-title-synopsis-and-notes-case-insensitive-substring-matching-and-apply-the-combined-search-filters-to-the-displayed-manga-list",
+      "title": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-genre-filter-control-on-the-manga-list-page-as-a-button-that-opens-a-dropdown-containing-checkbox-options-for-available-genres-and-filter-the-displayed-list-to-entries-that-match-the-selected-genres",
+      "title": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-bookmark-filter-toggle-on-the-manga-list-page-that-when-enabled-shows-only-entries-that-have-at-least-one-bookmark-value-in-their-bookmarks-array",
+      "title": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-sorting-controls-on-the-manga-list-page-to-sort-by-title-or-rating-with-the-default-sorting-set-to-title-in-alphabetical-ascending-order",
+      "title": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-search-filtering-genres-bookmarked-only-and-sorting-are-applied-to-the-full-manga-collection-consistently-with-pagination-so-pagination-counts-and-displayed-results-reflect-the-filtered-sorted-dataset-rather-than-only-the-currently-fetched-backend-page",
+      "title": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
+      "reqIds": [
+        "REQ-7"
       ],
       "version": 1
     }
@@ -99,13 +139,19 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Make 'Add Manga' popup body scrollable: max-height 600px with overflow-y auto; keep header/footer fixed while middle content scrolls.",
+      "summary": "Fix Add Manga popup layout: middle/body section should scroll with header/footer pinned; constrain middle section to max-height 400px.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Address recurring backend connection/actor readiness errors by adding comprehensive frontend robustness fixes (gate calls on actor readiness, retries/backoff, better error handling) similar to prior stability pass.",
+      "summary": "Add manga list/watchlist search controls: three search bars (title, synopsis, notes).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add manga list/watchlist filtering + sorting: genre filter button with dropdown checkboxes, bookmark filter, and sorting by title or rating (default: title alphabetical ascending).",
       "reqIds": [],
       "status": "pending"
     }
@@ -122,9 +168,7 @@
     "Build-template now includes custom ESLint rules to enforce Internet Identity provider usage and prevent BigInt usage in query keys.",
     "Frontend includes backend readiness + error classification utilities (useBackendReadiness, backendErrorClassification, retryBackoff) to improve resilience and user experience when the backend/actor is not yet ready."
   ],
-  "known_issues": [
-    "Intermittent backend connection/actor readiness errors still occur (e.g., 'Failed to connect to backend', 'actor not available')."
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "generatedImages": [
     {
@@ -140,7 +184,7 @@
       "targetHeight": 900
     }
   ],
-  "projectName": "Constrain Add Manga dialog body to 600px with fixed header/footer, and harden backend connection reliability",
+  "projectName": "Fix Add Manga dialog scrolling and add list search/filter/sort controls",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

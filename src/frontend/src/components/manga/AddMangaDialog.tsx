@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { useAddMangaEntry } from '../../hooks/useMangaMutations';
+import { useBackendConnection } from '../../hooks/useBackendConnection';
 import { useLibraryGenres } from '../../hooks/useLibraryGenres';
-import { useActorWithRetry } from '../../hooks/useActorWithRetry';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
+import { ScrollArea } from '../ui/scroll-area';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '../ui/alert';
 import { CoverImagesField } from './CoverImagesField';
 import { ExternalBlob } from '../../backend';
-import { X, AlertCircle, Loader2 } from 'lucide-react';
-import { ScrollArea } from '../ui/scroll-area';
-import { Alert, AlertDescription } from '../ui/alert';
 
 interface AddMangaDialogProps {
   open: boolean;
@@ -22,434 +21,271 @@ interface AddMangaDialogProps {
 }
 
 export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDialogProps) {
+  const { isReady, isConnecting, isFailed, errorMessage, errorCategory } = useBackendConnection();
+  const addMutation = useAddMangaEntry(currentPage);
+  const { genres: libraryGenres } = useLibraryGenres();
+
   const [title, setTitle] = useState('');
-  const [alternateTitles, setAlternateTitles] = useState<string[]>(['']);
-  const [synopsis, setSynopsis] = useState('');
-  const [genres, setGenres] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
+  const [alternateTitles, setAlternateTitles] = useState('');
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [customGenre, setCustomGenre] = useState('');
   const [coverImages, setCoverImages] = useState<ExternalBlob[]>([]);
+  const [synopsis, setSynopsis] = useState('');
   const [chaptersRead, setChaptersRead] = useState('0');
   const [availableChapters, setAvailableChapters] = useState('0');
   const [notes, setNotes] = useState('');
-  const [rating, setRating] = useState('5.0');
-  const [completed, setCompleted] = useState('incomplete');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const { 
-    isConnecting, 
-    isError, 
-    errorMessage: actorError, 
-    errorCategory,
-    retry,
-    isRetrying,
-    isActorReady,
-  } = useActorWithRetry();
-  
-  const addManga = useAddMangaEntry(currentPage);
-  const { genres: libraryGenres } = useLibraryGenres();
+  const [rating, setRating] = useState('0');
+  const [completed, setCompleted] = useState(false);
 
   const resetForm = () => {
     setTitle('');
-    setAlternateTitles(['']);
-    setSynopsis('');
-    setGenres('');
-    setSelectedGenres(new Set());
+    setAlternateTitles('');
+    setSelectedGenres([]);
+    setCustomGenre('');
     setCoverImages([]);
+    setSynopsis('');
     setChaptersRead('0');
     setAvailableChapters('0');
     setNotes('');
-    setRating('5.0');
-    setCompleted('incomplete');
-    setErrorMessage('');
-  };
-
-  const toggleGenre = (genre: string) => {
-    const newSelected = new Set(selectedGenres);
-    if (newSelected.has(genre)) {
-      newSelected.delete(genre);
-    } else {
-      newSelected.add(genre);
-    }
-    setSelectedGenres(newSelected);
+    setRating('0');
+    setCompleted(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prevent submission if actor is not ready
-    if (!isActorReady) {
-      setErrorMessage('Backend is not ready. Please wait for the connection to complete.');
+    if (!isReady) {
       return;
     }
 
-    // Prevent double submission
-    if (addManga.isPending || isRetrying) {
-      return;
-    }
-
-    // Clear any previous error
-    setErrorMessage('');
-
-    // Validate rating
-    const ratingValue = parseFloat(rating);
-    if (isNaN(ratingValue) || ratingValue < 1.0 || ratingValue > 10.0) {
-      setErrorMessage('Rating must be between 1.0 and 10.0');
-      return;
-    }
-
-    // Validate rating step (0.5 increments)
-    if ((ratingValue * 10) % 5 !== 0) {
-      setErrorMessage('Rating must be in increments of 0.5 (e.g., 7.5, 8.0)');
-      return;
-    }
-
-    // Parse chapters
-    const chaptersReadNum = parseInt(chaptersRead) || 0;
-    const availableChaptersNum = parseInt(availableChapters) || 0;
-
-    if (chaptersReadNum < 0 || availableChaptersNum < 0) {
-      setErrorMessage('Chapter counts cannot be negative');
-      return;
-    }
-
-    // Parse manually entered genres
-    const manualGenreList = genres
+    const alternateTitlesArray = alternateTitles
       .split(',')
-      .map(g => g.trim())
-      .filter(g => g.length > 0);
-
-    // Combine selected checkbox genres with manual genres, remove duplicates
-    const allGenres = Array.from(new Set([...Array.from(selectedGenres), ...manualGenreList]));
-
-    // Filter out empty alternate titles and limit to 4
-    const filteredAlternateTitles = alternateTitles
       .map(t => t.trim())
-      .filter(t => t.length > 0)
-      .slice(0, 4);
+      .filter(t => t.length > 0);
 
-    const id = `manga-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const allGenres = [...selectedGenres];
+    if (customGenre.trim()) {
+      allGenres.push(customGenre.trim());
+    }
+
+    const manga = {
+      title,
+      alternateTitles: alternateTitlesArray,
+      genres: allGenres,
+      coverImages,
+      synopsis,
+      chaptersRead: BigInt(chaptersRead),
+      availableChapters: BigInt(availableChapters),
+      notes,
+      bookmarks: [],
+      rating: parseFloat(rating),
+      completed,
+    };
 
     try {
-      await addManga.mutateAsync({
-        id,
-        manga: {
-          title: title.trim(),
-          alternateTitles: filteredAlternateTitles,
-          synopsis: synopsis.trim(),
-          genres: allGenres,
-          coverImages,
-          chaptersRead: BigInt(chaptersReadNum),
-          availableChapters: BigInt(availableChaptersNum),
-          notes: notes.trim(),
-          bookmarks: [],
-          rating: ratingValue,
-          completed: completed === 'complete',
-        },
-      });
-
-      // Only reset and close on success
+      await addMutation.mutateAsync({ id: Date.now().toString(), manga });
       resetForm();
       onOpenChange(false);
-    } catch (error: any) {
-      // Show user-friendly error message and keep dialog open
-      const errorMsg = error?.message || 'Failed to add manga. Please try again.';
-      setErrorMessage(errorMsg);
-      console.error('Error adding manga:', error);
+    } catch (error) {
+      console.error('Failed to add manga:', error);
     }
   };
 
-  const addAlternateTitle = () => {
-    if (alternateTitles.length < 4) {
-      setAlternateTitles([...alternateTitles, '']);
-    }
+  const handleGenreToggle = (genre: string) => {
+    setSelectedGenres(prev =>
+      prev.includes(genre)
+        ? prev.filter(g => g !== genre)
+        : [...prev, genre]
+    );
   };
 
-  const removeAlternateTitle = (index: number) => {
-    setAlternateTitles(alternateTitles.filter((_, i) => i !== index));
-  };
-
-  const updateAlternateTitle = (index: number, value: string) => {
-    const updated = [...alternateTitles];
-    updated[index] = value;
-    setAlternateTitles(updated);
-  };
-
-  // Clear error when dialog opens
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
-      setErrorMessage('');
-    }
-    onOpenChange(newOpen);
-  };
-
-  // Determine if form should be disabled
-  const isFormDisabled = !isActorReady || addManga.isPending || isRetrying;
-  const isAuthError = errorCategory === 'authorization';
+  const isFormDisabled = !isReady || addMutation.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90dvh] flex flex-col p-0 gap-0">
-        <div className="px-6 pt-6 shrink-0">
-          <DialogHeader>
-            <DialogTitle>Add New Manga</DialogTitle>
-            <DialogDescription>
-              Fill in the details for your manga entry. All fields are optional except the title.
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+          <DialogTitle>Add New Manga</DialogTitle>
+        </DialogHeader>
 
-          {isConnecting && !isError && (
-            <Alert className="mt-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>Connecting to backend...</AlertDescription>
-            </Alert>
-          )}
+        {!isReady && (
+          <div className="px-6 py-2 shrink-0">
+            {isConnecting ? (
+              <Alert>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <AlertDescription>
+                  Connecting to backend...
+                </AlertDescription>
+              </Alert>
+            ) : isFailed ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {errorCategory === 'timeout' 
+                    ? 'Connection timed out. Please close and retry.'
+                    : errorMessage || 'Backend not ready. Please wait or retry connection.'}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+          </div>
+        )}
 
-          {isError && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between gap-2">
-                <span>{actorError || 'Connection failed'}</span>
-                {!isAuthError && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={retry}
-                    disabled={isRetrying}
-                    className="shrink-0"
-                  >
-                    {isRetrying ? 'Retrying...' : 'Retry'}
-                  </Button>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
+        <ScrollArea className="flex-1 px-6 min-h-0" style={{ maxHeight: '400px' }}>
+          <form onSubmit={handleSubmit} className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                disabled={isFormDisabled}
+              />
+            </div>
 
-          {errorMessage && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="alternateTitles">Alternate Titles (comma-separated)</Label>
+              <Input
+                id="alternateTitles"
+                value={alternateTitles}
+                onChange={(e) => setAlternateTitles(e.target.value)}
+                placeholder="e.g., Title 2, Title 3"
+                disabled={isFormDisabled}
+              />
+            </div>
 
-          {!isActorReady && !isError && !isConnecting && (
-            <Alert className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Waiting for backend connection. Please wait before submitting.
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
-
-        <form id="add-manga-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ScrollArea className="flex-1 min-h-0 px-6" style={{ maxHeight: '600px' }} type="auto">
-            <div className="space-y-4 py-6">
-              <div>
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter manga title"
-                  required
-                  disabled={isFormDisabled}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label>Alternate Titles (max 4)</Label>
-                <div className="space-y-2 mt-1">
-                  {alternateTitles.map((altTitle, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={altTitle}
-                        onChange={(e) => updateAlternateTitle(index, e.target.value)}
-                        placeholder={`Alternate title ${index + 1}`}
+            <div className="space-y-2">
+              <Label>Genres</Label>
+              {libraryGenres.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
+                  {libraryGenres.map((genre) => (
+                    <div key={genre} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`genre-${genre}`}
+                        checked={selectedGenres.includes(genre)}
+                        onCheckedChange={() => handleGenreToggle(genre)}
                         disabled={isFormDisabled}
                       />
-                      {alternateTitles.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => removeAlternateTitle(index)}
-                          disabled={isFormDisabled}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <label
+                        htmlFor={`genre-${genre}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {genre}
+                      </label>
                     </div>
                   ))}
-                  {alternateTitles.length < 4 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addAlternateTitle}
-                      disabled={isFormDisabled}
-                    >
-                      Add Alternate Title
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="synopsis">Synopsis</Label>
-                <Textarea
-                  id="synopsis"
-                  value={synopsis}
-                  onChange={(e) => setSynopsis(e.target.value)}
-                  placeholder="Enter a brief synopsis"
-                  rows={3}
-                  disabled={isFormDisabled}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="genres">Genres (comma-separated)</Label>
-                <Input
-                  id="genres"
-                  value={genres}
-                  onChange={(e) => setGenres(e.target.value)}
-                  placeholder="e.g., Action, Adventure, Fantasy"
-                  disabled={isFormDisabled}
-                  className="mt-1"
-                />
-              </div>
-
-              {libraryGenres.length > 0 && (
-                <div>
-                  <Label>Select from existing genres</Label>
-                  <ScrollArea className="h-32 mt-2 rounded-md border p-3">
-                    <div className="space-y-2">
-                      {libraryGenres.map((genre) => (
-                        <div key={genre} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`genre-${genre}`}
-                            checked={selectedGenres.has(genre)}
-                            onCheckedChange={() => toggleGenre(genre)}
-                            disabled={isFormDisabled}
-                          />
-                          <label
-                            htmlFor={`genre-${genre}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                          >
-                            {genre}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
                 </div>
               )}
-
-              <CoverImagesField
-                coverImages={coverImages}
-                onChange={setCoverImages}
+              <Input
+                placeholder="Add custom genre"
+                value={customGenre}
+                onChange={(e) => setCustomGenre(e.target.value)}
+                disabled={isFormDisabled}
               />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="chaptersRead">Chapters Read</Label>
-                  <Input
-                    id="chaptersRead"
-                    type="number"
-                    min="0"
-                    value={chaptersRead}
-                    onChange={(e) => setChaptersRead(e.target.value)}
-                    disabled={isFormDisabled}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="availableChapters">Available Chapters</Label>
-                  <Input
-                    id="availableChapters"
-                    type="number"
-                    min="0"
-                    value={availableChapters}
-                    onChange={(e) => setAvailableChapters(e.target.value)}
-                    disabled={isFormDisabled}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
+            <CoverImagesField
+              coverImages={coverImages}
+              onChange={setCoverImages}
+            />
 
-              <div>
-                <Label htmlFor="rating">Rating (1.0 - 10.0, step 0.5)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="synopsis">Synopsis</Label>
+              <Textarea
+                id="synopsis"
+                value={synopsis}
+                onChange={(e) => setSynopsis(e.target.value)}
+                rows={4}
+                disabled={isFormDisabled}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="chaptersRead">Chapters Read</Label>
                 <Input
-                  id="rating"
+                  id="chaptersRead"
                   type="number"
-                  min="1.0"
-                  max="10.0"
-                  step="0.5"
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
+                  min="0"
+                  value={chaptersRead}
+                  onChange={(e) => setChaptersRead(e.target.value)}
                   disabled={isFormDisabled}
-                  className="mt-1"
                 />
               </div>
-
-              <div>
-                <Label htmlFor="completed">Completion Status</Label>
-                <Select value={completed} onValueChange={setCompleted} disabled={isFormDisabled}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="incomplete">Incomplete</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Personal notes about this manga"
-                  rows={3}
+              <div className="space-y-2">
+                <Label htmlFor="availableChapters">Available Chapters</Label>
+                <Input
+                  id="availableChapters"
+                  type="number"
+                  min="0"
+                  value={availableChapters}
+                  onChange={(e) => setAvailableChapters(e.target.value)}
                   disabled={isFormDisabled}
-                  className="mt-1"
                 />
               </div>
             </div>
-          </ScrollArea>
 
-          <DialogFooter className="px-6 py-4 border-t bg-background shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                resetForm();
-                onOpenChange(false);
-              }}
-              disabled={addManga.isPending || isRetrying}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="add-manga-form"
-              disabled={!title.trim() || isFormDisabled}
-            >
-              {addManga.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                'Add Manga'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                disabled={isFormDisabled}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rating">Rating (0-10)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                disabled={isFormDisabled}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="completed"
+                checked={completed}
+                onCheckedChange={(checked) => setCompleted(checked as boolean)}
+                disabled={isFormDisabled}
+              />
+              <Label htmlFor="completed">Completed</Label>
+            </div>
+          </form>
+        </ScrollArea>
+
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={addMutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isFormDisabled}
+          >
+            {addMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              'Add Manga'
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

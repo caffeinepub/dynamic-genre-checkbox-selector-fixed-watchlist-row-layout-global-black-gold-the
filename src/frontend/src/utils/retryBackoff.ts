@@ -6,6 +6,8 @@ export interface RetryConfig {
   maxRetries: number;
   baseDelay: number; // milliseconds
   maxDelay: number; // milliseconds
+  maxTotalTime?: number; // Maximum total elapsed time in milliseconds
+  operationTimeout?: number; // Timeout for each individual operation attempt
   shouldRetry?: (error: unknown, attempt: number) => boolean;
 }
 
@@ -13,12 +15,15 @@ export interface RetryState {
   attempt: number;
   isRetrying: boolean;
   lastError: unknown | null;
+  elapsedTime: number;
 }
 
 const DEFAULT_CONFIG: RetryConfig = {
   maxRetries: 5,
   baseDelay: 500,
   maxDelay: 10000,
+  maxTotalTime: 30000, // 30 seconds total
+  operationTimeout: 10000, // 10 seconds per attempt
 };
 
 /**
@@ -44,10 +49,30 @@ export async function retryWithBackoff<T>(
 ): Promise<T> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   let lastError: unknown;
+  const startTime = Date.now();
 
   for (let attempt = 0; attempt <= finalConfig.maxRetries; attempt++) {
     try {
-      return await operation();
+      // Check if we've exceeded total time budget
+      const elapsedTime = Date.now() - startTime;
+      if (finalConfig.maxTotalTime && elapsedTime >= finalConfig.maxTotalTime) {
+        throw new Error(
+          `Operation exceeded maximum total time of ${finalConfig.maxTotalTime}ms (elapsed: ${elapsedTime}ms)`
+        );
+      }
+
+      // Execute operation with per-attempt timeout if configured
+      let operationPromise = operation();
+      if (finalConfig.operationTimeout) {
+        const { withTimeout } = await import('./promiseTimeout');
+        operationPromise = withTimeout(
+          operationPromise,
+          finalConfig.operationTimeout,
+          `Operation attempt ${attempt + 1} timed out after ${finalConfig.operationTimeout}ms`
+        );
+      }
+
+      return await operationPromise;
     } catch (error) {
       lastError = error;
 
@@ -60,8 +85,19 @@ export async function retryWithBackoff<T>(
         throw error;
       }
 
-      // Wait before retrying
+      // Check if we have time for another retry
+      const elapsedTime = Date.now() - startTime;
       const delay = calculateBackoffDelay(attempt, finalConfig);
+      if (
+        finalConfig.maxTotalTime &&
+        elapsedTime + delay >= finalConfig.maxTotalTime
+      ) {
+        throw new Error(
+          `Cannot retry: would exceed maximum total time of ${finalConfig.maxTotalTime}ms`
+        );
+      }
+
+      // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -76,6 +112,7 @@ export class RetryManager {
   private attempt = 0;
   private isRetrying = false;
   private config: RetryConfig;
+  private startTime = 0;
 
   constructor(config: Partial<RetryConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -88,6 +125,7 @@ export class RetryManager {
 
     this.isRetrying = true;
     this.attempt = 0;
+    this.startTime = Date.now();
 
     try {
       return await retryWithBackoff(operation, {
@@ -107,6 +145,7 @@ export class RetryManager {
   reset() {
     this.attempt = 0;
     this.isRetrying = false;
+    this.startTime = 0;
   }
 
   getState(): RetryState {
@@ -114,6 +153,7 @@ export class RetryManager {
       attempt: this.attempt,
       isRetrying: this.isRetrying,
       lastError: null,
+      elapsedTime: this.startTime > 0 ? Date.now() - this.startTime : 0,
     };
   }
 }

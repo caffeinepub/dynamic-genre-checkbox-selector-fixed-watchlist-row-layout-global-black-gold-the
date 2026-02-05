@@ -6,7 +6,8 @@ export type ErrorCategory =
   | 'connecting' // Initial connection/not ready
   | 'transient' // Temporary network/connection issues
   | 'authorization' // Auth/permission errors
-  | 'application'; // Application-level errors
+  | 'application' // Application-level errors
+  | 'timeout'; // Timeout errors
 
 export interface ClassifiedError {
   category: ErrorCategory;
@@ -21,6 +22,22 @@ export interface ClassifiedError {
 export function classifyError(error: unknown): ClassifiedError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const lowerMessage = errorMessage.toLowerCase();
+  const errorName = error instanceof Error ? error.name : '';
+
+  // Timeout errors - should retry with caution
+  if (
+    errorName === 'TimeoutError' ||
+    lowerMessage.includes('timed out') ||
+    lowerMessage.includes('timeout') ||
+    lowerMessage.includes('exceeded maximum total time')
+  ) {
+    return {
+      category: 'timeout',
+      message: errorMessage,
+      shouldRetry: true,
+      userMessage: 'Connection timed out. Please retry.',
+    };
+  }
 
   // Connecting/not ready states - do not label as failures
   if (
@@ -38,16 +55,21 @@ export function classifyError(error: unknown): ClassifiedError {
     };
   }
 
-  // Transient connection errors
+  // Transient connection errors - includes IC-specific patterns
   if (
     lowerMessage.includes('network') ||
-    lowerMessage.includes('timeout') ||
     lowerMessage.includes('fetch failed') ||
     lowerMessage.includes('connection') ||
     lowerMessage.includes('unreachable') ||
     lowerMessage.includes('econnrefused') ||
     lowerMessage.includes('enotfound') ||
-    lowerMessage.includes('backend not ready')
+    lowerMessage.includes('backend not ready') ||
+    lowerMessage.includes('canister') ||
+    lowerMessage.includes('replica') ||
+    lowerMessage.includes('request rejected') ||
+    lowerMessage.includes('transport') ||
+    lowerMessage.includes('agent') ||
+    lowerMessage.includes('unavailable')
   ) {
     return {
       category: 'transient',
@@ -63,7 +85,8 @@ export function classifyError(error: unknown): ClassifiedError {
     lowerMessage.includes('permission denied') ||
     lowerMessage.includes('access denied') ||
     lowerMessage.includes('forbidden') ||
-    lowerMessage.includes('not authenticated')
+    lowerMessage.includes('not authenticated') ||
+    lowerMessage.includes('trap')
   ) {
     return {
       category: 'authorization',

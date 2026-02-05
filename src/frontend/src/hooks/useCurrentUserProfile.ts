@@ -1,11 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { useBackendReadiness } from './useBackendReadiness';
+import { useBackendConnection } from './useBackendConnection';
 import { UserProfile } from '../backend';
 
 export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { isActorReady } = useBackendReadiness();
+  const { actor, isReady, isConnecting } = useBackendConnection();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -13,26 +11,25 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching && isActorReady,
+    enabled: isReady,
     retry: false,
   });
 
-  // Return custom state that properly reflects actor dependency
+  // Return custom state that properly reflects connection dependency
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading || !isActorReady,
-    isFetched: !!actor && isActorReady && query.isFetched,
+    isLoading: isConnecting || query.isLoading,
+    isFetched: isReady && query.isFetched,
   };
 }
 
 export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
-  const { isActorReady } = useBackendReadiness();
+  const { actor, isReady } = useBackendConnection();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!isActorReady || !actor) {
+      if (!isReady || !actor) {
         throw new Error('Backend is not ready. Please wait a moment and try again.');
       }
       return actor.saveCallerUserProfile(profile);

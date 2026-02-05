@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-add-manga-dialog-layout-so-the-dialog-body-the-middle-content-area-containing-the-form-fields-has-a-maximum-height-of-600px-and-scrolls-vertically-while-the-dialog-header-title-description-alerts-and-footer-cancel-add-manga-buttons-remain-fixed-and-always-visible",
-      "featureTitle": "Update the Add Manga dialog layout so the dialog body (the middle content area containing the form fields) has a maximum height of 600px and scrolls vertically, while the dialog header (title/description/alerts) and footer (Cancel/Add Manga buttons) remain fixed and always visible.",
+      "featureId": "feature-fix-the-add-manga-popup-layout-so-the-dialog-header-and-footer-remain-pinned-while-only-the-middle-body-section-scrolls-and-constrain-the-scrollable-middle-section-to-a-maximum-height-of-400px",
+      "featureTitle": "Fix the Add Manga popup layout so the dialog header and footer remain pinned while only the middle/body section scrolls, and constrain the scrollable middle section to a maximum height of 400px.",
       "files": [
-        "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
         "frontend/src/components/manga/AddMangaDialog.tsx"
       ],
       "components": [
@@ -23,16 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-new-frontend-stability-pass-to-reduce-recurring-backend-connection-actor-readiness-errors-by-improving-readiness-gating-retries-and-recovery-actions-across-the-existing-actor-readiness-hooks-and-the-manga-list-add-manga-flows",
-      "featureTitle": "Add a new frontend stability pass to reduce recurring backend connection/actor readiness errors by improving readiness gating, retries, and recovery actions across the existing actor/readiness hooks and the manga list + add-manga flows.",
+      "featureId": "feature-update-the-add-manga-dialog-layout-regression-checklist-to-reflect-the-new-400px-max-height-constraint-for-the-scrollable-body-replacing-the-previous-600px-references",
+      "featureTitle": "Update the Add Manga dialog layout regression checklist to reflect the new 400px max-height constraint for the scrollable body (replacing the previous 600px references).",
       "files": [
-        "frontend/src/components/manga/AddMangaDialog.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/hooks/useActorWithRetry.ts",
-        "frontend/src/hooks/useBackendReadiness.ts",
-        "frontend/src/hooks/useMangaMutations.ts",
-        "frontend/src/hooks/useMangaPage.ts",
-        "frontend/src/utils/backendErrorClassification.ts"
+        "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md"
       ],
       "components": [
         "authorization@4.0.0",
@@ -45,6 +38,110 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-three-independent-search-inputs-to-the-manga-list-page-for-filtering-entries-by-title-synopsis-and-notes-case-insensitive-substring-matching-and-apply-the-combined-search-filters-to-the-displayed-manga-list",
+      "featureTitle": "Add three independent search inputs to the manga list page for filtering entries by Title, Synopsis, and Notes (case-insensitive substring matching), and apply the combined search filters to the displayed manga list.",
+      "files": [
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-genre-filter-control-on-the-manga-list-page-as-a-button-that-opens-a-dropdown-containing-checkbox-options-for-available-genres-and-filter-the-displayed-list-to-entries-that-match-the-selected-genres",
+      "featureTitle": "Add a Genre filter control on the manga list page as a button that opens a dropdown containing checkbox options for available genres, and filter the displayed list to entries that match the selected genres.",
+      "files": [
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-bookmark-filter-toggle-on-the-manga-list-page-that-when-enabled-shows-only-entries-that-have-at-least-one-bookmark-value-in-their-bookmarks-array",
+      "featureTitle": "Add a bookmark filter toggle on the manga list page that, when enabled, shows only entries that have at least one bookmark value in their bookmarks array.",
+      "files": [
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-sorting-controls-on-the-manga-list-page-to-sort-by-title-or-rating-with-the-default-sorting-set-to-title-in-alphabetical-ascending-order",
+      "featureTitle": "Add sorting controls on the manga list page to sort by Title or Rating, with the default sorting set to Title in alphabetical ascending order.",
+      "files": [
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-search-filtering-genres-bookmarked-only-and-sorting-are-applied-to-the-full-manga-collection-consistently-with-pagination-so-pagination-counts-and-displayed-results-reflect-the-filtered-sorted-dataset-rather-than-only-the-currently-fetched-backend-page",
+      "featureTitle": "Ensure search, filtering (genres, bookmarked-only), and sorting are applied to the full manga collection consistently with pagination, so pagination counts and displayed results reflect the filtered/sorted dataset rather than only the currently fetched backend page.",
+      "files": [
+        "frontend/src/components/manga/MangaListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
       ],
       "confidence": "high"
     }

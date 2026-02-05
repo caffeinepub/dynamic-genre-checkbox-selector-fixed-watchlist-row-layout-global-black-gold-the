@@ -1,76 +1,147 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Manga dialog scroll-body (600px) + frontend backend-readiness stability improvements",
+  "title": "Manga dialog scroll fix + list search/filter/sort",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Constrain Add Manga dialog to a fixed header/footer with a max-600px scrollable body area.",
+      "summary": "Pin Add Manga dialog header/footer and constrain only the body section to scroll with a 400px max height.",
       "acceptanceCriteria": [
-        "When the Add Manga dialog is open, the header area stays visible at the top while scrolling the form fields.",
-        "When the Add Manga dialog is open, the footer action buttons stay visible at the bottom while scrolling the form fields.",
-        "The scrollable middle area has max-height: 600px (and uses vertical scrolling when content exceeds this height).",
-        "Scrolling inside the dialog scrolls only the dialog body (not the page behind the modal).",
-        "The layout remains usable on small viewports (mobile + small laptop) without introducing horizontal scrolling."
+        "When the Add Manga dialog content exceeds the available space, the scroll happens inside the dialog body area (middle section) and not on the page behind the modal.",
+        "The dialog header (title/alerts) stays visible at the top while scrolling the form.",
+        "The dialog footer (Cancel/Add Manga buttons) stays visible at the bottom while scrolling the form.",
+        "The scrollable middle section of the dialog never exceeds 400px height."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/manga/AddMangaDialog.tsx",
           "operation": "modify",
-          "description": "Adjust the dialog layout to keep the header and footer as non-scrolling (shrink-0) regions, and make only the middle form area vertically scrollable with a max height of 600px. Ensure the dialog container prevents overflow leakage (no horizontal scroll) and that the scroll region uses available viewport height safely on small screens while still respecting the 600px max."
-        },
-        {
-          "path": "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
-          "operation": "modify",
-          "description": "Update/append checklist items to explicitly verify: (1) body max-height 600px, (2) header/footer remain visible during body scroll, (3) no background/page scroll while interacting with the modal, (4) no horizontal scrolling on small viewports."
+          "description": "Update the dialog layout to keep a pinned top section (title + any connection alerts) and pinned footer, while making only the middle content scrollable; set the scrollable body max height to 400px and ensure the dialog container uses a flex + min-h-0/overflow-hidden pattern so background/page scrolling does not occur. Use existing shadcn-ui Dialog, DialogContent, DialogHeader, DialogFooter, and ScrollArea components to implement the layout (verify the component's usage instructions before implementing)."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Improve frontend backend connection stability via readiness gating, recovery retries, and clearer error state classification across actor/readiness hooks and manga list + add-manga flows.",
+      "summary": "Update the Add Manga dialog layout regression checklist to reference 400px max-height for the scrollable body.",
       "acceptanceCriteria": [
-        "Backend readiness checks do not enter a failed state solely because the actor is temporarily null/uninitialized during startup; instead the UI remains in a connecting/waiting state until the actor exists.",
-        "Retrying a backend connection from the UI triggers a full recovery attempt (including re-checking readiness and forcing a refresh/refetch of the actor query as needed), not just re-running the readiness check against a stale/missing actor.",
-        "Error messaging distinguishes at minimum: (a) connecting/initializing, (b) transient network issues, and (c) authorization-required cases, and does not incorrectly label initialization states as permanent failures.",
-        "Manga list loading, pagination changes, and add-manga submission remain gated on backend readiness and do not spam failing requests during reconnect scenarios.",
-        "After a successful reconnect (readiness becomes ready), previously blocked operations (loading list, opening Add Manga, submitting Add Manga) work without requiring a full page reload."
+        "The checklist in frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md refers to a 400px max-height for the scrollable body wherever it previously referenced 600px."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useBackendReadiness.ts",
+          "path": "frontend/src/components/manga/ADD_MANGA_DIALOG_LAYOUT_REGRESSION_CHECK.md",
           "operation": "modify",
-          "description": "Harden readiness state machine so it does not transition to a failed state when the actor is null/uninitialized; keep status in connecting/waiting until an actor exists. Ensure the readiness query is only enabled when an actor is present, preserve original errors for accurate classification (connecting vs transient vs authorization), and avoid turning initialization states into permanent failures."
+          "description": "Replace all references to a 600px max-height constraint for the scrollable body with 400px, including the test scenarios, expected behavior, and failure indicators."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add Title/Synopsis/Notes search inputs and apply combined (AND) case-insensitive substring filtering to the manga list.",
+      "acceptanceCriteria": [
+        "The manga list page displays three labeled search inputs: Title, Synopsis, Notes.",
+        "Typing into any search input filters the displayed manga entries using case-insensitive substring matching on the corresponding field.",
+        "When multiple search inputs are filled, entries must match all provided search inputs to remain visible (logical AND).",
+        "All user-facing labels/placeholders for the new controls are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Add three labeled search inputs (Title, Synopsis, Notes) and incorporate them into the displayed dataset using case-insensitive substring matching with logical AND across the three fields. Compose the UI using existing shadcn-ui Input/Label components (verify the component's usage instructions before implementing)."
         },
         {
-          "path": "frontend/src/hooks/useActorWithRetry.ts",
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "create",
+          "description": "Create a reusable controls component for the manga list page that renders the Title/Synopsis/Notes search inputs and exposes controlled values/onChange handlers to the parent page. Use existing shadcn-ui form primitives (Input/Label/Button as needed) (verify the component's usage instructions before implementing)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add a Genre filter button that opens a dropdown with genre checkboxes and filter the list by selected genres.",
+      "acceptanceCriteria": [
+        "A Genre filter button is visible on the manga list page and opens a dropdown/popup containing genre checkbox options.",
+        "Selecting one or more genres filters the displayed manga entries to those that contain at least one of the selected genres.",
+        "Clearing all selected genres removes the genre filter (entries are no longer filtered by genre)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
           "operation": "modify",
-          "description": "Upgrade retry behavior to perform a full recovery attempt: trigger a refetch/refresh of the existing actor query via React Query (without editing immutable useActor.ts), then rerun readiness checks, and finally invalidate/refetch manga-related queries so the UI recovers automatically after readiness becomes ready. Prevent duplicate retries and keep connecting state accurate during recovery."
+          "description": "Add a Genre filter control implemented as a button that opens a dropdown/popup with checkbox options sourced from the library genre list, and expose selected genre state to the parent. Compose using existing shadcn-ui Button + checkbox and an existing dropdown/popup primitive (e.g., Popover or DropdownMenu) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
         },
         {
           "path": "frontend/src/components/manga/MangaListPage.tsx",
           "operation": "modify",
-          "description": "Ensure list loading/pagination/opening Add Manga remain properly gated on readiness without spamming failing requests during reconnect. Refine displayed messaging to clearly differentiate connecting/initializing vs transient connection issues vs authorization-required states using the improved readiness categorization."
+          "description": "Apply selected-genre filtering to the displayed list: if one or more genres are selected, keep entries that contain at least one selected genre; if none are selected, do not filter by genre."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add a bookmarked-only filter toggle and filter the list to entries with bookmarks.length > 0 when enabled.",
+      "acceptanceCriteria": [
+        "A bookmark filter control is present on the manga list page (English text).",
+        "When enabled, only manga entries with bookmarks.length > 0 are shown.",
+        "When disabled, entries are not filtered by bookmarks."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Add a bookmarked-only toggle control (English label) to the controls area and expose it as controlled state. Compose with existing shadcn-ui components (e.g., Checkbox/Switch + Label) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
         },
         {
-          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
           "operation": "modify",
-          "description": "Align add-manga submission and inline connection alerts with the improved readiness/retry behavior: avoid labeling actor initialization as a hard failure, keep the dialog in a waiting/connecting state until ready, and ensure the Retry action triggers the full recovery flow so users can submit successfully after reconnect without reloading."
+          "description": "Apply bookmarked-only filtering when enabled by keeping only entries where bookmarks.length > 0; when disabled, do not apply this filter."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add sorting controls to sort the manga list by Title or Rating with default Title (A–Z).",
+      "acceptanceCriteria": [
+        "A sort control is visible on the manga list page with options at minimum: Title and Rating.",
+        "Default sort on initial page load is Title (A–Z).",
+        "Selecting Title sorts the displayed entries in ascending alphabetical order by title."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Add a sort control with at least two options (Title, Rating) and default it to Title. Compose using existing shadcn-ui select/menu components (e.g., Select) without modifying frontend/src/components/ui (verify the component's usage instructions before implementing)."
         },
         {
-          "path": "frontend/src/hooks/useMangaPage.ts",
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
           "operation": "modify",
-          "description": "Tighten readiness gating and retry behavior to minimize repeated failing requests during reconnect scenarios, and ensure queries naturally resume after readiness becomes ready (without requiring a page reload)."
+          "description": "Implement client-side sorting over the currently filtered dataset, defaulting to Title ascending (A–Z). Ensure the displayed results update immediately when changing sort selection."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Apply search/filters/sort across the full manga collection with pagination reflecting the filtered/sorted dataset.",
+      "acceptanceCriteria": [
+        "After applying any search/filter settings, the total pages and current page contents reflect the filtered dataset.",
+        "Changing pages preserves the active search/filter/sort settings and continues to show results consistent with those settings.",
+        "If the filtered dataset reduces the number of pages below the current page, the UI does not crash and shows a valid page of results."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Switch the list data source to the full collection (useGetAllMangaEntries) and implement client-side pagination over the filtered+sorted dataset so page counts and page contents reflect the same transformed dataset; clamp/reset the current page when filters reduce total pages to prevent invalid page rendering."
         },
         {
-          "path": "frontend/src/hooks/useMangaMutations.ts",
-          "operation": "modify",
-          "description": "Ensure add/update/delete mutations remain strictly gated on readiness and actor existence, and that error messaging is consistent with the improved readiness classification (distinguishing initialization vs transient vs authorization) to support recovery after reconnect."
+          "path": "frontend/src/hooks/useMangaListQueryState.ts",
+          "operation": "create",
+          "description": "Add a small hook to manage manga list control state (search text fields, selected genres, bookmarked-only toggle, sort selection) and provide helpers to reset/clamp page state when those controls change, keeping state preservation consistent across pagination."
         },
         {
-          "path": "frontend/src/utils/backendErrorClassification.ts",
+          "path": "frontend/src/components/manga/PaginationControls.tsx",
           "operation": "modify",
-          "description": "Expand/refine error classification patterns so initialization/actor-not-ready states are consistently categorized as connecting (retryable), transient network failures are reliably identified, and authorization-required errors remain non-retryable; ensure messages used by the UI do not mislabel connecting states as permanent failures."
+          "description": "Ensure the pagination control integration supports updated totalPages driven by the filtered/sorted dataset and that page navigation remains disabled when the actor is not ready (no UI library changes; only adjust props usage/handling as needed)."
         }
       ]
     }
