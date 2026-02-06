@@ -1,40 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T22:48:52.646Z",
-  "summary": "REQ-3 (collapsible sticky header with an accessible toggle) appears implemented in AppLayout.tsx. The diff summary does not provide enough concrete evidence to verify the required 25px upward shift/overlap behavior for the title-cycle arrow in MangaCard (REQ-1) or in CoverHoverPopup (REQ-2). An unrelated footer message/link appears to have been introduced.",
+  "generatedAt": "2026-02-06T00:50:10.510Z",
+  "summary": "The diff indicates changes to `MangaCard.tsx`, but the provided evidence is truncated and a modified summary file (`frontend-file-summaries.txt`) suggests the ArrowRight icon was moved down by 10px (not 5px) and other layout shifts were introduced. There is no evidence that `frontend/src/utils/formatChapterNumber.ts` was audited/updated to preserve decimal chapter progress display.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area without pushing/repositioning the rating UI; both arrow and rating remain usable.",
-      "reason": "The provided MangaCard.tsx diff content is truncated before any arrow positioning/z-index/transform changes are shown, so the exact 25px shift, overlap layering, and non-reflow constraints cannot be verified from the diff summary alone.",
+      "requirement": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px (reduce upward Y-translation by 5px) while keeping gutter layout unchanged and keeping spacer consistent when no alternate titles exist.",
+      "reason": "The only explicit evidence about the amount of movement indicates the ArrowRight was moved down by 10px rather than 5px, which does not match the requirement.",
       "evidence": [
-        "frontend/src/components/manga/MangaCard.tsx (truncated)"
+        "frontend-file-summaries.txt (describes MangaCard.tsx as 'moved down 10px')"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "In CoverHoverPopup, shift the green ChevronRight title-cycle button upward by 25px with overlap via layering and without reflow; cycling titles should still work and not close the popup.",
-      "reason": "The provided CoverHoverPopup.tsx diff content is truncated before any ChevronRight button positioning/z-index/transform changes are shown, so the 25px shift/overlap and behavior constraints cannot be verified from the diff summary alone.",
+      "id": "REQ-3",
+      "requirement": "Fix chapter progress display to preserve decimal values and audit/update `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation in displayed output.",
+      "reason": "`frontend/src/utils/formatChapterNumber.ts` is not shown as modified in the diff summary, so there is no evidence the formatter was audited/updated to prevent truncation. `MangaCard.tsx` is truncated, so decimal-preserving rendering cannot be verified from the provided code excerpt.",
       "evidence": [
-        "frontend/src/components/manga/CoverHoverPopup.tsx (truncated)"
+        "<file-diff> Modified files list does not include `frontend/src/utils/formatChapterNumber.ts`",
+        "frontend/src/components/manga/MangaCard.tsx (truncated excerpt does not show chapter-progress display rendering)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Footer content/link added/modified (\"© 2026. Built with ❤️ using caffeine.ai\" with an external link).",
-      "reason": "The BuildRequest does not request any footer changes; this introduces new user-facing content unrelated to the specified header collapse and arrow overlap adjustments.",
+      "description": "Adjusted layout beyond requested arrow change (ArrowRight moved down 10px and rating UI shifted up 10px / horizontal star+number layout).",
+      "reason": "The BuildRequest only asked to move the ArrowRight icon down by 5px while keeping the rest of the gutter layout behavior unchanged; shifting rating placement/layout is not requested and may violate 'keeping layout unchanged'.",
       "evidence": [
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend-file-summaries.txt (describes MangaCard.tsx as 'ArrowRight ... moved down 10px' and 'rating UI ... shifted up 10px' and 'star + number side-by-side')"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.66,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/manga/CoverHoverPopup.tsx",
     "frontend/src/components/manga/MangaCard.tsx",
     "project_state.json"
   ]

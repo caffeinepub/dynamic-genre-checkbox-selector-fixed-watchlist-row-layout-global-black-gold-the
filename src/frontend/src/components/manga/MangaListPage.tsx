@@ -13,7 +13,7 @@ import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription } from '../ui/alert';
 
 const ENTRIES_PER_PAGE = 30;
-const MIN_ROW_WIDTH = 900;
+const MIN_ROW_WIDTH = 925;
 
 export function MangaListPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,7 +123,7 @@ export function MangaListPage() {
     sortBy,
   ]);
 
-  // Clamp to minimum 900px
+  // Clamp to minimum 925px
   const finalRowWidth = Math.max(uniformWidth ?? 0, MIN_ROW_WIDTH);
 
   const handlePageChange = useCallback((newPage: number) => {
@@ -165,7 +165,7 @@ export function MangaListPage() {
         </Alert>
         <div className="flex flex-col items-center gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-[78px] w-full max-w-[900px]" />
+            <Skeleton key={i} className="h-[78px] w-full max-w-[925px]" />
           ))}
         </div>
       </div>
@@ -293,7 +293,7 @@ export function MangaListPage() {
         </div>
         <div className="flex flex-col items-center gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-[78px] w-full max-w-[900px]" />
+            <Skeleton key={i} className="h-[78px] w-full max-w-[925px]" />
           ))}
         </div>
       </div>

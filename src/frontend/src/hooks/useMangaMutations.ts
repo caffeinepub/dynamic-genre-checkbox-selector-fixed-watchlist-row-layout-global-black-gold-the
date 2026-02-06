@@ -163,7 +163,7 @@ export function useUpdateChapterProgress() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, chaptersRead, availableChapters }: { stableId: bigint; chaptersRead: bigint; availableChapters: bigint }) => {
+    mutationFn: async ({ stableId, chaptersRead, availableChapters }: { stableId: bigint; chaptersRead: number; availableChapters: number }) => {
       assertBackendReady(isReady, actor);
       if (!identity) throw new Error('Not authenticated');
       return actor!.updateEntry(stableId, {

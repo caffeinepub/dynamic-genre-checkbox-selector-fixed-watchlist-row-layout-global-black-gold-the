@@ -23,8 +23,8 @@ export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const MangaEntry = IDL.Record({
   'stableId' : IDL.Nat,
   'title' : IDL.Text,
-  'availableChapters' : IDL.Nat,
-  'chaptersRead' : IDL.Nat,
+  'availableChapters' : IDL.Float64,
+  'chaptersRead' : IDL.Float64,
   'completed' : IDL.Bool,
   'bookmarks' : IDL.Vec(IDL.Nat),
   'synopsis' : IDL.Text,
@@ -44,8 +44,8 @@ export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const UpdateFields = IDL.Record({
   'stableId' : IDL.Nat,
   'title' : IDL.Opt(IDL.Text),
-  'availableChapters' : IDL.Opt(IDL.Nat),
-  'chaptersRead' : IDL.Opt(IDL.Nat),
+  'availableChapters' : IDL.Opt(IDL.Float64),
+  'chaptersRead' : IDL.Opt(IDL.Float64),
   'completed' : IDL.Opt(IDL.Bool),
   'bookmarks' : IDL.Opt(IDL.Vec(IDL.Nat)),
   'synopsis' : IDL.Opt(IDL.Text),
@@ -130,8 +130,8 @@ export const idlFactory = ({ IDL }) => {
   const MangaEntry = IDL.Record({
     'stableId' : IDL.Nat,
     'title' : IDL.Text,
-    'availableChapters' : IDL.Nat,
-    'chaptersRead' : IDL.Nat,
+    'availableChapters' : IDL.Float64,
+    'chaptersRead' : IDL.Float64,
     'completed' : IDL.Bool,
     'bookmarks' : IDL.Vec(IDL.Nat),
     'synopsis' : IDL.Text,
@@ -151,8 +151,8 @@ export const idlFactory = ({ IDL }) => {
   const UpdateFields = IDL.Record({
     'stableId' : IDL.Nat,
     'title' : IDL.Opt(IDL.Text),
-    'availableChapters' : IDL.Opt(IDL.Nat),
-    'chaptersRead' : IDL.Opt(IDL.Nat),
+    'availableChapters' : IDL.Opt(IDL.Float64),
+    'chaptersRead' : IDL.Opt(IDL.Float64),
     'completed' : IDL.Opt(IDL.Bool),
     'bookmarks' : IDL.Opt(IDL.Vec(IDL.Nat)),
     'synopsis' : IDL.Opt(IDL.Text),

@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T22:48:52.649Z",
+  "generatedAt": "2026-02-06T00:50:10.512Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
+        "summary": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/manga/MangaCard.tsx"
@@ -23,25 +23,25 @@
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
+        "summary": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/CoverHoverPopup.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/CoverHoverPopup.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
+        "summary": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/index.css"
+          "frontend/src/utils/formatChapterNumber.ts",
+          "frontend/src/components/manga/MangaCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/layout/AppLayout.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ]
       }
     ]
@@ -51,8 +51,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/manga/CoverHoverPopup.tsx",
     "frontend/src/components/manga/MangaCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",

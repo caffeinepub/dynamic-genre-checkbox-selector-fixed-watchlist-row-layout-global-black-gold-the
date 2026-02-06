@@ -118,13 +118,13 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
       updates.synopsis = synopsis;
     }
 
-    const newChaptersRead = BigInt(chaptersRead);
-    if (newChaptersRead !== manga.chaptersRead) {
+    const newChaptersRead = parseFloat(chaptersRead);
+    if (!isNaN(newChaptersRead) && newChaptersRead !== manga.chaptersRead) {
       updates.chaptersRead = newChaptersRead;
     }
 
-    const newAvailableChapters = BigInt(availableChapters);
-    if (newAvailableChapters !== manga.availableChapters) {
+    const newAvailableChapters = parseFloat(availableChapters);
+    if (!isNaN(newAvailableChapters) && newAvailableChapters !== manga.availableChapters) {
       updates.availableChapters = newAvailableChapters;
     }
 
@@ -286,6 +286,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                   id="edit-chapters-read"
                   type="number"
                   min="0"
+                  step="0.1"
                   value={chaptersRead}
                   onChange={(e) => setChaptersRead(e.target.value)}
                   disabled={updateMutation.isPending || !isReady}
@@ -297,6 +298,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                   id="edit-available-chapters"
                   type="number"
                   min="0"
+                  step="0.1"
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
                   disabled={updateMutation.isPending || !isReady}

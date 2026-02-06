@@ -92,8 +92,8 @@ export class ExternalBlob {
 export interface MangaEntry {
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;
@@ -110,8 +110,8 @@ export interface _CaffeineStorageRefillInformation {
 export interface UpdateFields {
     stableId: bigint;
     title?: string;
-    availableChapters?: bigint;
-    chaptersRead?: bigint;
+    availableChapters?: number;
+    chaptersRead?: number;
     completed?: boolean;
     bookmarks?: Array<bigint>;
     synopsis?: string;
@@ -528,8 +528,8 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;
@@ -542,8 +542,8 @@ async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promi
 }): Promise<{
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;
@@ -627,8 +627,8 @@ function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arra
 async function to_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     stableId: bigint;
     title?: string;
-    availableChapters?: bigint;
-    chaptersRead?: bigint;
+    availableChapters?: number;
+    chaptersRead?: number;
     completed?: boolean;
     bookmarks?: Array<bigint>;
     synopsis?: string;
@@ -641,8 +641,8 @@ async function to_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise
 }): Promise<{
     stableId: bigint;
     title: [] | [string];
-    availableChapters: [] | [bigint];
-    chaptersRead: [] | [bigint];
+    availableChapters: [] | [number];
+    chaptersRead: [] | [number];
     completed: [] | [boolean];
     bookmarks: [] | [Array<bigint>];
     synopsis: [] | [string];
@@ -681,8 +681,8 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;
@@ -695,8 +695,8 @@ async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<
 }): Promise<{
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;

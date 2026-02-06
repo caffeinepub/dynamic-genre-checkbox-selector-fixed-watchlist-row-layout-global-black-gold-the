@@ -1,73 +1,67 @@
 {
   "kind": "build_request",
-  "title": "Adjust title-cycle arrow overlap and add collapsible app header",
+  "title": "Adjust MangaCard title-cycle arrow position/color and fix chapter progress decimal display",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
+      "text": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-5"
         ],
         "quotes": [
-          "move the green arrow that cycles through the titles up 25 pixels, and let it overlap with the ratings, do not dynamically move the rating away from the green arrow."
+          "move the green arrow down 5 pixels"
         ]
       },
       "acceptanceCriteria": [
-        "In the manga list row UI (MangaCard), the green cycle-title arrow is vertically shifted upward by exactly 25px relative to its current position.",
-        "The arrow is allowed to overlap on top of the rating area (star button and/or numeric rating) via layering (e.g., z-index), rather than spacing/padding changes.",
-        "The rating area does not change its layout to avoid the arrow (no conditional margins/padding/gaps introduced to move rating away).",
-        "Clicking the arrow still cycles titles reliably, and the rating star/button remains usable (no unintended click-blocking beyond the intentional overlap)."
+        "When alternate titles exist, the ArrowRight icon renders 5px lower than it currently does (relative to the card) while the rating block placement and alignment behavior remain unchanged.",
+        "When no alternate titles exist, the spacer element remains consistent with the arrow’s adjusted vertical position (so rating alignment does not shift between the two states)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
+      "text": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-5"
         ],
         "quotes": [
-          "move the green arrow that cycles through the titles up 25 pixels, and let it overlap with the ratings, do not dynamically move the rating away from the green arrow."
+          "make it dark brown color instead of green"
         ]
       },
       "acceptanceCriteria": [
-        "In CoverHoverPopup, the green ChevronRight title-cycle button is shifted upward by 25px from its current placement.",
-        "The button may overlap adjacent content if needed (layered), and the title text container does not dynamically resize/reposition to avoid it.",
-        "Cycling titles in the popup still works and does not close the popup unintentionally."
+        "The ArrowRight icon is no longer rendered with a green Tailwind class and instead renders as a dark brown color that is clearly distinguishable from the previous green."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
+      "text": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-5"
         ],
         "quotes": [
-          "make the header that has the 'mangalist' text and login/logout button collapsable."
+          "also why can't the 'chapters read/chapters available' output display numbers with decimals?  (for example 104.5), it can hold them but not display them?  please fix."
         ]
       },
       "acceptanceCriteria": [
-        "A visible, clickable header toggle control exists in the header area to collapse/expand it.",
-        "When collapsed, the header reduces its vertical footprint and hides (or minimizes) the MangaList branding area and the login/logout button; when expanded, they appear as they do today.",
-        "The header remains sticky at the top in both states.",
-        "The toggle control has accessible text (e.g., aria-label) in English indicating the action (Collapse header / Expand header)."
+        "If `manga.chaptersRead` is `104.5` and `manga.availableChapters` is `200`, the UI displays `104.5/200` (or equivalent that preserves the `.5`) in the chapter progress button text.",
+        "If both values are whole numbers (e.g., `104` and `200`), the UI displays them without unnecessary decimals (e.g., `104/200`).",
+        "Updating chapter progress with decimal inputs via the chapter progress popover persists and, after refresh/reload, the displayed value still includes the decimal portion (no truncation in display)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only UI components).",
-    "Do not change authentication implementation (Internet Identity) or backend APIs as part of making the header collapsible.",
-    "Keep all user-facing text in English."
+    "Do not edit any files under `frontend/src/components/ui` (compose existing shadcn components instead).",
+    "Do not modify `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx` (immutable paths)."
   ],
   "nonGoals": [
-    "Redesigning the entire MangaCard layout beyond the specific arrow positioning/overlap request.",
-    "Adding new backend fields or persistence/migrations for header collapsed state (unless already handled purely on the frontend)."
+    "Changing how chapter progress values are stored in the backend (this request is specifically about display behavior).",
+    "Adding new chapter-progress-related features beyond fixing decimal rendering."
   ],
   "imageRequirements": {
     "required": [],

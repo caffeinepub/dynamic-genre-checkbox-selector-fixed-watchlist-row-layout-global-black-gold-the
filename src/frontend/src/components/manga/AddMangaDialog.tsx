@@ -94,6 +94,12 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
     const ratingValue = parseFloat(rating);
     const validRating = !isNaN(ratingValue) ? Math.max(0, Math.min(10, ratingValue)) : 0;
 
+    // Parse chapter values as numbers
+    const chaptersReadValue = parseFloat(chaptersRead);
+    const availableChaptersValue = parseFloat(availableChapters);
+    const validChaptersRead = !isNaN(chaptersReadValue) ? Math.max(0, chaptersReadValue) : 0;
+    const validAvailableChapters = !isNaN(availableChaptersValue) ? Math.max(0, availableChaptersValue) : 0;
+
     const newManga: MangaEntry = {
       stableId,
       title,
@@ -101,8 +107,8 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
       genres: selectedGenres,
       coverImages,
       synopsis,
-      chaptersRead: BigInt(chaptersRead),
-      availableChapters: BigInt(availableChapters),
+      chaptersRead: validChaptersRead,
+      availableChapters: validAvailableChapters,
       notes: '',
       bookmarks: [],
       rating: validRating,
@@ -315,6 +321,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   id="chapters-read"
                   type="number"
                   min="0"
+                  step="0.1"
                   value={chaptersRead}
                   onChange={(e) => setChaptersRead(e.target.value)}
                   disabled={addMutation.isPending || !isReady}
@@ -326,6 +333,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   id="available-chapters"
                   type="number"
                   min="0"
+                  step="0.1"
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
                   disabled={addMutation.isPending || !isReady}

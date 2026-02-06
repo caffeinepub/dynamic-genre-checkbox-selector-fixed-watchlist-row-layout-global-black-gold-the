@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Adjust the green title-cycle arrow positioning to overlap ratings without reflow, and add a collapsible sticky app header.
+**Goal:** Tweak the MangaCard title-cycle arrow’s placement and styling, and ensure chapter progress text correctly displays decimal values.
 
 **Planned changes:**
-- In MangaCard rows, shift the green cycle-title arrow up by 25px and allow it to visually overlap the rating area via layering (no layout/padding/margin changes that move the rating away).
-- In the cover hover popup title area, apply the same 25px upward shift and allow overlap without resizing/reflowing surrounding content.
-- Make the top sticky header collapsible with a visible toggle control that collapses/expands the branding area and login/logout button, including accessible English aria-label text.
+- In `frontend/src/components/manga/MangaCard.tsx`, adjust the ArrowRight title-cycle icon’s vertical positioning so it renders 5px lower while keeping the existing gutter/rating alignment behavior consistent (including the no-alternate-title spacer case).
+- In `frontend/src/components/manga/MangaCard.tsx`, change the ArrowRight title-cycle icon color from green to a dark brown.
+- Audit and update chapter progress number formatting in `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` so decimal values are preserved in the displayed `chapters read/chapters available` text (without adding unnecessary decimals for whole numbers).
 
-**User-visible outcome:** The title-cycle arrow sits 25px higher and can overlap ratings in both the list and popup without pushing content around, and the sticky header can be collapsed/expanded via an on-header toggle while keeping the page usable.
+**User-visible outcome:** The title-cycle arrow appears slightly lower and in dark brown, and chapter progress displays decimals accurately (e.g., `104.5/200`) without truncation.

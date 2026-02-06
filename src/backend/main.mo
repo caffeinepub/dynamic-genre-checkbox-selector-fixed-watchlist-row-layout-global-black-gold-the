@@ -11,6 +11,8 @@ import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -55,8 +57,8 @@ actor {
     genres : [Text];
     coverImages : [Storage.ExternalBlob];
     synopsis : Text;
-    chaptersRead : Nat;
-    availableChapters : Nat;
+    chaptersRead : Float;
+    availableChapters : Float;
     notes : Text;
     bookmarks : [Nat];
     rating : Float;
@@ -83,8 +85,8 @@ actor {
     genres : ?[Text];
     coverImages : ?[Storage.ExternalBlob];
     synopsis : ?Text;
-    chaptersRead : ?Nat;
-    availableChapters : ?Nat;
+    chaptersRead : ?Float;
+    availableChapters : ?Float;
     notes : ?Text;
     bookmarks : ?[Nat];
     rating : ?Float;

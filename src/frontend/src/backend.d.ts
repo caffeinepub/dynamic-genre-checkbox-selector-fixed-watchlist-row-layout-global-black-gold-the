@@ -17,8 +17,8 @@ export class ExternalBlob {
 export interface MangaEntry {
     stableId: bigint;
     title: string;
-    availableChapters: bigint;
-    chaptersRead: bigint;
+    availableChapters: number;
+    chaptersRead: number;
     completed: boolean;
     bookmarks: Array<bigint>;
     synopsis: string;
@@ -32,8 +32,8 @@ export interface MangaEntry {
 export interface UpdateFields {
     stableId: bigint;
     title?: string;
-    availableChapters?: bigint;
-    chaptersRead?: bigint;
+    availableChapters?: number;
+    chaptersRead?: number;
     completed?: boolean;
     bookmarks?: Array<bigint>;
     synopsis?: string;

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MangaEntry } from '../../backend';
-import { Star, Bookmark, FileText, AlertCircle } from 'lucide-react';
+import { Star, Bookmark, FileText, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -15,6 +15,7 @@ import { NotesPreviewOverlay } from './NotesPreviewOverlay';
 import { AutoScrollTitle } from './AutoScrollTitle';
 import { CoverHoverPopup } from './CoverHoverPopup';
 import { useCachedCoverImageUrl } from '../../hooks/useCachedCoverImageUrl';
+import { formatChapterNumber } from '../../utils/formatChapterNumber';
 
 interface MangaCardProps {
   manga: MangaEntry;
@@ -77,10 +78,10 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
   const handleChapterProgressSubmit = useCallback(async () => {
     if (!isReady) return;
     
-    const chaptersRead = BigInt(parseInt(newChaptersRead, 10));
-    const availableChapters = BigInt(parseInt(newAvailableChapters, 10));
+    const chaptersRead = parseFloat(newChaptersRead);
+    const availableChapters = parseFloat(newAvailableChapters);
     
-    if (isNaN(Number(chaptersRead)) || isNaN(Number(availableChapters)) || chaptersRead < 0n || availableChapters < 0n) return;
+    if (isNaN(chaptersRead) || isNaN(availableChapters) || chaptersRead < 0 || availableChapters < 0) return;
 
     try {
       await updateChapterProgressMutation.mutateAsync({ 
@@ -221,78 +222,139 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
           />
         </div>
 
-        {/* Title with Auto-Scroll - Black Background */}
-        <div className="h-full shrink-0 px-3 flex items-center bg-black gap-2 relative" style={{ minWidth: '200px', maxWidth: '300px' }}>
+        {/* Title with Auto-Scroll - Black Background - Fixed 270px width */}
+        <div className="h-full shrink-0 px-3 flex items-center bg-black relative" style={{ width: '270px' }}>
           <AutoScrollTitle
             title={currentTitle}
             className="text-gold font-semibold text-sm w-full h-[60px]"
           />
-          {hasAlternateTitles && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                cycleTitle();
-              }}
-              className="shrink-0 h-[60px] w-5 flex items-center justify-center hover:bg-transparent relative z-20"
-              style={{ transform: 'translateY(-25px)' }}
-              aria-label="Cycle title"
-            >
-              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
         </div>
 
-        {/* Rating - Black Background */}
-        <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-black">
-          <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 p-0 hover:bg-transparent"
-                disabled={!isReady || updateRatingMutation.isPending}
+        {/* Right-side gutter for arrow and rating - OUTSIDE title area */}
+        <div className="h-full shrink-0 px-2 flex flex-col items-start justify-center bg-black relative" style={{ width: '50px' }}>
+          {hasAlternateTitles ? (
+            <>
+              {/* Dark brown arrow for cycling titles - left-aligned, moved down 5px (from -15px to -10px) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cycleTitle();
+                }}
+                className="shrink-0 h-5 w-5 flex items-center justify-center hover:bg-transparent z-10 mb-1"
+                style={{ transform: 'translateY(-10px)' }}
+                aria-label="Cycle title"
               >
-                <Star className="h-4 w-4 fill-gold text-gold" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64" align="start">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="rating-input">Update Rating</Label>
-                  <Input
-                    id="rating-input"
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.1"
-                    value={newRating}
-                    onChange={(e) => setNewRating(e.target.value)}
-                    disabled={!isReady || updateRatingMutation.isPending}
-                  />
-                </div>
-                <Button
-                  onClick={handleRatingSubmit}
-                  disabled={!isReady || updateRatingMutation.isPending}
-                  className="w-full"
-                  size="sm"
-                >
-                  {updateRatingMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update'
-                  )}
-                </Button>
+                <ArrowRight className="h-4 w-4 text-amber-900" />
+              </button>
+              
+              {/* Rating below the arrow - horizontal layout, moved up 10px */}
+              <div className="flex items-center gap-1 z-10" style={{ transform: 'translateY(-10px)' }}>
+                <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0 hover:bg-transparent"
+                      disabled={!isReady || updateRatingMutation.isPending}
+                    >
+                      <Star className="h-4 w-4 fill-gold text-gold" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64" align="start">
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="rating-input">Update Rating</Label>
+                        <Input
+                          id="rating-input"
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.1"
+                          value={newRating}
+                          onChange={(e) => setNewRating(e.target.value)}
+                          disabled={!isReady || updateRatingMutation.isPending}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleRatingSubmit}
+                        disabled={!isReady || updateRatingMutation.isPending}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {updateRatingMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          'Update'
+                        )}
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <span className={`font-semibold text-xs whitespace-nowrap ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
+                  {manga.rating.toFixed(1)}
+                </span>
               </div>
-            </PopoverContent>
-          </Popover>
-          <span className={`font-semibold text-sm whitespace-nowrap ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
-            {manga.rating.toFixed(1)}
-          </span>
+            </>
+          ) : (
+            <>
+              {/* Empty spacer matching arrow height when no alternate titles - moved down 5px (from -15px to -10px) */}
+              <div className="h-5 w-5 mb-1" style={{ transform: 'translateY(-10px)' }} />
+              
+              {/* Rating in same position - horizontal layout, moved up 10px */}
+              <div className="flex items-center gap-1 z-10" style={{ transform: 'translateY(-10px)' }}>
+                <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0 hover:bg-transparent"
+                      disabled={!isReady || updateRatingMutation.isPending}
+                    >
+                      <Star className="h-4 w-4 fill-gold text-gold" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64" align="start">
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="rating-input-alt">Update Rating</Label>
+                        <Input
+                          id="rating-input-alt"
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.1"
+                          value={newRating}
+                          onChange={(e) => setNewRating(e.target.value)}
+                          disabled={!isReady || updateRatingMutation.isPending}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleRatingSubmit}
+                        disabled={!isReady || updateRatingMutation.isPending}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {updateRatingMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          'Update'
+                        )}
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <span className={`font-semibold text-xs whitespace-nowrap ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
+                  {manga.rating.toFixed(1)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Completion Status and Chapter Progress - Black Background */}
@@ -329,7 +391,7 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
                 className="h-5 px-2 py-0 hover:bg-gold/10 text-xs text-gold font-medium"
                 disabled={!isReady || updateChapterProgressMutation.isPending}
               >
-                {manga.chaptersRead.toString()}/{manga.availableChapters.toString()}
+                {formatChapterNumber(manga.chaptersRead)}/{formatChapterNumber(manga.availableChapters)}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-72" align="start">
@@ -340,6 +402,7 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
                     id="chapters-read-input"
                     type="number"
                     min="0"
+                    step="0.1"
                     value={newChaptersRead}
                     onChange={(e) => setNewChaptersRead(e.target.value)}
                     disabled={!isReady || updateChapterProgressMutation.isPending}
@@ -351,6 +414,7 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
                     id="available-chapters-input"
                     type="number"
                     min="0"
+                    step="0.1"
                     value={newAvailableChapters}
                     onChange={(e) => setNewAvailableChapters(e.target.value)}
                     disabled={!isReady || updateChapterProgressMutation.isPending}

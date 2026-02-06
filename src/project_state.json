@@ -3,28 +3,30 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "'Chapters read/chapters available' output currently does not display decimal values even though the value can be stored."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-move-the-green-cycle-title-arrow-control-up-by-25px-and-allow-it-to-visually-overlap-the-rating-area-without-pushing-or-dynamically-repositioning-the-rating-value-or-rating-controls-away-from-the-arrow",
-      "title": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
+      "id": "feature-in-frontend-src-components-manga-mangacard-tsx-move-the-title-cycle-arrowright-icon-down-by-5px-from-its-current-position-i-e-reduce-the-current-upward-y-translation-by-5px-while-keeping-the-rest-of-the-gutter-layout-behavior-unchanged",
+      "title": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-same-25px-upward-shift-and-overlap-behavior-for-the-green-title-cycle-arrow-in-the-cover-hover-popup-title-area-without-reflowing-surrounding-text-content-to-avoid-it",
-      "title": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
+      "id": "feature-in-frontend-src-components-manga-mangacard-tsx-change-the-title-cycle-arrowright-icon-color-from-green-to-a-dark-brown-color",
+      "title": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-make-the-top-header-containing-the-mangalist-text-logo-area-and-the-login-logout-button-collapsible-with-a-clear-toggle-control-that-can-collapse-and-expand-the-header-while-keeping-the-page-content-usable",
-      "title": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
+      "id": "feature-fix-the-chapters-read-chapters-available-display-so-it-correctly-renders-decimal-values-e-g-104-5-200-0-should-display-104-5-200-or-104-5-200-0-but-must-not-truncate-to-104-200-this-includes-auditing-frontend-src-components-manga-mangacard-tsx-and-frontend-src-utils-formatchapternumber-ts-to-ensure-no-rounding-truncation-occurs-in-the-displayed-output",
+      "title": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
       "reqIds": [
         "REQ-3"
       ],
@@ -34,18 +36,24 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Adjust the green title-cycle arrow: move it up 25px and allow it to overlap the ratings without dynamically moving the rating away",
+      "summary": "Move the arrow down by 5 pixels",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Make the header containing the 'mangalist' text and the login/logout button collapsible",
+      "summary": "Change the arrow color from green to dark brown",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Fix 'chapters read/chapters available' display to support decimal values (e.g., 104.5)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Adjust title-cycle arrow overlap and add collapsible app header",
+  "projectName": "Adjust MangaCard title-cycle arrow position/color and fix chapter progress decimal display",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

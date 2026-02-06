@@ -1,60 +1,55 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Arrow overlap adjustments and collapsible sticky header",
+  "title": "MangaCard arrow positioning/color tweaks and decimal chapter progress display fix",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Shift the MangaCard green cycle-title arrow upward by 25px and allow it to overlap the rating area via layering without changing rating layout.",
+      "summary": "Adjust MangaCard title-cycle ArrowRight vertical translation so it renders 5px lower without affecting gutter layout alignment.",
       "acceptanceCriteria": [
-        "In the manga list row UI (MangaCard), the green cycle-title arrow is vertically shifted upward by exactly 25px relative to its current position.",
-        "The arrow is allowed to overlap on top of the rating area (star button and/or numeric rating) via layering (e.g., z-index), rather than spacing/padding changes.",
-        "The rating area does not change its layout to avoid the arrow (no conditional margins/padding/gaps introduced to move rating away).",
-        "Clicking the arrow still cycles titles reliably, and the rating star/button remains usable (no unintended click-blocking beyond the intentional overlap)."
+        "When alternate titles exist, the ArrowRight icon renders 5px lower than it currently does (relative to the card) while the rating block placement and alignment behavior remain unchanged.",
+        "When no alternate titles exist, the spacer element remains consistent with the arrow’s adjusted vertical position (so rating alignment does not shift between the two states)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Adjust the cycle-title button positioning to use transform-based vertical shift (-25px) and layering (e.g., z-index/positioning) so it can visually overlap into the adjacent rating area without changing the rating container spacing/layout; ensure pointer-events/click behavior still allows both cycling titles and using the rating controls."
+          "description": "Update the title-cycle arrow button and its no-alternate-titles spacer to reduce the upward translateY amount by 5px (e.g., from -15px to -10px) while leaving the rating block translate and overall gutter layout behavior unchanged."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Apply the same 25px upward shift and overlap behavior for the title-cycle arrow in the CoverHoverPopup title area without reflowing surrounding content.",
+      "summary": "Change MangaCard title-cycle ArrowRight icon color from green to a dark brown.",
       "acceptanceCriteria": [
-        "In CoverHoverPopup, the green ChevronRight title-cycle button is shifted upward by 25px from its current placement.",
-        "The button may overlap adjacent content if needed (layered), and the title text container does not dynamically resize/reposition to avoid it.",
-        "Cycling titles in the popup still works and does not close the popup unintentionally."
+        "The ArrowRight icon is no longer rendered with a green Tailwind class and instead renders as a dark brown color that is clearly distinguishable from the previous green."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/CoverHoverPopup.tsx",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Update the popup title-cycle ChevronRight button to be vertically shifted upward by 25px using transform (no layout reflow) and layered above adjacent content (z-index); remove/avoid title-area padding that reserves space for the button so overlap is allowed; preserve stopPropagation so cycling does not trigger drag/close behaviors."
+          "description": "Replace the ArrowRight icon’s green Tailwind color class with a dark brown color class (e.g., a dark amber/brown tone or an explicit hex via Tailwind arbitrary value), ensuring only the arrow color changes."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Make the sticky top header collapsible with an accessible toggle that minimizes branding and auth controls when collapsed and restores them when expanded.",
+      "summary": "Ensure chapter progress text renders decimal chapter values without truncation and keeps whole numbers free of unnecessary decimals.",
       "acceptanceCriteria": [
-        "A visible, clickable header toggle control exists in the header area to collapse/expand it.",
-        "When collapsed, the header reduces its vertical footprint and hides (or minimizes) the MangaList branding area and the login/logout button; when expanded, they appear as they do today.",
-        "The header remains sticky at the top in both states.",
-        "The toggle control has accessible text (e.g., aria-label) in English indicating the action (Collapse header / Expand header)."
+        "If `manga.chaptersRead` is `104.5` and `manga.availableChapters` is `200`, the UI displays `104.5/200` (or equivalent that preserves the `.5`) in the chapter progress button text.",
+        "If both values are whole numbers (e.g., `104` and `200`), the UI displays them without unnecessary decimals (e.g., `104/200`).",
+        "Updating chapter progress with decimal inputs via the chapter progress popover persists and, after refresh/reload, the displayed value still includes the decimal portion (no truncation in display)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/utils/formatChapterNumber.ts",
           "operation": "modify",
-          "description": "Add local UI state to collapse/expand the existing sticky header, including a clearly visible toggle control within the header; when collapsed, reduce header padding/height and hide or minimize the logo/title and LoginLogoutButton while keeping the toggle accessible; ensure the header remains sticky in both states and the toggle uses English aria-label text (\"Collapse header\" / \"Expand header\")."
+          "description": "Harden chapter-number formatting to preserve any fractional portion (no rounding/truncation) while trimming unnecessary trailing zeros for whole-number values (e.g., 200.0 -> \"200\", 104.5 -> \"104.5\")."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "If needed for smooth collapsing/minimizing behavior, add minimal global utility styles (e.g., for header collapse transitions) using existing Tailwind layer conventions; do not modify any files under frontend/src/components/ui."
+          "description": "Audit and adjust chapter progress rendering to ensure the displayed \"chapters read/chapters available\" text uses the non-truncating formatter output for both values, preserving decimals after edits and reloads."
         }
       ]
     }

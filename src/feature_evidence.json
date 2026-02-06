@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-move-the-green-cycle-title-arrow-control-up-by-25px-and-allow-it-to-visually-overlap-the-rating-area-without-pushing-or-dynamically-repositioning-the-rating-value-or-rating-controls-away-from-the-arrow",
-      "featureTitle": "Move the green \"cycle title\" arrow control up by 25px and allow it to visually overlap the rating area, without pushing or dynamically repositioning the rating value or rating controls away from the arrow.",
+      "featureId": "feature-in-frontend-src-components-manga-mangacard-tsx-move-the-title-cycle-arrowright-icon-down-by-5px-from-its-current-position-i-e-reduce-the-current-upward-y-translation-by-5px-while-keeping-the-rest-of-the-gutter-layout-behavior-unchanged",
+      "featureTitle": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
       "files": [
         "frontend/src/components/manga/MangaCard.tsx"
       ],
@@ -22,10 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-same-25px-upward-shift-and-overlap-behavior-for-the-green-title-cycle-arrow-in-the-cover-hover-popup-title-area-without-reflowing-surrounding-text-content-to-avoid-it",
-      "featureTitle": "Ensure the same 25px upward shift and overlap behavior for the green title-cycle arrow in the cover hover popup title area, without reflowing surrounding text/content to avoid it.",
+      "featureId": "feature-in-frontend-src-components-manga-mangacard-tsx-change-the-title-cycle-arrowright-icon-color-from-green-to-a-dark-brown-color",
+      "featureTitle": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
       "files": [
-        "frontend/src/components/manga/CoverHoverPopup.tsx"
+        "frontend/src/components/manga/MangaCard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,10 +42,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-the-top-header-containing-the-mangalist-text-logo-area-and-the-login-logout-button-collapsible-with-a-clear-toggle-control-that-can-collapse-and-expand-the-header-while-keeping-the-page-content-usable",
-      "featureTitle": "Make the top header (containing the \"MangaList\" text/logo area and the login/logout button) collapsible, with a clear toggle control that can collapse and expand the header while keeping the page content usable.",
+      "featureId": "feature-fix-the-chapters-read-chapters-available-display-so-it-correctly-renders-decimal-values-e-g-104-5-200-0-should-display-104-5-200-or-104-5-200-0-but-must-not-truncate-to-104-200-this-includes-auditing-frontend-src-components-manga-mangacard-tsx-and-frontend-src-utils-formatchapternumber-ts-to-ensure-no-rounding-truncation-occurs-in-the-displayed-output",
+      "featureTitle": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/src/components/manga/MangaCard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
