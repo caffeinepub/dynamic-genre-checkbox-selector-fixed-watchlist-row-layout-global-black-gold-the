@@ -1,55 +1,61 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "MangaCard arrow positioning/color tweaks and decimal chapter progress display fix",
+  "title": "Manga list: add completion-only filter and extend sort options",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Adjust MangaCard title-cycle ArrowRight vertical translation so it renders 5px lower without affecting gutter layout alignment.",
+      "summary": "Add a \"Complete only\" checkbox to the existing floating filter panel that filters the list to entries with completed === true and composes with existing filters.",
       "acceptanceCriteria": [
-        "When alternate titles exist, the ArrowRight icon renders 5px lower than it currently does (relative to the card) while the rating block placement and alignment behavior remain unchanged.",
-        "When no alternate titles exist, the spacer element remains consistent with the arrow’s adjusted vertical position (so rating alignment does not shift between the two states)."
+        "A new checkbox is visible in the existing floating controls/filter panel with the label \"Complete only\".",
+        "When the checkbox is checked, the list shows only entries where `entry.completed === true`.",
+        "When the checkbox is unchecked, entries are not filtered by completion status.",
+        "The completion filter composes correctly with existing filters (title/synopsis/notes search, genre selection, and bookmarked-only).",
+        "Toggling the completion checkbox updates the list immediately without requiring a page reload."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
           "operation": "modify",
-          "description": "Update the title-cycle arrow button and its no-alternate-titles spacer to reduce the upward translateY amount by 5px (e.g., from -15px to -10px) while leaving the rating block translate and overall gutter layout behavior unchanged."
+          "description": "Extend the controls props to accept `completedOnly` + `onCompletedOnlyChange`, and render a new Checkbox control labeled \"Complete only\" within the existing filter/controls area. Use the existing shadcn/ui Checkbox already imported; do not modify files under frontend/src/components/ui."
+        },
+        {
+          "path": "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "operation": "modify",
+          "description": "Plumb `completedOnly` and `onCompletedOnlyChange` through FloatingControlsPanel props and into MangaListControls so the new filter is visible in the existing floating panel."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Add `completedOnly` state, pass it down to FloatingControlsPanel, and update the `filteredAndSortedEntries` memo to filter entries by `entry.completed === true` when enabled. Ensure `hasFilters` reflects the completion filter so the empty-state messaging stays accurate, and include `completedOnly` in memo dependencies / width recalculation inputs so the list updates immediately."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Change MangaCard title-cycle ArrowRight icon color from green to a dark brown.",
+      "summary": "Extend the \"Sort By\" selector with \"Title (Z–A)\" and \"Rating (Low–High)\" and apply sorting to the full filtered set before pagination.",
       "acceptanceCriteria": [
-        "The ArrowRight icon is no longer rendered with a green Tailwind class and instead renders as a dark brown color that is clearly distinguishable from the previous green."
+        "The \"Sort By\" dropdown includes at least these options: \"Title (A–Z)\", \"Title (Z–A)\", \"Rating (High–Low)\", and \"Rating (Low–High)\".",
+        "Selecting \"Title (Z–A)\" sorts entries by title descending (Z to A).",
+        "Selecting \"Rating (Low–High)\" sorts entries by rating ascending (lowest to highest).",
+        "Existing sort options continue to work as before.",
+        "Sorting applies to the full filtered result set before pagination is applied."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
           "operation": "modify",
-          "description": "Replace the ArrowRight icon’s green Tailwind color class with a dark brown color class (e.g., a dark amber/brown tone or an explicit hex via Tailwind arbitrary value), ensuring only the arrow color changes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Ensure chapter progress text renders decimal chapter values without truncation and keeps whole numbers free of unnecessary decimals.",
-      "acceptanceCriteria": [
-        "If `manga.chaptersRead` is `104.5` and `manga.availableChapters` is `200`, the UI displays `104.5/200` (or equivalent that preserves the `.5`) in the chapter progress button text.",
-        "If both values are whole numbers (e.g., `104` and `200`), the UI displays them without unnecessary decimals (e.g., `104/200`).",
-        "Updating chapter progress with decimal inputs via the chapter progress popover persists and, after refresh/reload, the displayed value still includes the decimal portion (no truncation in display)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/formatChapterNumber.ts",
-          "operation": "modify",
-          "description": "Harden chapter-number formatting to preserve any fractional portion (no rounding/truncation) while trimming unnecessary trailing zeros for whole-number values (e.g., 200.0 -> \"200\", 104.5 -> \"104.5\")."
+          "description": "Update the `sortBy` prop union type and Select options to support four values (Title A–Z, Title Z–A, Rating High–Low, Rating Low–High). Keep using existing Select components (do not edit frontend/src/components/ui). Ensure labels match the acceptance criteria."
         },
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
           "operation": "modify",
-          "description": "Audit and adjust chapter progress rendering to ensure the displayed \"chapters read/chapters available\" text uses the non-truncating formatter output for both values, preserving decimals after edits and reloads."
+          "description": "Update `sortBy` state type/default and adjust the sorting branch inside `filteredAndSortedEntries` to implement title descending and rating ascending options while preserving existing title ascending and rating descending behavior. Confirm sorting occurs prior to the existing pagination slice so it applies to the full filtered set."
+        },
+        {
+          "path": "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "operation": "modify",
+          "description": "Update the `sortBy`/`onSortByChange` prop types passed through FloatingControlsPanel to match the expanded sort option union, ensuring the new sort options remain wired into the existing floating panel UI."
         }
       ]
     }

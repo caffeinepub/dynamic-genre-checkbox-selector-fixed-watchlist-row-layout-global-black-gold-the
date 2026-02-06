@@ -1,47 +1,43 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T00:50:10.512Z",
+  "generatedAt": "2026-02-06T01:29:45.172Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
+        "summary": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/MangaCard.tsx"
+          "frontend/src/components/manga/MangaListControls.tsx",
+          "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/MangaCard.tsx"
+          "frontend/src/components/manga/MangaListControls.tsx",
+          "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
+        "summary": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/MangaCard.tsx"
+          "frontend/src/components/manga/MangaListControls.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx",
+          "frontend/src/components/manga/FloatingControlsPanel.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/MangaCard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/formatChapterNumber.ts",
-          "frontend/src/components/manga/MangaCard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/manga/MangaCard.tsx"
+          "frontend/src/components/manga/MangaListControls.tsx",
+          "frontend/src/components/manga/MangaListPage.tsx",
+          "frontend/src/components/manga/FloatingControlsPanel.tsx"
         ]
       }
     ]
@@ -51,7 +47,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/manga/MangaCard.tsx",
+    "frontend/src/components/manga/FloatingControlsPanel.tsx",
+    "frontend/src/components/manga/MangaListControls.tsx",
+    "frontend/src/components/manga/MangaListPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

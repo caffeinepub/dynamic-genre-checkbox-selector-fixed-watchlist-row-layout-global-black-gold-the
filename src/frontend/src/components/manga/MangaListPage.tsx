@@ -25,7 +25,8 @@ export function MangaListPage() {
   const [notesSearch, setNotesSearch] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'title' | 'rating'>('title');
+  const [completedOnly, setCompletedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc'>('title-asc');
   
   const { 
     isConnecting, 
@@ -89,14 +90,22 @@ export function MangaListPage() {
       filtered = filtered.filter(entry => entry.isBookmarked);
     }
 
-    if (sortBy === 'title') {
+    if (completedOnly) {
+      filtered = filtered.filter(entry => entry.completed);
+    }
+
+    if (sortBy === 'title-asc') {
       filtered.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'rating') {
+    } else if (sortBy === 'title-desc') {
+      filtered.sort((a, b) => b.title.localeCompare(a.title));
+    } else if (sortBy === 'rating-desc') {
       filtered.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === 'rating-asc') {
+      filtered.sort((a, b) => a.rating - b.rating);
     }
 
     return filtered;
-  }, [allEntries, titleSearch, synopsisSearch, notesSearch, selectedGenres, bookmarkedOnly, sortBy]);
+  }, [allEntries, titleSearch, synopsisSearch, notesSearch, selectedGenres, bookmarkedOnly, completedOnly, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE));
   
@@ -120,6 +129,7 @@ export function MangaListPage() {
     notesSearch,
     selectedGenres,
     bookmarkedOnly,
+    completedOnly,
     sortBy,
   ]);
 
@@ -300,7 +310,7 @@ export function MangaListPage() {
     );
   }
 
-  const hasFilters = titleSearch || synopsisSearch || notesSearch || selectedGenres.length > 0 || bookmarkedOnly;
+  const hasFilters = titleSearch || synopsisSearch || notesSearch || selectedGenres.length > 0 || bookmarkedOnly || completedOnly;
 
   const alignmentClass = 
     watchlistAlignment === 'left' ? 'items-start' :
@@ -343,6 +353,8 @@ export function MangaListPage() {
           availableGenres={availableGenres}
           bookmarkedOnly={bookmarkedOnly}
           onBookmarkedOnlyChange={setBookmarkedOnly}
+          completedOnly={completedOnly}
+          onCompletedOnlyChange={setCompletedOnly}
           sortBy={sortBy}
           onSortByChange={setSortBy}
           onAddManga={handleAddManga}

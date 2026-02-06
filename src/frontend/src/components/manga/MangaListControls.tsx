@@ -19,8 +19,10 @@ interface MangaListControlsProps {
   availableGenres: string[];
   bookmarkedOnly: boolean;
   onBookmarkedOnlyChange: (value: boolean) => void;
-  sortBy: 'title' | 'rating';
-  onSortByChange: (value: 'title' | 'rating') => void;
+  completedOnly: boolean;
+  onCompletedOnlyChange: (value: boolean) => void;
+  sortBy: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc';
+  onSortByChange: (value: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc') => void;
   onAddManga: () => void;
   isBackendReady: boolean;
   watchlistAlignment: 'left' | 'center' | 'right';
@@ -39,6 +41,8 @@ export function MangaListControls({
   availableGenres,
   bookmarkedOnly,
   onBookmarkedOnlyChange,
+  completedOnly,
+  onCompletedOnlyChange,
   sortBy,
   onSortByChange,
   onAddManga,
@@ -170,14 +174,33 @@ export function MangaListControls({
         </div>
 
         <div className="space-y-1">
+          <Label className="text-xs">Complete Only</Label>
+          <div className="flex items-center h-9 px-3 border rounded-md bg-background">
+            <Checkbox
+              id="completed-only"
+              checked={completedOnly}
+              onCheckedChange={(checked) => onCompletedOnlyChange(checked === true)}
+            />
+            <label
+              htmlFor="completed-only"
+              className="ml-2 text-sm font-medium leading-none cursor-pointer"
+            >
+              Complete
+            </label>
+          </div>
+        </div>
+
+        <div className="space-y-1">
           <Label htmlFor="sort-by" className="text-xs">Sort By</Label>
-          <Select value={sortBy} onValueChange={(value) => onSortByChange(value as 'title' | 'rating')}>
-            <SelectTrigger id="sort-by" className="w-[160px] h-9">
+          <Select value={sortBy} onValueChange={(value) => onSortByChange(value as 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc')}>
+            <SelectTrigger id="sort-by" className="w-[180px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="title">Title (A–Z)</SelectItem>
-              <SelectItem value="rating">Rating (High–Low)</SelectItem>
+              <SelectItem value="title-asc">Title (A–Z)</SelectItem>
+              <SelectItem value="title-desc">Title (Z–A)</SelectItem>
+              <SelectItem value="rating-desc">Rating (High–Low)</SelectItem>
+              <SelectItem value="rating-asc">Rating (Low–High)</SelectItem>
             </SelectContent>
           </Select>
         </div>

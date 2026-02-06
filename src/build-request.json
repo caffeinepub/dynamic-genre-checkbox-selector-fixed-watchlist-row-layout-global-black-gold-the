@@ -1,67 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Adjust MangaCard title-cycle arrow position/color and fix chapter progress decimal display",
+  "title": "Add 'Complete' status filter checkbox and new sort options (Title Z–A, Rating Low–High)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
+      "text": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-user-1"
         ],
         "quotes": [
-          "move the green arrow down 5 pixels"
+          "add a checkmark onto the filter panel which will show only manga with the 'Complete' status' when checked."
         ]
       },
       "acceptanceCriteria": [
-        "When alternate titles exist, the ArrowRight icon renders 5px lower than it currently does (relative to the card) while the rating block placement and alignment behavior remain unchanged.",
-        "When no alternate titles exist, the spacer element remains consistent with the arrow’s adjusted vertical position (so rating alignment does not shift between the two states)."
+        "A new checkbox is visible in the existing floating controls/filter panel with the label \"Complete only\".",
+        "When the checkbox is checked, the list shows only entries where `entry.completed === true`.",
+        "When the checkbox is unchecked, entries are not filtered by completion status.",
+        "The completion filter composes correctly with existing filters (title/synopsis/notes search, genre selection, and bookmarked-only).",
+        "Toggling the completion checkbox updates the list immediately without requiring a page reload."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
+      "text": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-user-1"
         ],
         "quotes": [
-          "make it dark brown color instead of green"
+          "make it so that there is a sorting option for Title (Z-A), as well as Rating (Low-High)"
         ]
       },
       "acceptanceCriteria": [
-        "The ArrowRight icon is no longer rendered with a green Tailwind class and instead renders as a dark brown color that is clearly distinguishable from the previous green."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "also why can't the 'chapters read/chapters available' output display numbers with decimals?  (for example 104.5), it can hold them but not display them?  please fix."
-        ]
-      },
-      "acceptanceCriteria": [
-        "If `manga.chaptersRead` is `104.5` and `manga.availableChapters` is `200`, the UI displays `104.5/200` (or equivalent that preserves the `.5`) in the chapter progress button text.",
-        "If both values are whole numbers (e.g., `104` and `200`), the UI displays them without unnecessary decimals (e.g., `104/200`).",
-        "Updating chapter progress with decimal inputs via the chapter progress popover persists and, after refresh/reload, the displayed value still includes the decimal portion (no truncation in display)."
+        "The \"Sort By\" dropdown includes at least these options: \"Title (A–Z)\", \"Title (Z–A)\", \"Rating (High–Low)\", and \"Rating (Low–High)\".",
+        "Selecting \"Title (Z–A)\" sorts entries by title descending (Z to A).",
+        "Selecting \"Rating (Low–High)\" sorts entries by rating ascending (lowest to highest).",
+        "Existing sort options continue to work as before.",
+        "Sorting applies to the full filtered result set before pagination is applied."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under `frontend/src/components/ui` (compose existing shadcn components instead).",
-    "Do not modify `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx` (immutable paths)."
+    "Do not modify files under frontend/src/components/ui (compose existing UI components instead).",
+    "Do not edit immutable frontend hook files listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
   ],
   "nonGoals": [
-    "Changing how chapter progress values are stored in the backend (this request is specifically about display behavior).",
-    "Adding new chapter-progress-related features beyond fixing decimal rendering."
+    "No backend (Motoko) API or schema changes are required; use the existing `completed : Bool` field on entries.",
+    "Do not add new authentication or persistence behavior for filters/sort beyond the current page state unless explicitly requested."
   ],
   "imageRequirements": {
     "required": [],

@@ -15,8 +15,10 @@ interface FloatingControlsPanelProps {
   availableGenres: string[];
   bookmarkedOnly: boolean;
   onBookmarkedOnlyChange: (value: boolean) => void;
-  sortBy: 'title' | 'rating';
-  onSortByChange: (value: 'title' | 'rating') => void;
+  completedOnly: boolean;
+  onCompletedOnlyChange: (value: boolean) => void;
+  sortBy: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc';
+  onSortByChange: (value: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc') => void;
   onAddManga: () => void;
   isBackendReady: boolean;
   watchlistAlignment: 'left' | 'center' | 'right';

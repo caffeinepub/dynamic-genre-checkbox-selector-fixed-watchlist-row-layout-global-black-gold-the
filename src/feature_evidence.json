@@ -2,10 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-frontend-src-components-manga-mangacard-tsx-move-the-title-cycle-arrowright-icon-down-by-5px-from-its-current-position-i-e-reduce-the-current-upward-y-translation-by-5px-while-keeping-the-rest-of-the-gutter-layout-behavior-unchanged",
-      "featureTitle": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px from its current position (i.e., reduce the current upward Y-translation by 5px) while keeping the rest of the gutter layout behavior unchanged.",
+      "featureId": "feature-add-a-new-filter-control-in-the-manga-list-filter-controls-panel-a-checkmark-checkbox-labeled-complete-only-that-when-checked-restricts-the-displayed-manga-list-to-entries-whose-completion-status-is-complete-i-e-the-entry-s-completed-field-is-true-when-unchecked-completed-and-non-completed-entries-are-both-shown",
+      "featureTitle": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
       "files": [
-        "frontend/src/components/manga/MangaCard.tsx"
+        "frontend/src/components/manga/FloatingControlsPanel.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,10 +24,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-frontend-src-components-manga-mangacard-tsx-change-the-title-cycle-arrowright-icon-color-from-green-to-a-dark-brown-color",
-      "featureTitle": "In `frontend/src/components/manga/MangaCard.tsx`, change the title-cycle ArrowRight icon color from green to a dark brown color.",
+      "featureId": "feature-extend-the-existing-sort-by-selector-to-include-two-additional-sort-options-title-z-a-and-rating-low-high-ensure-sorting-behavior-matches-the-selected-option-and-continues-to-work-with-filtering-and-pagination",
+      "featureTitle": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
       "files": [
-        "frontend/src/components/manga/MangaCard.tsx"
+        "frontend/src/components/manga/FloatingControlsPanel.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -38,26 +42,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-chapters-read-chapters-available-display-so-it-correctly-renders-decimal-values-e-g-104-5-200-0-should-display-104-5-200-or-104-5-200-0-but-must-not-truncate-to-104-200-this-includes-auditing-frontend-src-components-manga-mangacard-tsx-and-frontend-src-utils-formatchapternumber-ts-to-ensure-no-rounding-truncation-occurs-in-the-displayed-output",
-      "featureTitle": "Fix the \"chapters read/chapters available\" display so it correctly renders decimal values (e.g., `104.5/200.0` should display `104.5/200` or `104.5/200.0`, but must not truncate to `104/200`). This includes auditing `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation occurs in the displayed output.",
-      "files": [
-        "frontend/src/components/manga/MangaCard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

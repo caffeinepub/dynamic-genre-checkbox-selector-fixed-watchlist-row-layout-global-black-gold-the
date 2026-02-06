@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Tweak the MangaCard title-cycle arrow’s placement and styling, and ensure chapter progress text correctly displays decimal values.
+**Goal:** Add a completion-status filter and expand sorting options in the manga list controls.
 
 **Planned changes:**
-- In `frontend/src/components/manga/MangaCard.tsx`, adjust the ArrowRight title-cycle icon’s vertical positioning so it renders 5px lower while keeping the existing gutter/rating alignment behavior consistent (including the no-alternate-title spacer case).
-- In `frontend/src/components/manga/MangaCard.tsx`, change the ArrowRight title-cycle icon color from green to a dark brown.
-- Audit and update chapter progress number formatting in `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` so decimal values are preserved in the displayed `chapters read/chapters available` text (without adding unnecessary decimals for whole numbers).
+- Add a new checkbox control labeled “Complete only” to the existing floating filter/controls panel to filter the list to entries where `completed === true`.
+- Ensure the new completion filter composes with existing filters (search, genre, bookmarked-only) and updates results immediately.
+- Extend the “Sort By” dropdown with “Title (Z–A)” and “Rating (Low–High)” options.
+- Apply sorting to the full filtered result set before pagination.
 
-**User-visible outcome:** The title-cycle arrow appears slightly lower and in dark brown, and chapter progress displays decimals accurately (e.g., `104.5/200`) without truncation.
+**User-visible outcome:** Users can toggle “Complete only” to show just completed manga, and can sort the list by title descending or rating ascending in addition to existing sort options.

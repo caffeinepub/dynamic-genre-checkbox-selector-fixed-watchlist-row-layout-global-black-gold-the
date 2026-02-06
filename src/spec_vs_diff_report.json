@@ -1,40 +1,44 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T00:50:10.510Z",
-  "summary": "The diff indicates changes to `MangaCard.tsx`, but the provided evidence is truncated and a modified summary file (`frontend-file-summaries.txt`) suggests the ArrowRight icon was moved down by 10px (not 5px) and other layout shifts were introduced. There is no evidence that `frontend/src/utils/formatChapterNumber.ts` was audited/updated to preserve decimal chapter progress display.",
+  "generatedAt": "2026-02-06T01:29:45.169Z",
+  "summary": "Diff implements new state/plumbing for a `completedOnly` filter and extends sort logic to support title-desc and rating-asc, but the UI evidence for the new checkbox label and the new sort dropdown options is not present in the truncated controls component. An unrelated documentation-style file update describes many features not requested in the BuildRequest.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "In `frontend/src/components/manga/MangaCard.tsx`, move the title-cycle ArrowRight icon down by 5px (reduce upward Y-translation by 5px) while keeping gutter layout unchanged and keeping spacer consistent when no alternate titles exist.",
-      "reason": "The only explicit evidence about the amount of movement indicates the ArrowRight was moved down by 10px rather than 5px, which does not match the requirement.",
+      "requirement": "Add a checkbox labeled \"Complete only\" in the existing floating controls/filter panel that filters the list to entries with `entry.completed === true` when checked, composing with existing filters and updating immediately.",
+      "reason": "Filtering behavior and state exist, and props are wired through the panel, but the diff does not show (due to truncation) that the controls UI actually renders a visible checkbox with the exact label \"Complete only\" in the floating controls/filter panel.",
       "evidence": [
-        "frontend-file-summaries.txt (describes MangaCard.tsx as 'moved down 10px')"
+        "frontend/src/components/manga/MangaListPage.tsx",
+        "frontend/src/components/manga/FloatingControlsPanel.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Fix chapter progress display to preserve decimal values and audit/update `frontend/src/components/manga/MangaCard.tsx` and `frontend/src/utils/formatChapterNumber.ts` to ensure no rounding/truncation in displayed output.",
-      "reason": "`frontend/src/utils/formatChapterNumber.ts` is not shown as modified in the diff summary, so there is no evidence the formatter was audited/updated to prevent truncation. `MangaCard.tsx` is truncated, so decimal-preserving rendering cannot be verified from the provided code excerpt.",
+      "id": "REQ-2",
+      "requirement": "Extend the \"Sort By\" selector to include \"Title (Z–A)\" and \"Rating (Low–High)\" options (along with existing options), applying sorting before pagination.",
+      "reason": "The sorting logic supports `title-desc` and `rating-asc`, but the diff does not show (due to truncation) that the \"Sort By\" dropdown includes the required option labels (\"Title (Z–A)\" and \"Rating (Low–High)\") and still includes the existing options.",
       "evidence": [
-        "<file-diff> Modified files list does not include `frontend/src/utils/formatChapterNumber.ts`",
-        "frontend/src/components/manga/MangaCard.tsx (truncated excerpt does not show chapter-progress display rendering)"
+        "frontend/src/components/manga/MangaListPage.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Adjusted layout beyond requested arrow change (ArrowRight moved down 10px and rating UI shifted up 10px / horizontal star+number layout).",
-      "reason": "The BuildRequest only asked to move the ArrowRight icon down by 5px while keeping the rest of the gutter layout behavior unchanged; shifting rating placement/layout is not requested and may violate 'keeping layout unchanged'.",
+      "description": "Updated a repository documentation/summary file with numerous unrelated feature claims (service worker registration, logout cache clearing, profile setup dialog behavior, decimal chapter support, cover upload changes, global OKLCH theming, Tailwind gold tokens, etc.) not requested in this BuildRequest.",
+      "reason": "The BuildRequest only asks for a completion-status filter checkbox and two new sort options; these additional described features are out of scope and not requested.",
       "evidence": [
-        "frontend-file-summaries.txt (describes MangaCard.tsx as 'ArrowRight ... moved down 10px' and 'rating UI ... shifted up 10px' and 'star + number side-by-side')"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.63,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/manga/MangaCard.tsx",
+    "frontend/src/components/manga/FloatingControlsPanel.tsx",
+    "frontend/src/components/manga/MangaListControls.tsx",
+    "frontend/src/components/manga/MangaListPage.tsx",
     "project_state.json"
   ]
 }
