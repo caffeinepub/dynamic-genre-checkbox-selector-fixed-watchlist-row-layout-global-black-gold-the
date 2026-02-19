@@ -41,7 +41,7 @@ export default function App() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
           <div className="max-w-md space-y-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold tracking-tight">Welcome to MangaList</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">Welcome to MangaList</h1>
               <p className="text-lg text-muted-foreground">
                 Your personal manga watchlist. Track your reading progress, rate series, and never lose your place.
               </p>

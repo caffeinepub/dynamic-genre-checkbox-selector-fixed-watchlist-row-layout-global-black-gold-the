@@ -1,76 +1,88 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Title scroll animation, rainbow Complete status, and card layout refinements",
+  "title": "Fix black screen display issue",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Implement vertical auto-scroll animation for manga card titles that overflow their display area",
+      "summary": "Diagnose and fix the black screen issue where the entire page background is black, making content invisible except for a pink heart icon at the bottom",
       "acceptanceCriteria": [
-        "Title scrolls vertically from bottom to top only when content overflows",
-        "Animation starts with title positioned below visible area",
-        "Title scrolls continuously upward until completely out of view at top",
-        "Animation resets and repeats from bottom after title exits top",
-        "Animation pauses on mouse hover over title",
-        "Animation resumes when mouse leaves title area",
-        "No scroll animation occurs if title fits within display area"
+        "Page background uses the intended warm sepia/ink color scheme defined in index.css",
+        "All content is visible without requiring text selection",
+        "The manga list, controls, and all UI elements are properly displayed with correct colors"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/AutoScrollTitle.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Modify the scroll animation to start from below the visible area (using negative initial position), scroll upward through the visible area, continue until completely out of view at the top, then reset to the starting position below. Update the animation keyframes and transform calculations to achieve bottom-to-top scrolling with reset. Ensure the animation only triggers when content overflows the container and maintains the existing pause-on-hover behavior."
+          "description": "Review and fix the CSS configuration to ensure the warm sepia/ink color palette is properly applied to the page background. Check that the root element and body have the correct background colors defined and that dark mode overrides are not causing the black screen. Verify Tailwind color utility classes are correctly configured and accessible."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Verify that the main layout wrapper applies the correct background color classes and that no inline styles or className overrides are setting the background to black. Ensure the layout properly inherits the color scheme from index.css and that all sections (header, main, footer) have appropriate background/text color assignments."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Check that the root App component does not apply any background color overrides that could cause the black screen. Ensure wrapper divs and loading states use the correct color scheme from the theme."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Apply rainbow gradient coloring to the 'Complete' status text when the Complete status is selected on manga cards",
+      "summary": "Ensure text content is visible by default without requiring mouse drag selection to reveal it",
       "acceptanceCriteria": [
-        "The text 'Complete' displays with rainbow gradient when status is Complete",
-        "Rainbow effect applies only to Complete status, not other statuses",
-        "Rainbow gradient is visually distinct and readable"
+        "All text elements have proper text color that contrasts with the background",
+        "Text is readable immediately on page load without any user interaction",
+        "No text elements have transparent or matching-background colors"
       ],
       "file_operations": [
         {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Review and fix text color definitions in the CSS. Ensure default text colors provide sufficient contrast with backgrounds. Check that no global styles are setting text colors to transparent, black-on-black, or other invisible combinations. Verify Tailwind text color utilities are properly configured."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Verify that all text elements in the manga list page have explicit text color classes that contrast with their backgrounds. Check that loading states, error messages, and empty states all use visible text colors."
+        },
+        {
           "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Add conditional styling to the Complete status text element to apply a rainbow gradient effect when the completed status is true. Use the existing 'rainbow' utility class from frontend/src/index.css (bg-gradient-to-r from-red-500 via-yellow-500 to-purple-500 with background-clip-text and transparent text color) or create an inline gradient. Apply this styling only when the manga entry's completed field is true, preserving the normal status styling for other states."
+          "description": "Ensure manga card text content (titles, ratings, chapter counts) uses contrasting text colors. Verify that hover states and interactive elements maintain text visibility."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Check that all control labels, buttons, and input fields have visible text colors that contrast with their backgrounds. Ensure search inputs and filter controls are readable."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Verify header and footer text (logo, title, button labels) all use contrasting text colors that are visible against their backgrounds."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Reposition the bookmark icon to the top right corner and the notes icon to the bottom right corner of the manga card",
+      "summary": "Verify the pink heart icon at the bottom is styled correctly and check if it should be visible or if it's an unintended element",
       "acceptanceCriteria": [
-        "Bookmark icon is positioned at top right edge of card",
-        "Notes icon is positioned at bottom right edge of card",
-        "Icons remain accessible and clickable in their new positions",
-        "Icon positioning does not overlap or obscure other card content"
+        "Identify the source of the pink heart icon",
+        "Ensure it's either properly styled with the app theme or removed if unintended",
+        "Footer elements display with correct colors and positioning"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Update the positioning classes for the bookmark icon to place it at the top right corner of the card (using absolute positioning with top-0 right-0 or similar). Move the notes icon positioning to the bottom right corner (using absolute positioning with bottom-0 right-0 or similar). Ensure both icons remain clickable and do not overlap with other card content such as the cover image, title, or status area. Adjust z-index if necessary to maintain proper layering."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Make the status area chevron and box border invisible by matching them to the background color, and move the status area upward to create space for displaying 'chapters read/available' text centered underneath it",
-      "acceptanceCriteria": [
-        "Status area chevron is invisible (matches background)",
-        "Status area box border is invisible (matches background)",
-        "Status area is repositioned upward to create vertical space below",
-        "Chapters read/available text is displayed centered below the status area",
-        "Layout accommodates the new positioning without content overlap"
-      ],
-      "file_operations": [
+          "description": "Locate the pink heart icon in the footer section. Verify if it's an intentional design element or artifact. If it's a 'Made with ❤️' footer element, ensure it uses the correct theme colors (amber/gold instead of pink). If unintended, remove it. Ensure all footer elements have proper styling consistent with the warm sepia/ink theme."
+        },
         {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Remove or set the border color of the status area Select component to match the card background, making it invisible. Hide or remove the chevron/dropdown indicator from the status Select by setting it to transparent or removing the indicator element. Adjust the vertical positioning (margin-top or transform) of the status area to move it upward. Add a new text element below the status area displaying the chapters read/available information (using entry.chaptersRead and entry.availableChapters) with centered alignment. Ensure the new layout fits within the card without overlapping other elements like the synopsis, cover, or icons."
+          "description": "Check if there are any heart icons or emoji in the HTML template that might be rendering with incorrect colors. Verify the root div and any static HTML content uses appropriate styling."
         }
       ]
     }

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MangaEntry } from '../../backend';
-import { Star, Bookmark, FileText, Copy } from 'lucide-react';
+import { Star, Bookmark, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -58,7 +58,9 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
   const isHighRating = manga.rating >= 8.5;
 
   const cycleTitle = useCallback(() => {
-    setTitleIndex((prev) => (prev + 1) % allTitles.length);
+    if (allTitles.length > 1) {
+      setTitleIndex((prev) => (prev + 1) % allTitles.length);
+    }
   }, [allTitles.length]);
 
   const handleRatingSubmit = useCallback(async () => {
@@ -164,9 +166,25 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
     };
   }, []);
 
-  // Prepare genres display: up to 5 chips for compact inline display
-  const displayGenres = manga.genres.slice(0, 5);
-  const remainingGenresCount = Math.max(0, manga.genres.length - 5);
+  // Calculate optimal genre grid layout (max 3 rows × 4 columns = 12 genres)
+  const maxGenres = 12;
+  const displayGenres = manga.genres.slice(0, maxGenres);
+  const genreCount = displayGenres.length;
+  
+  // Calculate grid dimensions for most rectangular shape
+  let gridCols = 4;
+  let gridRows = 3;
+  
+  if (genreCount <= 4) {
+    gridCols = genreCount;
+    gridRows = 1;
+  } else if (genreCount <= 8) {
+    gridCols = 4;
+    gridRows = 2;
+  } else {
+    gridCols = 4;
+    gridRows = 3;
+  }
 
   return (
     <>
@@ -189,9 +207,9 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
         <div className="flex-1 min-w-0 flex items-center gap-4">
           {/* Title + Status + Rating + Progress */}
           <div className="flex items-center gap-3 min-w-0">
-            {/* Title */}
+            {/* Title with click cycling */}
             <div className="w-[200px] shrink-0 overflow-hidden h-[50px]">
-              <AutoScrollTitle title={currentTitle} />
+              <AutoScrollTitle title={currentTitle} onClick={cycleTitle} />
             </div>
 
             {/* Completion Status with chapters below */}
@@ -266,21 +284,22 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
             </Popover>
           </div>
 
-          {/* Genres */}
-          <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
+          {/* Genres Grid - Dynamic layout up to 3 rows × 4 columns */}
+          <div 
+            className="flex-1 min-w-0 grid gap-1 pr-12"
+            style={{
+              gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${gridRows}, auto)`,
+            }}
+          >
             {displayGenres.map((genre, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 bg-gold/10 text-gold text-xs rounded border border-gold/30 whitespace-nowrap"
+                className="px-2 py-0.5 bg-amber-800 text-white text-xs rounded border border-amber-700 whitespace-nowrap overflow-hidden text-ellipsis text-center"
               >
                 {genre}
               </span>
             ))}
-            {remainingGenresCount > 0 && (
-              <span className="px-2 py-0.5 bg-gold/10 text-gold text-xs rounded border border-gold/30 whitespace-nowrap">
-                +{remainingGenresCount}
-              </span>
-            )}
           </div>
         </div>
 
@@ -299,7 +318,7 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
           )}
         </Button>
 
-        {/* Notes Icon - Bottom Right */}
+        {/* Notes Icon - Bottom Right with red exclamation mark when notes exist */}
         <div className="absolute bottom-1 right-1">
           <Button
             variant="ghost"
@@ -312,6 +331,11 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
           >
             <FileText className="h-4 w-4" />
           </Button>
+          {hasNotes && (
+            <div className="absolute -top-1 -right-1 pointer-events-none">
+              <AlertCircle className="h-3 w-3 text-red-600 fill-red-600" />
+            </div>
+          )}
           <NotesPreviewOverlay notes={manga.notes} visible={notesHovered} />
         </div>
       </div>

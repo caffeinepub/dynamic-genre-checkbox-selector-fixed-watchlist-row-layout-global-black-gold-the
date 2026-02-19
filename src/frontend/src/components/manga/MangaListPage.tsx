@@ -73,9 +73,16 @@ export function MangaListPage() {
 
     if (titleSearch.trim()) {
       const searchLower = titleSearch.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.title.toLowerCase().includes(searchLower)
-      );
+      filtered = filtered.filter(entry => {
+        // Search in primary title
+        if (entry.title.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        // Search in alternate titles
+        return entry.alternateTitles.some(altTitle => 
+          altTitle.toLowerCase().includes(searchLower)
+        );
+      });
     }
 
     if (synopsisSearch.trim()) {

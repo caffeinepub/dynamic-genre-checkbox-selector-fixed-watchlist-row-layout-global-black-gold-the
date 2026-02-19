@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Enhance manga card UI with vertical title scrolling animation, rainbow-styled Complete status, repositioned icons, and refined status area layout.
+**Goal:** Fix the black screen display issue preventing content visibility in the manga library application.
 
 **Planned changes:**
-- Implement vertical auto-scroll animation for overflowing manga card titles (bottom-to-top, with hover pause/resume)
-- Apply rainbow gradient coloring to 'Complete' status text
-- Reposition bookmark icon to top right corner and notes icon to bottom right corner
-- Make status area chevron and border invisible by matching background color
-- Move status area upward and display centered 'chapters read/available' text underneath
+- Diagnose and fix the black screen background issue causing all content to be invisible
+- Ensure text content is visible by default with proper color contrast
+- Verify and correct the styling of the pink heart icon at the bottom of the page
 
-**User-visible outcome:** Users will see manga cards with smooth vertical title scrolling for long titles, visually distinctive rainbow-colored Complete status, reorganized icon placement, and cleaner status area with chapter progress information displayed below.
+**User-visible outcome:** The manga library displays correctly with visible text, proper background colors using the warm sepia/ink theme, and all UI elements properly styled without requiring mouse selection to reveal content.

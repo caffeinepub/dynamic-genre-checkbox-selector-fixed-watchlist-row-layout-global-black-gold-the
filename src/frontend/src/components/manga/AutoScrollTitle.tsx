@@ -3,9 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 interface AutoScrollTitleProps {
   title: string;
   className?: string;
+  onClick?: () => void;
 }
 
-export function AutoScrollTitle({ title, className = '' }: AutoScrollTitleProps) {
+export function AutoScrollTitle({ title, className = '', onClick }: AutoScrollTitleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -36,9 +37,10 @@ export function AutoScrollTitle({ title, className = '' }: AutoScrollTitleProps)
   return (
     <div 
       ref={containerRef}
-      className={`relative overflow-hidden h-full ${className}`}
+      className={`relative overflow-hidden h-full ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
     >
       <div
         ref={contentRef}

@@ -3,69 +3,38 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Black screen issue - content not visible except pink heart icon, text only visible when highlighted"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-vertical-auto-scroll-animation-for-manga-card-titles-that-overflow-their-display-area-the-title-should-start-from-below-the-visible-area-scroll-up-slowly-into-view-continue-scrolling-until-completely-out-of-view-at-the-top-then-reset-and-repeat-from-below-the-animation-must-pause-when-the-user-hovers-over-the-title-and-resume-when-the-mouse-moves-away",
-      "title": "Implement vertical auto-scroll animation for manga card titles that overflow their display area. The title should start from below the visible area, scroll up slowly into view, continue scrolling until completely out of view at the top, then reset and repeat from below. The animation must pause when the user hovers over the title and resume when the mouse moves away.",
+      "id": "feature-diagnose-and-fix-the-black-screen-issue-where-the-entire-page-background-is-black-making-content-invisible-except-for-a-pink-heart-icon-at-the-bottom",
+      "title": "Diagnose and fix the black screen issue where the entire page background is black, making content invisible except for a pink heart icon at the bottom",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-apply-rainbow-gradient-coloring-to-the-complete-status-text-when-the-complete-status-is-selected-on-manga-cards",
-      "title": "Apply rainbow gradient coloring to the 'Complete' status text when the Complete status is selected on manga cards.",
+      "id": "feature-ensure-text-content-is-visible-by-default-without-requiring-mouse-drag-selection-to-reveal-it",
+      "title": "Ensure text content is visible by default without requiring mouse drag selection to reveal it",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-reposition-the-bookmark-icon-to-the-top-right-corner-and-the-notes-icon-to-the-bottom-right-corner-of-the-manga-card",
-      "title": "Reposition the bookmark icon to the top right corner and the notes icon to the bottom right corner of the manga card.",
+      "id": "feature-verify-the-pink-heart-icon-at-the-bottom-is-styled-correctly-and-check-if-it-should-be-visible-or-if-it-s-an-unintended-element",
+      "title": "Verify the pink heart icon at the bottom is styled correctly and check if it should be visible or if it's an unintended element",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-make-the-status-area-chevron-and-box-border-invisible-by-matching-them-to-the-background-color-move-the-status-area-upward-to-create-space-for-displaying-chapters-read-available-text-centered-underneath-it",
-      "title": "Make the status area chevron and box border invisible by matching them to the background color. Move the status area upward to create space for displaying 'chapters read/available' text centered underneath it.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Title auto-scroll animation when overflowing (bottom-to-top loop, pauses on hover)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Rainbow colored 'Complete' status text",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Move bookmark icon to top right, notes icon to bottom right",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Hide status chevron and box (match background), reposition to fit chapters read/available centered below",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Title scroll animation, rainbow Complete status, and card layout refinements",
+  "new_feature_requests": [],
+  "projectName": "Fix black screen display issue",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
