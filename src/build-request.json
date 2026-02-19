@@ -1,56 +1,97 @@
 {
   "kind": "build_request",
-  "title": "Add 'Complete' status filter checkbox and new sort options (Title Z–A, Rating Low–High)",
+  "title": "Title scroll animation, rainbow Complete status, and card layout refinements",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
+      "text": "Implement vertical auto-scroll animation for manga card titles that overflow their display area. The title should start from below the visible area, scroll up slowly into view, continue scrolling until completely out of view at the top, then reset and repeat from below. The animation must pause when the user hovers over the title and resume when the mouse moves away.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-latest"
         ],
         "quotes": [
-          "add a checkmark onto the filter panel which will show only manga with the 'Complete' status' when checked."
+          "i wanted the title to scroll up from below, outside of the display area, then scrolling up into view slowly, all the way up until it is also completely out of the display area before resetting and starting from below again. also it pauses when hovering over it, and resumes when moving mouse away. Have it do that if the title overflows the display area."
         ]
       },
       "acceptanceCriteria": [
-        "A new checkbox is visible in the existing floating controls/filter panel with the label \"Complete only\".",
-        "When the checkbox is checked, the list shows only entries where `entry.completed === true`.",
-        "When the checkbox is unchecked, entries are not filtered by completion status.",
-        "The completion filter composes correctly with existing filters (title/synopsis/notes search, genre selection, and bookmarked-only).",
-        "Toggling the completion checkbox updates the list immediately without requiring a page reload."
+        "Title scrolls vertically from bottom to top only when content overflows",
+        "Animation starts with title positioned below visible area",
+        "Title scrolls continuously upward until completely out of view at top",
+        "Animation resets and repeats from bottom after title exits top",
+        "Animation pauses on mouse hover over title",
+        "Animation resumes when mouse leaves title area",
+        "No scroll animation occurs if title fits within display area"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
+      "text": "Apply rainbow gradient coloring to the 'Complete' status text when the Complete status is selected on manga cards.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-latest"
         ],
         "quotes": [
-          "make it so that there is a sorting option for Title (Z-A), as well as Rating (Low-High)"
+          "when the 'Complete' status is selected, i want the 'Complete' text to be rainbow colored"
         ]
       },
       "acceptanceCriteria": [
-        "The \"Sort By\" dropdown includes at least these options: \"Title (A–Z)\", \"Title (Z–A)\", \"Rating (High–Low)\", and \"Rating (Low–High)\".",
-        "Selecting \"Title (Z–A)\" sorts entries by title descending (Z to A).",
-        "Selecting \"Rating (Low–High)\" sorts entries by rating ascending (lowest to highest).",
-        "Existing sort options continue to work as before.",
-        "Sorting applies to the full filtered result set before pagination is applied."
+        "The text 'Complete' displays with rainbow gradient when status is Complete",
+        "Rainbow effect applies only to Complete status, not other statuses",
+        "Rainbow gradient is visually distinct and readable"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Reposition the bookmark icon to the top right corner and the notes icon to the bottom right corner of the manga card.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "I also want the bookmark icon moved to the top right edge, and the notes icon to bottom right edge"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Bookmark icon is positioned at top right edge of card",
+        "Notes icon is positioned at bottom right edge of card",
+        "Icons remain accessible and clickable in their new positions",
+        "Icon positioning does not overlap or obscure other card content"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Make the status area chevron and box border invisible by matching them to the background color. Move the status area upward to create space for displaying 'chapters read/available' text centered underneath it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "I also want the chevron and the box around the status area to be invisible to match the background, also have it moved up so that you can fit the 'chapters read/available' placed centered underneath it."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Status area chevron is invisible (matches background)",
+        "Status area box border is invisible (matches background)",
+        "Status area is repositioned upward to create vertical space below",
+        "Chapters read/available text is displayed centered below the status area",
+        "Layout accommodates the new positioning without content overlap"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (compose existing UI components instead).",
-    "Do not edit immutable frontend hook files listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Maintain existing MangaCard component structure and functionality",
+    "Preserve AutoScrollTitle component's current overflow detection logic",
+    "Do not modify read-only paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui"
   ],
   "nonGoals": [
-    "No backend (Motoko) API or schema changes are required; use the existing `completed : Bool` field on entries.",
-    "Do not add new authentication or persistence behavior for filters/sort beyond the current page state unless explicitly requested."
+    "Changing the horizontal scroll behavior or other existing animations",
+    "Modifying status options beyond visual styling of 'Complete'",
+    "Restructuring the overall card layout beyond specified icon and status repositioning"
   ],
   "imageRequirements": {
     "required": [],

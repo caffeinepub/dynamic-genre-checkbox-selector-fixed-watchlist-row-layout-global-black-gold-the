@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-filter-control-in-the-manga-list-filter-controls-panel-a-checkmark-checkbox-labeled-complete-only-that-when-checked-restricts-the-displayed-manga-list-to-entries-whose-completion-status-is-complete-i-e-the-entry-s-completed-field-is-true-when-unchecked-completed-and-non-completed-entries-are-both-shown",
-      "featureTitle": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
+      "featureId": "feature-implement-vertical-auto-scroll-animation-for-manga-card-titles-that-overflow-their-display-area-the-title-should-start-from-below-the-visible-area-scroll-up-slowly-into-view-continue-scrolling-until-completely-out-of-view-at-the-top-then-reset-and-repeat-from-below-the-animation-must-pause-when-the-user-hovers-over-the-title-and-resume-when-the-mouse-moves-away",
+      "featureTitle": "Implement vertical auto-scroll animation for manga card titles that overflow their display area. The title should start from below the visible area, scroll up slowly into view, continue scrolling until completely out of view at the top, then reset and repeat from below. The animation must pause when the user hovers over the title and resume when the mouse moves away.",
       "files": [
-        "frontend/src/components/manga/FloatingControlsPanel.tsx",
-        "frontend/src/components/manga/MangaListControls.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx"
+        "frontend/src/components/manga/AutoScrollTitle.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,12 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-extend-the-existing-sort-by-selector-to-include-two-additional-sort-options-title-z-a-and-rating-low-high-ensure-sorting-behavior-matches-the-selected-option-and-continues-to-work-with-filtering-and-pagination",
-      "featureTitle": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
+      "featureId": "feature-apply-rainbow-gradient-coloring-to-the-complete-status-text-when-the-complete-status-is-selected-on-manga-cards",
+      "featureTitle": "Apply rainbow gradient coloring to the 'Complete' status text when the Complete status is selected on manga cards.",
       "files": [
-        "frontend/src/components/manga/FloatingControlsPanel.tsx",
-        "frontend/src/components/manga/MangaListControls.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx"
+        "frontend/src/components/manga/MangaCard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,6 +38,46 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-reposition-the-bookmark-icon-to-the-top-right-corner-and-the-notes-icon-to-the-bottom-right-corner-of-the-manga-card",
+      "featureTitle": "Reposition the bookmark icon to the top right corner and the notes icon to the bottom right corner of the manga card.",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-the-status-area-chevron-and-box-border-invisible-by-matching-them-to-the-background-color-move-the-status-area-upward-to-create-space-for-displaying-chapters-read-available-text-centered-underneath-it",
+      "featureTitle": "Make the status area chevron and box border invisible by matching them to the background color. Move the status area upward to create space for displaying 'chapters read/available' text centered underneath it.",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

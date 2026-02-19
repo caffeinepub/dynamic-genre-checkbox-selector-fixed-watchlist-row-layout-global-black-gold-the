@@ -1,44 +1,16 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T01:29:45.169Z",
-  "summary": "Diff implements new state/plumbing for a `completedOnly` filter and extends sort logic to support title-desc and rating-asc, but the UI evidence for the new checkbox label and the new sort dropdown options is not present in the truncated controls component. An unrelated documentation-style file update describes many features not requested in the BuildRequest.",
-  "missing_requirements": [
-    {
-      "id": "REQ-1",
-      "requirement": "Add a checkbox labeled \"Complete only\" in the existing floating controls/filter panel that filters the list to entries with `entry.completed === true` when checked, composing with existing filters and updating immediately.",
-      "reason": "Filtering behavior and state exist, and props are wired through the panel, but the diff does not show (due to truncation) that the controls UI actually renders a visible checkbox with the exact label \"Complete only\" in the floating controls/filter panel.",
-      "evidence": [
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/components/manga/FloatingControlsPanel.tsx",
-        "frontend/src/components/manga/MangaListControls.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Extend the \"Sort By\" selector to include \"Title (Z–A)\" and \"Rating (Low–High)\" options (along with existing options), applying sorting before pagination.",
-      "reason": "The sorting logic supports `title-desc` and `rating-asc`, but the diff does not show (due to truncation) that the \"Sort By\" dropdown includes the required option labels (\"Title (Z–A)\" and \"Rating (Low–High)\") and still includes the existing options.",
-      "evidence": [
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/components/manga/MangaListControls.tsx (truncated)"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Updated a repository documentation/summary file with numerous unrelated feature claims (service worker registration, logout cache clearing, profile setup dialog behavior, decimal chapter support, cover upload changes, global OKLCH theming, Tailwind gold tokens, etc.) not requested in this BuildRequest.",
-      "reason": "The BuildRequest only asks for a completion-status filter checkbox and two new sort options; these additional described features are out of scope and not requested.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    }
-  ],
-  "confidence": 0.63,
+  "generatedAt": "2026-02-19T06:23:43.443Z",
+  "summary": "The diff implements all four main requirements: vertical auto-scroll animation for overflowing titles (REQ-1), rainbow gradient styling for 'Complete' status (REQ-2), repositioned bookmark and notes icons (REQ-3), and invisible status borders with repositioned chapters text (REQ-4). The implementation appears complete based on the visible diff content.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.85,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/manga/FloatingControlsPanel.tsx",
-    "frontend/src/components/manga/MangaListControls.tsx",
-    "frontend/src/components/manga/MangaListPage.tsx",
+    "frontend/src/components/manga/AutoScrollTitle.tsx",
+    "frontend/src/components/manga/MangaCard.tsx",
+    "frontend/src/index.css",
     "project_state.json"
   ]
 }

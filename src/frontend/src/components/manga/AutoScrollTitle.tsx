@@ -36,13 +36,13 @@ export function AutoScrollTitle({ title, className = '' }: AutoScrollTitleProps)
   return (
     <div 
       ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden h-full ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div
         ref={contentRef}
-        className={`${shouldScroll ? 'animate-scroll-vertical-slow' : ''} ${isPaused ? 'paused' : ''}`}
+        className={`text-gold font-medium text-sm ${shouldScroll ? 'animate-scroll-vertical-bottom-to-top' : ''} ${isPaused ? 'paused' : ''}`}
         style={{
           whiteSpace: 'normal',
           wordWrap: 'break-word',

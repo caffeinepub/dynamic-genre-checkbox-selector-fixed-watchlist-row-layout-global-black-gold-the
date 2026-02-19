@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Add a completion-status filter and expand sorting options in the manga list controls.
+**Goal:** Enhance manga card UI with vertical title scrolling animation, rainbow-styled Complete status, repositioned icons, and refined status area layout.
 
 **Planned changes:**
-- Add a new checkbox control labeled “Complete only” to the existing floating filter/controls panel to filter the list to entries where `completed === true`.
-- Ensure the new completion filter composes with existing filters (search, genre, bookmarked-only) and updates results immediately.
-- Extend the “Sort By” dropdown with “Title (Z–A)” and “Rating (Low–High)” options.
-- Apply sorting to the full filtered result set before pagination.
+- Implement vertical auto-scroll animation for overflowing manga card titles (bottom-to-top, with hover pause/resume)
+- Apply rainbow gradient coloring to 'Complete' status text
+- Reposition bookmark icon to top right corner and notes icon to bottom right corner
+- Make status area chevron and border invisible by matching background color
+- Move status area upward and display centered 'chapters read/available' text underneath
 
-**User-visible outcome:** Users can toggle “Complete only” to show just completed manga, and can sort the list by title descending or rating ascending in addition to existing sort options.
+**User-visible outcome:** Users will see manga cards with smooth vertical title scrolling for long titles, visually distinctive rainbow-colored Complete status, reorganized icon placement, and cleaner status area with chapter progress information displayed below.

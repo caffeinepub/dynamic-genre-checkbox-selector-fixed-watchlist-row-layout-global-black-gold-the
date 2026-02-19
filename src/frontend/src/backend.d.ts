@@ -56,8 +56,11 @@ export interface backendInterface {
     addEntry(manga: MangaEntry): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteEntry(stableId: bigint): Promise<void>;
+    deleteGenre(genreToDelete: string): Promise<void>;
     getAllEntries(): Promise<Array<MangaEntry>>;
     getAllEntriesWithStableIds(): Promise<Array<[bigint, MangaEntry]>>;
+    getAllGenres(): Promise<Array<string>>;
+    getAvailableGenres(): Promise<Array<string>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getEntry(stableId: bigint): Promise<MangaEntry>;
@@ -66,6 +69,7 @@ export interface backendInterface {
     isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleBookmark(stableId: bigint): Promise<boolean>;
+    updateAvailableGenres(genres: Array<string>): Promise<void>;
     updateCompletionStatus(stableId: bigint, completed: boolean): Promise<boolean>;
     updateEntry(stableId: bigint, updates: UpdateFields): Promise<MangaEntry>;
     updateNotes(stableId: bigint, newNotes: string): Promise<string>;

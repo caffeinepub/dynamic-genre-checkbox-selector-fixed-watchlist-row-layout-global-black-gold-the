@@ -1,55 +1,71 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T01:29:45.172Z",
+  "generatedAt": "2026-02-19T06:23:43.446Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a new filter control in the manga list filter/controls panel: a checkmark/checkbox labeled \"Complete only\" that, when checked, restricts the displayed manga list to entries whose completion status is complete (i.e., the entry’s `completed` field is `true`). When unchecked, completed and non-completed entries are both shown.",
+        "summary": "Implement vertical auto-scroll animation for manga card titles that overflow their display area. The title should start from below the visible area, scroll up slowly into view, continue scrolling until completely out of view at the top, then reset and repeat from below. The animation must pause when the user hovers over the title and resume when the mouse moves away.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/FloatingControlsPanel.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
+          "frontend/src/components/manga/AutoScrollTitle.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/FloatingControlsPanel.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx"
+          "frontend/src/components/manga/AutoScrollTitle.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Extend the existing \"Sort By\" selector to include two additional sort options: \"Title (Z–A)\" and \"Rating (Low–High)\". Ensure sorting behavior matches the selected option and continues to work with filtering and pagination.",
+        "summary": "Apply rainbow gradient coloring to the 'Complete' status text when the Complete status is selected on manga cards.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/components/manga/FloatingControlsPanel.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/manga/MangaListControls.tsx",
-          "frontend/src/components/manga/MangaListPage.tsx",
-          "frontend/src/components/manga/FloatingControlsPanel.tsx"
+          "frontend/src/components/manga/MangaCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Reposition the bookmark icon to the top right corner and the notes icon to the bottom right corner of the manga card.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Make the status area chevron and box border invisible by matching them to the background color. Move the status area upward to create space for displaying 'chapters read/available' text centered underneath it.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/manga/MangaCard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/manga/FloatingControlsPanel.tsx",
-    "frontend/src/components/manga/MangaListControls.tsx",
-    "frontend/src/components/manga/MangaListPage.tsx",
+    "frontend/src/components/manga/AutoScrollTitle.tsx",
+    "frontend/src/components/manga/MangaCard.tsx",
+    "frontend/src/config.ts",
+    "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

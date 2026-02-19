@@ -3,6 +3,7 @@ import Text "mo:core/Text";
 import Float "mo:core/Float";
 import Map "mo:core/Map";
 import Runtime "mo:core/Runtime";
+import Nat "mo:core/Nat";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
@@ -10,8 +11,6 @@ import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-
-
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -301,5 +300,62 @@ actor {
         updatedEntry.rating;
       };
     };
+  };
+
+  // Store available genres
+  var availableGenres : [Text] = [];
+
+  public shared ({ caller }) func updateAvailableGenres(genres : [Text]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update available genres");
+    };
+    availableGenres := genres;
+  };
+
+  public query ({ caller }) func getAvailableGenres() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get available genres");
+    };
+    availableGenres;
+  };
+
+  public shared ({ caller }) func deleteGenre(genreToDelete : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete genres");
+    };
+
+    // Remove genre from manga entries
+    let userMap = getUserMangaMap(caller);
+    let updatedEntriesMap = Map.empty<Nat, MangaEntry>();
+
+    for ((id, entry) in userMap.entries()) {
+      if (not entry.genres.any(func(g) { g == genreToDelete })) {
+        updatedEntriesMap.add(id, entry);
+      } else {
+        let filteredGenres = entry.genres.filter(
+          func(g) {
+            g != genreToDelete;
+          }
+        );
+        updatedEntriesMap.add(id, { entry with genres = filteredGenres });
+      };
+    };
+
+    userMangaEntries.add(caller, updatedEntriesMap);
+
+    // Remove from available genres
+    availableGenres := availableGenres.filter(
+      func(g) {
+        g != genreToDelete;
+      }
+    );
+  };
+
+  public query ({ caller }) func getAllGenres() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get genres");
+    };
+
+    availableGenres;
   };
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -38,10 +38,23 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
   const addMutation = useAddMangaEntry(currentPage);
   const { genres: libraryGenres } = useLibraryGenres();
 
-  // Union of library genres, selected genres, and custom genres
+  // Union of library genres and custom genres (selected genres are a subset)
   const allAvailableGenres = Array.from(
-    new Set([...libraryGenres, ...selectedGenres, ...customGenres])
+    new Set([...libraryGenres, ...customGenres])
   ).sort((a, b) => a.localeCompare(b));
+
+  // Auto-prune selectedGenres when library genres change
+  useEffect(() => {
+    setSelectedGenres(prev => {
+      const validGenres = prev.filter(g => 
+        libraryGenres.includes(g) || customGenres.includes(g)
+      );
+      if (validGenres.length !== prev.length) {
+        return validGenres;
+      }
+      return prev;
+    });
+  }, [libraryGenres, customGenres]);
 
   const resetForm = () => {
     setTitle('');
@@ -81,43 +94,28 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
       return;
     }
 
-    const stableId = BigInt(Date.now());
-    
-    // Build alternate titles array from the two inputs
-    const alternateTitlesArray: string[] = [];
-    const trimmed1 = alternateTitle1.trim();
-    const trimmed2 = alternateTitle2.trim();
-    if (trimmed1) alternateTitlesArray.push(trimmed1);
-    if (trimmed2) alternateTitlesArray.push(trimmed2);
+    const alternateTitles = [alternateTitle1, alternateTitle2]
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
 
-    // Parse and validate rating
-    const ratingValue = parseFloat(rating);
-    const validRating = !isNaN(ratingValue) ? Math.max(0, Math.min(10, ratingValue)) : 0;
-
-    // Parse chapter values as numbers
-    const chaptersReadValue = parseFloat(chaptersRead);
-    const availableChaptersValue = parseFloat(availableChapters);
-    const validChaptersRead = !isNaN(chaptersReadValue) ? Math.max(0, chaptersReadValue) : 0;
-    const validAvailableChapters = !isNaN(availableChaptersValue) ? Math.max(0, availableChaptersValue) : 0;
-
-    const newManga: MangaEntry = {
-      stableId,
-      title,
-      alternateTitles: alternateTitlesArray,
+    const newEntry: MangaEntry = {
+      stableId: BigInt(Date.now()),
+      title: title.trim(),
+      alternateTitles,
       genres: selectedGenres,
       coverImages,
-      synopsis,
-      chaptersRead: validChaptersRead,
-      availableChapters: validAvailableChapters,
+      synopsis: synopsis.trim(),
+      chaptersRead: parseFloat(chaptersRead),
+      availableChapters: parseFloat(availableChapters),
       notes: '',
       bookmarks: [],
-      rating: validRating,
+      rating: parseFloat(rating),
       completed: status === 'complete',
       isBookmarked: false,
     };
 
     try {
-      await addMutation.mutateAsync(newManga);
+      await addMutation.mutateAsync(newEntry);
       resetForm();
       onOpenChange(false);
     } catch (error) {
@@ -200,57 +198,24 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="alternate-title-1">Alternate Title 1</Label>
-              <Input
-                id="alternate-title-1"
-                value={alternateTitle1}
-                onChange={(e) => setAlternateTitle1(e.target.value)}
-                placeholder="First alternate title (optional)"
-                disabled={addMutation.isPending || !isReady}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="alternate-title-2">Alternate Title 2</Label>
-              <Input
-                id="alternate-title-2"
-                value={alternateTitle2}
-                onChange={(e) => setAlternateTitle2(e.target.value)}
-                placeholder="Second alternate title (optional)"
-                disabled={addMutation.isPending || !isReady}
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(value: 'incomplete' | 'complete') => setStatus(value)}
-                  disabled={addMutation.isPending || !isReady}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="incomplete">Incomplete</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rating">Rating (0-10)</Label>
+                <Label htmlFor="alternate-title-1">Alternate Title 1</Label>
                 <Input
-                  id="rating"
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
-                  placeholder="0"
+                  id="alternate-title-1"
+                  value={alternateTitle1}
+                  onChange={(e) => setAlternateTitle1(e.target.value)}
+                  placeholder="Optional"
+                  disabled={addMutation.isPending || !isReady}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="alternate-title-2">Alternate Title 2</Label>
+                <Input
+                  id="alternate-title-2"
+                  value={alternateTitle2}
+                  onChange={(e) => setAlternateTitle2(e.target.value)}
+                  placeholder="Optional"
                   disabled={addMutation.isPending || !isReady}
                 />
               </div>
@@ -336,6 +301,38 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   step="0.1"
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
+                  disabled={addMutation.isPending || !isReady}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={status}
+                  onValueChange={(value) => setStatus(value as 'incomplete' | 'complete')}
+                  disabled={addMutation.isPending || !isReady}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="incomplete">Incomplete</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rating">Rating (0-10)</Label>
+                <Input
+                  id="rating"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={rating}
+                  onChange={(e) => setRating(e.target.value)}
                   disabled={addMutation.isPending || !isReady}
                 />
               </div>

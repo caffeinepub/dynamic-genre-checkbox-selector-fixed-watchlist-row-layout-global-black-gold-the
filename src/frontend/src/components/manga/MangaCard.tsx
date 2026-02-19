@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MangaEntry } from '../../backend';
-import { Star, Bookmark, FileText, AlertCircle, ArrowRight } from 'lucide-react';
+import { Star, Bookmark, FileText, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -164,325 +164,159 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
     };
   }, []);
 
-  // Prepare genres display: up to 9 chips + overflow count
-  const displayGenres = manga.genres.slice(0, 9);
-  const remainingGenresCount = Math.max(0, manga.genres.length - 9);
+  // Prepare genres display: up to 5 chips for compact inline display
+  const displayGenres = manga.genres.slice(0, 5);
+  const remainingGenresCount = Math.max(0, manga.genres.length - 5);
 
   return (
     <>
-      <div className="w-full h-[78px] shrink-0 bg-black border-2 border-gold rounded-lg flex items-center overflow-hidden shadow-gold-glow relative">
-        {/* Bookmark - Top Right */}
-        <div className="absolute top-1 right-1 z-10">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 p-0 hover:bg-transparent"
-            onClick={handleBookmarkToggle}
-            disabled={!isReady || toggleBookmarkMutation.isPending}
-          >
-            <Bookmark 
-              className={`h-4 w-4 ${manga.isBookmarked ? 'fill-gold text-gold rainbow-glow' : 'text-gold'}`}
-            />
-          </Button>
+      <div className="manga-card-container w-full h-[78px] shrink-0 bg-black border-2 border-gold rounded-lg flex items-center gap-3 px-3 overflow-hidden shadow-gold-glow relative transition-all duration-300">
+        {/* Cover Image */}
+        <div 
+          ref={coverRef}
+          className="h-[62px] w-[42px] shrink-0 cursor-pointer relative rounded overflow-hidden"
+          onMouseEnter={handleCoverMouseEnter}
+          onMouseLeave={handleCoverMouseLeave}
+        >
+          <img
+            src={coverUrl}
+            alt={manga.title}
+            className="h-full w-full object-cover"
+          />
         </div>
 
-        {/* Notes - Bottom Right */}
-        <div className="absolute bottom-1 right-1 z-10">
+        {/* Main Content Area - Single Cohesive Row */}
+        <div className="flex-1 min-w-0 flex items-center gap-4">
+          {/* Title + Status + Rating + Progress */}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Title */}
+            <div className="w-[200px] shrink-0 overflow-hidden h-[50px]">
+              <AutoScrollTitle title={currentTitle} />
+            </div>
+
+            {/* Completion Status with chapters below */}
+            <div className="shrink-0 flex flex-col items-center gap-1">
+              <Select
+                value={manga.completed ? 'complete' : 'incomplete'}
+                onValueChange={handleCompletionChange}
+                disabled={!isReady || updateCompletionMutation.isPending}
+              >
+                <SelectTrigger className="h-7 w-[100px] text-xs border-transparent bg-transparent [&>svg]:hidden">
+                  <SelectValue>
+                    {manga.completed ? (
+                      <span className="rainbow-text font-semibold">Complete</span>
+                    ) : (
+                      <span>Incomplete</span>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="incomplete">Incomplete</SelectItem>
+                  <SelectItem value="complete">Complete</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {/* Chapters read/available centered below status */}
+              <div className="text-gold/70 text-xs">
+                {formatChapterNumber(manga.chaptersRead)}/{formatChapterNumber(manga.availableChapters)}
+              </div>
+            </div>
+
+            {/* Rating */}
+            <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
+              <PopoverTrigger asChild>
+                <div className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity shrink-0">
+                  <Star className={`h-4 w-4 ${isHighRating ? 'fill-gold text-gold' : 'text-gold'}`} />
+                  <span className="text-gold text-sm font-medium">{manga.rating.toFixed(1)}</span>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-56">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Update Rating</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="rating" className="text-xs">Rating (0-10)</Label>
+                    <Input
+                      id="rating"
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      value={newRating}
+                      onChange={(e) => setNewRating(e.target.value)}
+                      disabled={!isReady || updateRatingMutation.isPending}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleRatingSubmit}
+                    className="w-full"
+                    size="sm"
+                    disabled={!isReady || updateRatingMutation.isPending}
+                  >
+                    {updateRatingMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      'Update'
+                    )}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Genres */}
+          <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
+            {displayGenres.map((genre, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-0.5 bg-gold/10 text-gold text-xs rounded border border-gold/30 whitespace-nowrap"
+              >
+                {genre}
+              </span>
+            ))}
+            {remainingGenresCount > 0 && (
+              <span className="px-2 py-0.5 bg-gold/10 text-gold text-xs rounded border border-gold/30 whitespace-nowrap">
+                +{remainingGenresCount}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Bookmark Icon - Top Right */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 absolute top-1 right-1 ${manga.isBookmarked ? 'text-gold rainbow-glow' : 'text-gold/50 hover:text-gold'}`}
+          onClick={handleBookmarkToggle}
+          disabled={!isReady || toggleBookmarkMutation.isPending}
+        >
+          {toggleBookmarkMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Bookmark className={`h-4 w-4 ${manga.isBookmarked ? 'fill-current' : ''}`} />
+          )}
+        </Button>
+
+        {/* Notes Icon - Bottom Right */}
+        <div className="absolute bottom-1 right-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 p-0 hover:bg-transparent relative"
+            className={`h-8 w-8 ${hasNotes ? 'text-gold' : 'text-gold/30 hover:text-gold'}`}
             onClick={() => setNotesDialogOpen(true)}
             onMouseEnter={() => setNotesHovered(true)}
             onMouseLeave={() => setNotesHovered(false)}
             disabled={!isReady}
           >
-            <FileText className="h-4 w-4 text-gold" />
-            {hasNotes && (
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full flex items-center justify-center">
-                <AlertCircle className="h-1.5 w-1.5 text-white" />
-              </div>
-            )}
+            <FileText className="h-4 w-4" />
           </Button>
+          <NotesPreviewOverlay notes={manga.notes} visible={notesHovered} />
         </div>
-
-        {/* Cover Image - Black Background */}
-        <div 
-          ref={coverRef}
-          className="w-auto h-full shrink-0 flex items-center justify-center bg-black overflow-hidden cursor-pointer px-2"
-          onMouseEnter={handleCoverMouseEnter}
-          onMouseLeave={handleCoverMouseLeave}
-        >
-          <img 
-            src={coverUrl} 
-            alt={manga.title}
-            className="h-full object-cover"
-            loading="lazy"
-            style={{ width: 'auto', maxWidth: '70px' }}
-          />
-        </div>
-
-        {/* Title with Auto-Scroll - Black Background - Fixed 270px width */}
-        <div className="h-full shrink-0 px-3 flex items-center bg-black relative" style={{ width: '270px' }}>
-          <AutoScrollTitle
-            title={currentTitle}
-            className="text-gold font-semibold text-sm w-full h-[60px]"
-          />
-        </div>
-
-        {/* Right-side gutter for arrow and rating - OUTSIDE title area */}
-        <div className="h-full shrink-0 px-2 flex flex-col items-start justify-center bg-black relative" style={{ width: '50px' }}>
-          {hasAlternateTitles ? (
-            <>
-              {/* Dark brown arrow for cycling titles - left-aligned, moved down 5px (from -15px to -10px) */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  cycleTitle();
-                }}
-                className="shrink-0 h-5 w-5 flex items-center justify-center hover:bg-transparent z-10 mb-1"
-                style={{ transform: 'translateY(-10px)' }}
-                aria-label="Cycle title"
-              >
-                <ArrowRight className="h-4 w-4 text-amber-900" />
-              </button>
-              
-              {/* Rating below the arrow - horizontal layout, moved up 10px */}
-              <div className="flex items-center gap-1 z-10" style={{ transform: 'translateY(-10px)' }}>
-                <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 p-0 hover:bg-transparent"
-                      disabled={!isReady || updateRatingMutation.isPending}
-                    >
-                      <Star className="h-4 w-4 fill-gold text-gold" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64" align="start">
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="rating-input">Update Rating</Label>
-                        <Input
-                          id="rating-input"
-                          type="number"
-                          min="0"
-                          max="10"
-                          step="0.1"
-                          value={newRating}
-                          onChange={(e) => setNewRating(e.target.value)}
-                          disabled={!isReady || updateRatingMutation.isPending}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleRatingSubmit}
-                        disabled={!isReady || updateRatingMutation.isPending}
-                        className="w-full"
-                        size="sm"
-                      >
-                        {updateRatingMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Update'
-                        )}
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <span className={`font-semibold text-xs whitespace-nowrap ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
-                  {manga.rating.toFixed(1)}
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Empty spacer matching arrow height when no alternate titles - moved down 5px (from -15px to -10px) */}
-              <div className="h-5 w-5 mb-1" style={{ transform: 'translateY(-10px)' }} />
-              
-              {/* Rating in same position - horizontal layout, moved up 10px */}
-              <div className="flex items-center gap-1 z-10" style={{ transform: 'translateY(-10px)' }}>
-                <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 p-0 hover:bg-transparent"
-                      disabled={!isReady || updateRatingMutation.isPending}
-                    >
-                      <Star className="h-4 w-4 fill-gold text-gold" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64" align="start">
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="rating-input-alt">Update Rating</Label>
-                        <Input
-                          id="rating-input-alt"
-                          type="number"
-                          min="0"
-                          max="10"
-                          step="0.1"
-                          value={newRating}
-                          onChange={(e) => setNewRating(e.target.value)}
-                          disabled={!isReady || updateRatingMutation.isPending}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleRatingSubmit}
-                        disabled={!isReady || updateRatingMutation.isPending}
-                        className="w-full"
-                        size="sm"
-                      >
-                        {updateRatingMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Update'
-                        )}
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <span className={`font-semibold text-xs whitespace-nowrap ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
-                  {manga.rating.toFixed(1)}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Completion Status and Chapter Progress - Black Background */}
-        <div className="px-3 shrink-0 h-full flex flex-col items-start justify-center bg-black gap-0.5">
-          <Select 
-            value={manga.completed ? 'complete' : 'incomplete'} 
-            onValueChange={handleCompletionChange}
-            disabled={!isReady || updateCompletionMutation.isPending}
-          >
-            <SelectTrigger className="h-6 border-0 bg-transparent hover:bg-gold/10 px-2 gap-1 whitespace-nowrap [&_svg]:hidden">
-              <SelectValue>
-                {manga.completed ? (
-                  <span className="text-xs font-medium rainbow-text">Complete</span>
-                ) : (
-                  <span className="text-red-500 text-xs font-medium">Incomplete</span>
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="complete">
-                <span className="rainbow-text">Complete</span>
-              </SelectItem>
-              <SelectItem value="incomplete">
-                <span className="text-red-500">Incomplete</span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {/* Chapter Progress */}
-          <Popover open={chapterPopoverOpen} onOpenChange={setChapterPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-5 px-2 py-0 hover:bg-gold/10 text-xs text-gold font-medium"
-                disabled={!isReady || updateChapterProgressMutation.isPending}
-              >
-                {formatChapterNumber(manga.chaptersRead)}/{formatChapterNumber(manga.availableChapters)}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="start">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="chapters-read-input">Chapters Read</Label>
-                  <Input
-                    id="chapters-read-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={newChaptersRead}
-                    onChange={(e) => setNewChaptersRead(e.target.value)}
-                    disabled={!isReady || updateChapterProgressMutation.isPending}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="available-chapters-input">Available Chapters</Label>
-                  <Input
-                    id="available-chapters-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={newAvailableChapters}
-                    onChange={(e) => setNewAvailableChapters(e.target.value)}
-                    disabled={!isReady || updateChapterProgressMutation.isPending}
-                  />
-                </div>
-                <Button
-                  onClick={handleChapterProgressSubmit}
-                  disabled={!isReady || updateChapterProgressMutation.isPending}
-                  className="w-full"
-                  size="sm"
-                >
-                  {updateChapterProgressMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update'
-                  )}
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Genres - Black Background, 3 columns x 3 rows, with right padding for icons */}
-        {manga.genres.length > 0 && (
-          <div className="px-3 pr-16 flex-1 h-full flex items-center bg-black overflow-hidden">
-            <div 
-              className="grid gap-1 w-full"
-              style={{
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gridTemplateRows: 'repeat(3, auto)',
-                maxHeight: '100%',
-              }}
-            >
-              {displayGenres.map((genre, i) => (
-                <span 
-                  key={i} 
-                  className="text-xs border border-gold text-gold bg-amber-900 px-1.5 py-0.5 rounded truncate text-center"
-                  title={genre}
-                >
-                  {genre}
-                </span>
-              ))}
-              {remainingGenresCount > 0 && (
-                <span 
-                  className="text-xs border border-gold text-gold bg-amber-900 px-1.5 py-0.5 rounded text-center"
-                  title={`${remainingGenresCount} more genres`}
-                >
-                  +{remainingGenresCount}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      <EditNotesDialog
-        open={notesDialogOpen}
-        onOpenChange={setNotesDialogOpen}
-        currentNotes={manga.notes}
-        onSave={handleNotesSave}
-        isSaving={updateNotesMutation.isPending}
-      />
-
-      <NotesPreviewOverlay notes={manga.notes} visible={notesHovered && hasNotes} />
-
+      {/* Cover Popup */}
       {coverPopupOpen && (
         <CoverHoverPopup
           manga={manga}
@@ -491,31 +325,17 @@ const MangaCardComponent = ({ manga }: MangaCardProps) => {
           onClose={() => setCoverPopupOpen(false)}
         />
       )}
+
+      {/* Notes Dialog */}
+      <EditNotesDialog
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
+        currentNotes={manga.notes}
+        onSave={handleNotesSave}
+        isSaving={updateNotesMutation.isPending}
+      />
     </>
   );
 };
 
-// Memoize with comparison based on stableId and relevant displayed fields
-export const MangaCard = React.memo(MangaCardComponent, (prevProps, nextProps) => {
-  const prev = prevProps.manga;
-  const next = nextProps.manga;
-  
-  return (
-    prev.stableId === next.stableId &&
-    prev.title === next.title &&
-    prev.rating === next.rating &&
-    prev.completed === next.completed &&
-    prev.isBookmarked === next.isBookmarked &&
-    prev.notes === next.notes &&
-    prev.chaptersRead === next.chaptersRead &&
-    prev.availableChapters === next.availableChapters &&
-    prev.genres.length === next.genres.length &&
-    prev.genres.every((g, i) => g === next.genres[i]) &&
-    prev.alternateTitles.length === next.alternateTitles.length &&
-    prev.alternateTitles.every((t, i) => t === next.alternateTitles[i]) &&
-    prev.coverImages.length === next.coverImages.length &&
-    (prev.coverImages.length === 0 || prev.coverImages[0].getDirectURL() === next.coverImages[0].getDirectURL())
-  );
-});
-
-MangaCard.displayName = 'MangaCard';
+export const MangaCard = React.memo(MangaCardComponent);

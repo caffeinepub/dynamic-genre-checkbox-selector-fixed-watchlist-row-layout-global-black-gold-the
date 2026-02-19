@@ -149,8 +149,11 @@ export interface backendInterface {
     addEntry(manga: MangaEntry): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteEntry(stableId: bigint): Promise<void>;
+    deleteGenre(genreToDelete: string): Promise<void>;
     getAllEntries(): Promise<Array<MangaEntry>>;
     getAllEntriesWithStableIds(): Promise<Array<[bigint, MangaEntry]>>;
+    getAllGenres(): Promise<Array<string>>;
+    getAvailableGenres(): Promise<Array<string>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getEntry(stableId: bigint): Promise<MangaEntry>;
@@ -159,6 +162,7 @@ export interface backendInterface {
     isReady(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleBookmark(stableId: bigint): Promise<boolean>;
+    updateAvailableGenres(genres: Array<string>): Promise<void>;
     updateCompletionStatus(stableId: bigint, completed: boolean): Promise<boolean>;
     updateEntry(stableId: bigint, updates: UpdateFields): Promise<MangaEntry>;
     updateNotes(stableId: bigint, newNotes: string): Promise<string>;
@@ -307,6 +311,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteGenre(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteGenre(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteGenre(arg0);
+            return result;
+        }
+    }
     async getAllEntries(): Promise<Array<MangaEntry>> {
         if (this.processError) {
             try {
@@ -333,6 +351,34 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getAllEntriesWithStableIds();
             return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllGenres(): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllGenres();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllGenres();
+            return result;
+        }
+    }
+    async getAvailableGenres(): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAvailableGenres();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAvailableGenres();
+            return result;
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {
@@ -444,6 +490,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.toggleBookmark(arg0);
+            return result;
+        }
+    }
+    async updateAvailableGenres(arg0: Array<string>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateAvailableGenres(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateAvailableGenres(arg0);
             return result;
         }
     }

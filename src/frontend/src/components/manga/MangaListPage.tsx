@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useGetAllMangaEntries } from '../../hooks/useAllMangaEntries';
 import { useActorWithRetry } from '../../hooks/useActorWithRetry';
 import { useLibraryGenres } from '../../hooks/useLibraryGenres';
@@ -47,6 +47,18 @@ export function MangaListPage() {
   const { genres: availableGenres } = useLibraryGenres();
 
   const isOfflineMode = dataError && allEntries && allEntries.length > 0;
+
+  // Auto-prune selectedGenres when availableGenres changes
+  useEffect(() => {
+    setSelectedGenres(prev => {
+      const validGenres = prev.filter(g => availableGenres.includes(g));
+      // Only update if something changed to avoid unnecessary re-renders
+      if (validGenres.length !== prev.length) {
+        return validGenres;
+      }
+      return prev;
+    });
+  }, [availableGenres]);
 
   // Format elapsed time for display
   const formatElapsedTime = (ms: number) => {
@@ -140,8 +152,10 @@ export function MangaListPage() {
     if (!isActorReady) {
       return;
     }
-    setCurrentPage(newPage);
-  }, [isActorReady]);
+    // Additional clamping at the handler level for defense in depth
+    const clampedPage = Math.max(1, Math.min(newPage, totalPages));
+    setCurrentPage(clampedPage);
+  }, [isActorReady, totalPages]);
 
   const handleAddManga = useCallback(() => {
     setIsAddDialogOpen(true);

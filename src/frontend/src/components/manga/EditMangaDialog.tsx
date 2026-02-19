@@ -35,9 +35,9 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
   const updateMutation = useUpdateMangaEntry(currentPage);
   const { genres: libraryGenres } = useLibraryGenres();
 
-  // Union of library genres, selected genres, and custom genres
+  // Union of library genres and custom genres (selected genres are a subset)
   const allAvailableGenres = Array.from(
-    new Set([...libraryGenres, ...selectedGenres, ...customGenres])
+    new Set([...libraryGenres, ...customGenres])
   ).sort((a, b) => a.localeCompare(b));
 
   // Reset form when manga changes or dialog opens
@@ -54,6 +54,19 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
       setCustomGenres([]);
     }
   }, [open, manga]);
+
+  // Auto-prune selectedGenres when library genres change
+  useEffect(() => {
+    setSelectedGenres(prev => {
+      const validGenres = prev.filter(g => 
+        libraryGenres.includes(g) || customGenres.includes(g)
+      );
+      if (validGenres.length !== prev.length) {
+        return validGenres;
+      }
+      return prev;
+    });
+  }, [libraryGenres, customGenres]);
 
   const handleAddGenre = () => {
     const trimmed = newGenreInput.trim();
