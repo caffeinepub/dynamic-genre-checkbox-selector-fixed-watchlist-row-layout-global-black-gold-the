@@ -27,46 +27,46 @@ export default {
                 ],
             },
             colors: {
-                border: 'oklch(var(--border))',
-                input: 'oklch(var(--input))',
-                ring: 'oklch(var(--ring) / <alpha-value>)',
-                background: 'oklch(var(--background))',
-                foreground: 'oklch(var(--foreground))',
-                gold: 'oklch(var(--gold))',
+                border: 'rgb(var(--border) / <alpha-value>)',
+                input: 'rgb(var(--input) / <alpha-value>)',
+                ring: 'rgb(var(--ring) / <alpha-value>)',
+                background: 'rgb(var(--background) / <alpha-value>)',
+                foreground: 'rgb(var(--foreground) / <alpha-value>)',
+                gold: 'rgb(var(--gold) / <alpha-value>)',
                 primary: {
-                    DEFAULT: 'oklch(var(--primary) / <alpha-value>)',
-                    foreground: 'oklch(var(--primary-foreground))'
+                    DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+                    foreground: 'rgb(var(--primary-foreground) / <alpha-value>)'
                 },
                 secondary: {
-                    DEFAULT: 'oklch(var(--secondary) / <alpha-value>)',
-                    foreground: 'oklch(var(--secondary-foreground))'
+                    DEFAULT: 'rgb(var(--secondary) / <alpha-value>)',
+                    foreground: 'rgb(var(--secondary-foreground) / <alpha-value>)'
                 },
                 destructive: {
-                    DEFAULT: 'oklch(var(--destructive) / <alpha-value>)',
-                    foreground: 'oklch(var(--destructive-foreground))'
+                    DEFAULT: 'rgb(var(--destructive) / <alpha-value>)',
+                    foreground: 'rgb(var(--destructive-foreground) / <alpha-value>)'
                 },
                 muted: {
-                    DEFAULT: 'oklch(var(--muted) / <alpha-value>)',
-                    foreground: 'oklch(var(--muted-foreground) / <alpha-value>)'
+                    DEFAULT: 'rgb(var(--muted) / <alpha-value>)',
+                    foreground: 'rgb(var(--muted-foreground) / <alpha-value>)'
                 },
                 accent: {
-                    DEFAULT: 'oklch(var(--accent) / <alpha-value>)',
-                    foreground: 'oklch(var(--accent-foreground))'
+                    DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+                    foreground: 'rgb(var(--accent-foreground) / <alpha-value>)'
                 },
                 popover: {
-                    DEFAULT: 'oklch(var(--popover))',
-                    foreground: 'oklch(var(--popover-foreground))'
+                    DEFAULT: 'rgb(var(--popover) / <alpha-value>)',
+                    foreground: 'rgb(var(--popover-foreground) / <alpha-value>)'
                 },
                 card: {
-                    DEFAULT: 'oklch(var(--card))',
-                    foreground: 'oklch(var(--card-foreground))'
+                    DEFAULT: 'rgb(var(--card) / <alpha-value>)',
+                    foreground: 'rgb(var(--card-foreground) / <alpha-value>)'
                 },
                 chart: {
-                    1: 'oklch(var(--chart-1))',
-                    2: 'oklch(var(--chart-2))',
-                    3: 'oklch(var(--chart-3))',
-                    4: 'oklch(var(--chart-4))',
-                    5: 'oklch(var(--chart-5))'
+                    1: 'rgb(var(--chart-1) / <alpha-value>)',
+                    2: 'rgb(var(--chart-2) / <alpha-value>)',
+                    3: 'rgb(var(--chart-3) / <alpha-value>)',
+                    4: 'rgb(var(--chart-4) / <alpha-value>)',
+                    5: 'rgb(var(--chart-5) / <alpha-value>)'
                 }
             },
             borderRadius: {
@@ -76,7 +76,7 @@ export default {
             },
             boxShadow: {
                 xs: '0 1px 2px 0 rgba(0,0,0,0.05)',
-                'gold-glow': '0 0 10px oklch(var(--gold) / 0.5), 0 0 20px oklch(var(--gold) / 0.3)'
+                'gold-glow': '0 0 10px rgb(var(--gold) / 0.5), 0 0 20px rgb(var(--gold) / 0.3)'
             },
             keyframes: {
                 'accordion-down': {

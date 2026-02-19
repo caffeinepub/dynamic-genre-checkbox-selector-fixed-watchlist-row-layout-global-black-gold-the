@@ -8,7 +8,7 @@ import { PaginationControls } from './PaginationControls';
 import { MangaRowActions } from './MangaRowActions';
 import { FloatingControlsPanel } from './FloatingControlsPanel';
 import { Button } from '../ui/button';
-import { BookOpen, AlertCircle, Loader2, RefreshCw, WifiOff, RotateCw } from 'lucide-react';
+import { BookOpen, AlertCircle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription } from '../ui/alert';
 
@@ -127,325 +127,258 @@ export function MangaListPage() {
   }, [allEntries, titleSearch, synopsisSearch, notesSearch, selectedGenres, bookmarkedOnly, completedOnly, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE));
-  
-  const safePage = Math.min(currentPage, totalPages);
-  if (safePage !== currentPage && filteredAndSortedEntries.length > 0) {
-    setCurrentPage(safePage);
-  }
-
   const paginatedEntries = useMemo(() => {
-    const start = (safePage - 1) * ENTRIES_PER_PAGE;
-    const end = start + ENTRIES_PER_PAGE;
-    return filteredAndSortedEntries.slice(start, end);
-  }, [filteredAndSortedEntries, safePage]);
+    const startIndex = (currentPage - 1) * ENTRIES_PER_PAGE;
+    return filteredAndSortedEntries.slice(startIndex, startIndex + ENTRIES_PER_PAGE);
+  }, [filteredAndSortedEntries, currentPage]);
 
-  // Use uniform width hook
-  const { uniformWidth, registerRow } = useUniformWatchlistRowWidth([
-    paginatedEntries.length,
-    currentPage,
-    titleSearch,
-    synopsisSearch,
-    notesSearch,
-    selectedGenres,
-    bookmarkedOnly,
-    completedOnly,
-    sortBy,
-  ]);
-
-  // Clamp to minimum 925px
-  const finalRowWidth = Math.max(uniformWidth ?? 0, MIN_ROW_WIDTH);
-
-  const handlePageChange = useCallback((newPage: number) => {
-    if (!isActorReady) {
-      return;
-    }
-    // Additional clamping at the handler level for defense in depth
-    const clampedPage = Math.max(1, Math.min(newPage, totalPages));
+  const handlePageChange = useCallback((page: number) => {
+    const clampedPage = Math.max(1, Math.min(page, totalPages));
     setCurrentPage(clampedPage);
-  }, [isActorReady, totalPages]);
+  }, [totalPages]);
 
-  const handleAddManga = useCallback(() => {
-    setIsAddDialogOpen(true);
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const { uniformWidth, registerRow } = useUniformWatchlistRowWidth([currentPage, filteredAndSortedEntries.length]);
+
+  const alignmentClass = useMemo(() => {
+    if (watchlistAlignment === 'left') return 'justify-start';
+    if (watchlistAlignment === 'right') return 'justify-end';
+    return 'justify-center';
+  }, [watchlistAlignment]);
+
+  const handleAddDialogOpenChange = useCallback((open: boolean) => {
+    setIsAddDialogOpen(open);
   }, []);
 
-  // Show connecting state only when actually connecting and no terminal error
-  if (isConnecting && (!actorError || !hasGivenUp)) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <p className="text-muted-foreground mt-1">
-              Connecting to backend...
-            </p>
-          </div>
-        </div>
-        <Alert>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <AlertDescription>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="font-medium mb-1">
-                  {connectionPhase} {retryCount > 0 && `(Attempt ${retryCount})`}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Elapsed: {formatElapsedTime(elapsedTime)} • Max: 45s
-                </div>
-              </div>
-            </div>
-          </AlertDescription>
-        </Alert>
-        <div className="flex flex-col items-center gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-[78px] w-full max-w-[925px]" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const handleTitleSearchChange = useCallback((value: string) => {
+    setTitleSearch(value);
+    setCurrentPage(1);
+  }, []);
 
-  // Show connection error state only when terminal (given up)
-  if (actorError && hasGivenUp && !isActorReady) {
-    const isAuthError = errorCategory === 'authorization';
-    const isTimeout = errorCategory === 'timeout';
-    const isTransient = errorCategory === 'transient' || errorCategory === 'connecting' || isTimeout;
+  const handleSynopsisSearchChange = useCallback((value: string) => {
+    setSynopsisSearch(value);
+    setCurrentPage(1);
+  }, []);
 
+  const handleNotesSearchChange = useCallback((value: string) => {
+    setNotesSearch(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleGenresChange = useCallback((genres: string[]) => {
+    setSelectedGenres(genres);
+    setCurrentPage(1);
+  }, []);
+
+  const handleBookmarkedOnlyChange = useCallback((value: boolean) => {
+    setBookmarkedOnly(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleCompletedOnlyChange = useCallback((value: boolean) => {
+    setCompletedOnly(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSortByChange = useCallback((value: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc') => {
+    setSortBy(value);
+  }, []);
+
+  const handleWatchlistAlignmentChange = useCallback((value: 'left' | 'center' | 'right') => {
+    setWatchlistAlignment(value);
+  }, []);
+
+  // Show terminal error state when backend has given up
+  if (hasGivenUp && actorError) {
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <p className="text-muted-foreground mt-1">
-              {isAuthError 
-                ? 'Authorization required' 
-                : isTimeout 
-                ? 'Connection timed out' 
-                : 'Connection issue detected'}
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6 bg-background text-foreground">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between gap-2">
-            <div className="flex-1">
-              <div className="font-medium mb-1">
-                {actorErrorMessage || 
-                 (isTimeout ? 'Connection timed out' : 
-                  isTransient ? 'Connection issue detected' :
-                  'Unable to connect to the backend')}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Maximum retry attempts reached. Please try manually.
-              </div>
+          <AlertDescription className="flex flex-col gap-3">
+            <div>
+              <strong>Unable to connect to backend</strong>
+              <p className="mt-1">{actorErrorMessage}</p>
+              {errorCategory && (
+                <p className="text-xs mt-1 opacity-80">Error type: {errorCategory}</p>
+              )}
             </div>
-            {isTransient && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={retryActor}
-                disabled={isRetrying}
-                className="shrink-0"
-              >
-                {isRetrying ? (
-                  <>
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    Retrying...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Retry
-                  </>
-                )}
-              </Button>
-            )}
+            <Button
+              onClick={retryActor}
+              disabled={isRetrying}
+              variant="outline"
+              size="sm"
+              className="w-fit"
+            >
+              {isRetrying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry Connection
+                </>
+              )}
+            </Button>
           </AlertDescription>
         </Alert>
-        <div className="text-center py-16 border-2 border-dashed border-border rounded-lg">
-          <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4" />
-          <h3 className="text-xl font-semibold mb-2">
-            {isAuthError 
-              ? 'Authorization Required' 
-              : isTimeout 
-              ? 'Connection Timed Out' 
-              : 'Connection Error'}
-          </h3>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            {isAuthError 
-              ? 'You need to be logged in to access your manga collection.'
-              : 'The connection attempt took too long and all automatic retries have been exhausted. You can retry manually or reload the page.'}
-          </p>
-          <div className="flex gap-3 justify-center">
-            {isTransient && (
-              <Button onClick={retryActor} variant="default" disabled={isRetrying}>
-                {isRetrying ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Retrying...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry Connection
-                  </>
-                )}
-              </Button>
-            )}
-            <Button onClick={() => window.location.reload()} variant="outline">
-              <RotateCw className="h-4 w-4 mr-2" />
-              Reload Page
-            </Button>
+      </div>
+    );
+  }
+
+  // Show connecting state
+  if (isConnecting) {
+    return (
+      <div className="space-y-6 bg-background text-foreground">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                {connectionPhase === 'initializing' && 'Initializing connection...'}
+                {connectionPhase === 'connecting' && 'Connecting to backend...'}
+                {connectionPhase === 'verifying' && 'Verifying connection...'}
+                {connectionPhase === 'retrying' && `Retrying connection (attempt ${retryCount})...`}
+              </p>
+              {elapsedTime > 0 && (
+                <p className="text-xs text-muted-foreground/70">
+                  Elapsed: {formatElapsedTime(elapsedTime)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show data fetch error (only if not offline mode and actor is ready)
-  if (dataError && !isOfflineMode && isActorReady) {
+  // Show loading state for data
+  if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4" />
-        <p className="text-destructive mb-4">Error loading manga list. Please try again.</p>
-        <Button onClick={() => window.location.reload()} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    );
-  }
-
-  // Show loading state
-  if (isLoading && !allEntries) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="flex flex-col items-center gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-[78px] w-full max-w-[925px]" />
-          ))}
+      <div className="space-y-6 bg-background text-foreground">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
   }
 
-  const hasFilters = titleSearch || synopsisSearch || notesSearch || selectedGenres.length > 0 || bookmarkedOnly || completedOnly;
+  // Show offline mode banner if applicable
+  const offlineBanner = isOfflineMode && (
+    <Alert className="mb-4">
+      <WifiOff className="h-4 w-4" />
+      <AlertDescription>
+        <strong>Offline Mode:</strong> Showing cached data. Some features may be unavailable.
+      </AlertDescription>
+    </Alert>
+  );
 
-  const alignmentClass = 
-    watchlistAlignment === 'left' ? 'items-start' :
-    watchlistAlignment === 'right' ? 'items-end' :
-    'items-center';
-
-  return (
-    <div className="space-y-6">
-      {isOfflineMode && (
-        <Alert>
-          <WifiOff className="h-4 w-4" />
-          <AlertDescription>
-            Offline mode: Showing cached data from your last sync. Some features may be unavailable.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <p className="text-muted-foreground mt-1">
-            {filteredAndSortedEntries.length === 0 
-              ? hasFilters 
-                ? 'No manga match your filters' 
-                : 'Start building your collection'
-              : `${filteredAndSortedEntries.length} manga ${hasFilters ? 'found' : 'total'}`}
-          </p>
+  // Show empty state
+  if (!allEntries || allEntries.length === 0) {
+    return (
+      <div className="space-y-6 bg-background text-foreground">
+        {offlineBanner}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold mb-2 text-foreground">No manga entries yet</h2>
+          <p className="text-muted-foreground mb-6">Start building your watchlist by adding your first manga.</p>
+          <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
         </div>
       </div>
+    );
+  }
 
-      {(allEntries && allEntries.length > 0) && (
+  // Show no results state
+  if (filteredAndSortedEntries.length === 0) {
+    return (
+      <div className="space-y-6 bg-background text-foreground">
+        {offlineBanner}
         <FloatingControlsPanel
           titleSearch={titleSearch}
-          onTitleSearchChange={setTitleSearch}
+          onTitleSearchChange={handleTitleSearchChange}
           synopsisSearch={synopsisSearch}
-          onSynopsisSearchChange={setSynopsisSearch}
+          onSynopsisSearchChange={handleSynopsisSearchChange}
           notesSearch={notesSearch}
-          onNotesSearchChange={setNotesSearch}
+          onNotesSearchChange={handleNotesSearchChange}
           selectedGenres={selectedGenres}
-          onSelectedGenresChange={setSelectedGenres}
+          onSelectedGenresChange={handleGenresChange}
           availableGenres={availableGenres}
           bookmarkedOnly={bookmarkedOnly}
-          onBookmarkedOnlyChange={setBookmarkedOnly}
+          onBookmarkedOnlyChange={handleBookmarkedOnlyChange}
           completedOnly={completedOnly}
-          onCompletedOnlyChange={setCompletedOnly}
+          onCompletedOnlyChange={handleCompletedOnlyChange}
           sortBy={sortBy}
-          onSortByChange={setSortBy}
-          onAddManga={handleAddManga}
-          isBackendReady={isActorReady}
+          onSortByChange={handleSortByChange}
           watchlistAlignment={watchlistAlignment}
-          onWatchlistAlignmentChange={setWatchlistAlignment}
+          onWatchlistAlignmentChange={handleWatchlistAlignmentChange}
+          onAddManga={() => setIsAddDialogOpen(true)}
+          isBackendReady={isActorReady}
         />
-      )}
-
-      {filteredAndSortedEntries.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-border rounded-lg">
-          <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold mb-2">
-            {hasFilters ? 'No manga found' : 'No manga yet'}
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            {hasFilters 
-              ? 'Try adjusting your search or filters'
-              : 'Start by adding your first manga to your watchlist'}
-          </p>
-          {!hasFilters && (
-            <Button 
-              onClick={handleAddManga} 
-              className="gap-2"
-              disabled={!isActorReady}
-            >
-              Add Your First Manga
-            </Button>
-          )}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold mb-2 text-foreground">No results found</h2>
+          <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
         </div>
-      ) : (
-        <>
-          <div className={`flex flex-col ${alignmentClass} gap-4 overflow-x-auto pb-4`}>
-            {paginatedEntries.map((manga) => (
-              <div 
-                key={manga.stableId.toString()}
-                ref={registerRow}
-                style={{ 
-                  width: `${finalRowWidth}px`, 
-                  minWidth: `${finalRowWidth}px` 
-                }}
-              >
-                <MangaRowActions 
-                  manga={manga}
-                  currentPage={currentPage}
-                  isBackendReady={isActorReady}
-                />
-              </div>
-            ))}
+        <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
+      </div>
+    );
+  }
+
+  // Main content
+  return (
+    <div className="space-y-6 bg-background text-foreground">
+      {offlineBanner}
+      
+      <FloatingControlsPanel
+        titleSearch={titleSearch}
+        onTitleSearchChange={handleTitleSearchChange}
+        synopsisSearch={synopsisSearch}
+        onSynopsisSearchChange={handleSynopsisSearchChange}
+        notesSearch={notesSearch}
+        onNotesSearchChange={handleNotesSearchChange}
+        selectedGenres={selectedGenres}
+        onSelectedGenresChange={handleGenresChange}
+        availableGenres={availableGenres}
+        bookmarkedOnly={bookmarkedOnly}
+        onBookmarkedOnlyChange={handleBookmarkedOnlyChange}
+        completedOnly={completedOnly}
+        onCompletedOnlyChange={handleCompletedOnlyChange}
+        sortBy={sortBy}
+        onSortByChange={handleSortByChange}
+        watchlistAlignment={watchlistAlignment}
+        onWatchlistAlignmentChange={handleWatchlistAlignmentChange}
+        onAddManga={() => setIsAddDialogOpen(true)}
+        isBackendReady={isActorReady}
+      />
+
+      <div className={`flex flex-col gap-4 ${alignmentClass}`}>
+        {paginatedEntries.map((entry) => (
+          <div
+            key={entry.stableId.toString()}
+            ref={registerRow}
+            style={{
+              minWidth: `${MIN_ROW_WIDTH}px`,
+              width: uniformWidth ? `${uniformWidth}px` : 'auto',
+            }}
+          >
+            <MangaRowActions manga={entry} currentPage={currentPage} isBackendReady={isActorReady} />
           </div>
+        ))}
+      </div>
 
-          {totalPages > 1 && (
-            <PaginationControls
-              currentPage={safePage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              disabled={!isActorReady}
-            />
-          )}
-        </>
-      )}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
-      {/* Only mount AddMangaDialog when open */}
-      {isAddDialogOpen && (
-        <AddMangaDialog 
-          open={isAddDialogOpen} 
-          onOpenChange={setIsAddDialogOpen}
-          currentPage={currentPage}
-        />
-      )}
+      <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
     </div>
   );
 }

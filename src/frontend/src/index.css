@@ -4,78 +4,155 @@
 
 @layer base {
   :root {
-    /* Warm sepia/ink palette with vermillion accents - avoiding blue/purple */
-    --background: oklch(0.98 0.01 60);
-    --foreground: oklch(0.15 0.02 30);
+    /* Warm sepia/ink palette with vermillion accents - RGB fallbacks */
+    --background: 252 250 245;
+    --foreground: 38 36 33;
 
-    --card: oklch(0.96 0.015 55);
-    --card-foreground: oklch(0.15 0.02 30);
+    --card: 247 244 238;
+    --card-foreground: 38 36 33;
 
-    --popover: oklch(0.98 0.01 60);
-    --popover-foreground: oklch(0.15 0.02 30);
+    --popover: 252 250 245;
+    --popover-foreground: 38 36 33;
 
-    --primary: oklch(0.45 0.15 35);
-    --primary-foreground: oklch(0.98 0.01 60);
+    --primary: 115 85 55;
+    --primary-foreground: 252 250 245;
 
-    --secondary: oklch(0.88 0.03 50);
-    --secondary-foreground: oklch(0.20 0.02 30);
+    --secondary: 230 220 205;
+    --secondary-foreground: 51 46 38;
 
-    --muted: oklch(0.92 0.02 55);
-    --muted-foreground: oklch(0.45 0.02 35);
+    --muted: 240 235 225;
+    --muted-foreground: 115 100 80;
 
-    --accent: oklch(0.60 0.20 30);
-    --accent-foreground: oklch(0.98 0.01 60);
+    --accent: 180 95 60;
+    --accent-foreground: 252 250 245;
 
-    --destructive: oklch(0.55 0.22 25);
-    --destructive-foreground: oklch(0.98 0.01 60);
+    --destructive: 165 75 55;
+    --destructive-foreground: 252 250 245;
 
-    --border: oklch(0.85 0.02 50);
-    --input: oklch(0.85 0.02 50);
-    --ring: oklch(0.45 0.15 35);
+    --border: 220 210 195;
+    --input: 220 210 195;
+    --ring: 115 85 55;
 
     --radius: 0.5rem;
 
     /* Gold color for watchlist theme */
-    --gold: oklch(0.75 0.15 75);
+    --gold: 215 180 100;
+  }
+
+  /* OKLCH colors for browsers that support it */
+  @supports (color: oklch(0% 0 0)) {
+    :root {
+      /* Warm sepia/ink palette with vermillion accents - avoiding blue/purple */
+      --background: oklch(0.98 0.01 60);
+      --foreground: oklch(0.15 0.02 30);
+
+      --card: oklch(0.96 0.015 55);
+      --card-foreground: oklch(0.15 0.02 30);
+
+      --popover: oklch(0.98 0.01 60);
+      --popover-foreground: oklch(0.15 0.02 30);
+
+      --primary: oklch(0.45 0.15 35);
+      --primary-foreground: oklch(0.98 0.01 60);
+
+      --secondary: oklch(0.88 0.03 50);
+      --secondary-foreground: oklch(0.20 0.02 30);
+
+      --muted: oklch(0.92 0.02 55);
+      --muted-foreground: oklch(0.45 0.02 35);
+
+      --accent: oklch(0.60 0.20 30);
+      --accent-foreground: oklch(0.98 0.01 60);
+
+      --destructive: oklch(0.55 0.22 25);
+      --destructive-foreground: oklch(0.98 0.01 60);
+
+      --border: oklch(0.85 0.02 50);
+      --input: oklch(0.85 0.02 50);
+      --ring: oklch(0.45 0.15 35);
+
+      /* Gold color for watchlist theme */
+      --gold: oklch(0.75 0.15 75);
+    }
   }
 
   .dark {
-    --background: oklch(0.12 0.02 30);
-    --foreground: oklch(0.95 0.01 60);
+    /* Dark mode - RGB fallbacks */
+    --background: 30 28 25;
+    --foreground: 245 242 238;
 
-    --card: oklch(0.15 0.02 30);
-    --card-foreground: oklch(0.95 0.01 60);
+    --card: 38 35 30;
+    --card-foreground: 245 242 238;
 
-    --popover: oklch(0.12 0.02 30);
-    --popover-foreground: oklch(0.95 0.01 60);
+    --popover: 30 28 25;
+    --popover-foreground: 245 242 238;
 
-    --primary: oklch(0.65 0.18 40);
-    --primary-foreground: oklch(0.12 0.02 30);
+    --primary: 180 140 90;
+    --primary-foreground: 30 28 25;
 
-    --secondary: oklch(0.25 0.03 35);
-    --secondary-foreground: oklch(0.95 0.01 60);
+    --secondary: 65 58 48;
+    --secondary-foreground: 245 242 238;
 
-    --muted: oklch(0.22 0.02 35);
-    --muted-foreground: oklch(0.60 0.02 40);
+    --muted: 55 50 43;
+    --muted-foreground: 160 140 115;
 
-    --accent: oklch(0.65 0.20 30);
-    --accent-foreground: oklch(0.12 0.02 30);
+    --accent: 180 110 70;
+    --accent-foreground: 30 28 25;
 
-    --destructive: oklch(0.55 0.22 25);
-    --destructive-foreground: oklch(0.95 0.01 60);
+    --destructive: 165 75 55;
+    --destructive-foreground: 245 242 238;
 
-    --border: oklch(0.25 0.02 35);
-    --input: oklch(0.25 0.02 35);
-    --ring: oklch(0.65 0.18 40);
+    --border: 65 58 48;
+    --input: 65 58 48;
+    --ring: 180 140 90;
 
     /* Gold color for watchlist theme in dark mode */
-    --gold: oklch(0.80 0.15 75);
+    --gold: 225 190 110;
+  }
+
+  /* OKLCH colors for dark mode in browsers that support it */
+  @supports (color: oklch(0% 0 0)) {
+    .dark {
+      --background: oklch(0.12 0.02 30);
+      --foreground: oklch(0.95 0.01 60);
+
+      --card: oklch(0.15 0.02 30);
+      --card-foreground: oklch(0.95 0.01 60);
+
+      --popover: oklch(0.12 0.02 30);
+      --popover-foreground: oklch(0.95 0.01 60);
+
+      --primary: oklch(0.65 0.18 40);
+      --primary-foreground: oklch(0.12 0.02 30);
+
+      --secondary: oklch(0.25 0.03 35);
+      --secondary-foreground: oklch(0.95 0.01 60);
+
+      --muted: oklch(0.22 0.02 35);
+      --muted-foreground: oklch(0.60 0.02 40);
+
+      --accent: oklch(0.65 0.20 30);
+      --accent-foreground: oklch(0.12 0.02 30);
+
+      --destructive: oklch(0.55 0.22 25);
+      --destructive-foreground: oklch(0.95 0.01 60);
+
+      --border: oklch(0.25 0.02 35);
+      --input: oklch(0.25 0.02 35);
+      --ring: oklch(0.65 0.18 40);
+
+      /* Gold color for watchlist theme in dark mode */
+      --gold: oklch(0.80 0.15 75);
+    }
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+  html {
+    @apply bg-background text-foreground;
   }
   body {
     @apply bg-background text-foreground;
@@ -84,38 +161,77 @@
 
 @layer utilities {
   .text-gold {
-    color: var(--gold);
+    color: rgb(var(--gold));
   }
 
   .bg-gold {
-    background-color: var(--gold);
+    background-color: rgb(var(--gold));
   }
 
   .border-gold {
-    border-color: var(--gold);
+    border-color: rgb(var(--gold));
   }
 
   .fill-gold {
-    fill: var(--gold);
+    fill: rgb(var(--gold));
+  }
+
+  /* OKLCH versions for browsers that support it */
+  @supports (color: oklch(0% 0 0)) {
+    .text-gold {
+      color: oklch(var(--gold));
+    }
+
+    .bg-gold {
+      background-color: oklch(var(--gold));
+    }
+
+    .border-gold {
+      border-color: oklch(var(--gold));
+    }
+
+    .fill-gold {
+      fill: oklch(var(--gold));
+    }
   }
 
   /* Rainbow gradient text utility */
   .rainbow-text {
     background: linear-gradient(
       90deg,
-      oklch(0.65 0.25 0) 0%,
-      oklch(0.70 0.25 60) 16.67%,
-      oklch(0.75 0.20 120) 33.33%,
-      oklch(0.65 0.20 180) 50%,
-      oklch(0.60 0.25 240) 66.67%,
-      oklch(0.70 0.25 300) 83.33%,
-      oklch(0.65 0.25 0) 100%
+      #e74c3c 0%,
+      #f39c12 16.67%,
+      #f1c40f 33.33%,
+      #2ecc71 50%,
+      #3498db 66.67%,
+      #9b59b6 83.33%,
+      #e74c3c 100%
     );
     background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: rainbow-shift 3s linear infinite;
+  }
+
+  @supports (color: oklch(0% 0 0)) {
+    .rainbow-text {
+      background: linear-gradient(
+        90deg,
+        oklch(0.65 0.25 0) 0%,
+        oklch(0.70 0.25 60) 16.67%,
+        oklch(0.75 0.20 120) 33.33%,
+        oklch(0.65 0.20 180) 50%,
+        oklch(0.60 0.25 240) 66.67%,
+        oklch(0.70 0.25 300) 83.33%,
+        oklch(0.65 0.25 0) 100%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: rainbow-shift 3s linear infinite;
+    }
   }
 
   @keyframes rainbow-shift {
@@ -129,50 +245,105 @@
 
   /* Rainbow glow effect */
   .rainbow-glow {
-    filter: drop-shadow(0 0 8px oklch(0.70 0.25 60))
-      drop-shadow(0 0 12px oklch(0.65 0.25 120));
+    filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.6))
+      drop-shadow(0 0 12px rgba(46, 204, 113, 0.4));
     animation: rainbow-glow-pulse 2s ease-in-out infinite;
+  }
+
+  @supports (color: oklch(0% 0 0)) {
+    .rainbow-glow {
+      filter: drop-shadow(0 0 8px oklch(0.70 0.25 60))
+        drop-shadow(0 0 12px oklch(0.65 0.25 120));
+      animation: rainbow-glow-pulse 2s ease-in-out infinite;
+    }
   }
 
   @keyframes rainbow-glow-pulse {
     0%,
     100% {
-      filter: drop-shadow(0 0 8px oklch(0.70 0.25 60))
-        drop-shadow(0 0 12px oklch(0.65 0.25 120));
+      filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.6))
+        drop-shadow(0 0 12px rgba(46, 204, 113, 0.4));
     }
     50% {
-      filter: drop-shadow(0 0 12px oklch(0.75 0.25 180))
-        drop-shadow(0 0 16px oklch(0.70 0.25 240));
+      filter: drop-shadow(0 0 12px rgba(52, 152, 219, 0.6))
+        drop-shadow(0 0 16px rgba(155, 89, 182, 0.4));
+    }
+  }
+
+  @supports (color: oklch(0% 0 0)) {
+    @keyframes rainbow-glow-pulse {
+      0%,
+      100% {
+        filter: drop-shadow(0 0 8px oklch(0.70 0.25 60))
+          drop-shadow(0 0 12px oklch(0.65 0.25 120));
+      }
+      50% {
+        filter: drop-shadow(0 0 12px oklch(0.75 0.25 180))
+          drop-shadow(0 0 16px oklch(0.70 0.25 240));
+      }
     }
   }
 
   /* Rainbow border shift */
   .rainbow-border-shift {
-    border-color: oklch(0.70 0.25 60);
+    border-color: #f39c12;
     animation: rainbow-border-shift 3s linear infinite;
+  }
+
+  @supports (color: oklch(0% 0 0)) {
+    .rainbow-border-shift {
+      border-color: oklch(0.70 0.25 60);
+      animation: rainbow-border-shift 3s linear infinite;
+    }
   }
 
   @keyframes rainbow-border-shift {
     0% {
-      border-color: oklch(0.65 0.25 0);
+      border-color: #e74c3c;
     }
     16.67% {
-      border-color: oklch(0.70 0.25 60);
+      border-color: #f39c12;
     }
     33.33% {
-      border-color: oklch(0.75 0.20 120);
+      border-color: #f1c40f;
     }
     50% {
-      border-color: oklch(0.65 0.20 180);
+      border-color: #2ecc71;
     }
     66.67% {
-      border-color: oklch(0.60 0.25 240);
+      border-color: #3498db;
     }
     83.33% {
-      border-color: oklch(0.70 0.25 300);
+      border-color: #9b59b6;
     }
     100% {
-      border-color: oklch(0.65 0.25 0);
+      border-color: #e74c3c;
+    }
+  }
+
+  @supports (color: oklch(0% 0 0)) {
+    @keyframes rainbow-border-shift {
+      0% {
+        border-color: oklch(0.65 0.25 0);
+      }
+      16.67% {
+        border-color: oklch(0.70 0.25 60);
+      }
+      33.33% {
+        border-color: oklch(0.75 0.20 120);
+      }
+      50% {
+        border-color: oklch(0.65 0.20 180);
+      }
+      66.67% {
+        border-color: oklch(0.60 0.25 240);
+      }
+      83.33% {
+        border-color: oklch(0.70 0.25 300);
+      }
+      100% {
+        border-color: oklch(0.65 0.25 0);
+      }
     }
   }
 

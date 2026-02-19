@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the black screen display issue preventing content visibility in the manga library application.
+**Goal:** Fix the black screen issue that appears after page refresh, ensuring all manga list content and UI elements are immediately visible.
 
 **Planned changes:**
-- Diagnose and fix the black screen background issue causing all content to be invisible
-- Ensure text content is visible by default with proper color contrast
-- Verify and correct the styling of the pink heart icon at the bottom of the page
+- Investigate and resolve the black screen rendering issue on page refresh
+- Verify OKLCH color system is properly applied with appropriate browser fallbacks
+- Check service worker cache behavior to ensure correct CSS and asset delivery
+- Ensure warm sepia/ink background colors render correctly on initial load
 
-**User-visible outcome:** The manga library displays correctly with visible text, proper background colors using the warm sepia/ink theme, and all UI elements properly styled without requiring mouse selection to reveal content.
+**User-visible outcome:** After refreshing the page, users will immediately see the manga list with all content visible in the intended warm sepia color palette, without needing to interact with the page first.

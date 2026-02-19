@@ -1,72 +1,67 @@
 {
   "kind": "build_request",
-  "title": "Fix black screen display issue",
+  "title": "Fix black screen on page refresh",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Diagnose and fix the black screen issue where the entire page background is black, making content invisible except for a pink heart icon at the bottom",
+      "text": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-latest"
         ],
         "quotes": [
-          "the whole screen is black, except for a pink heart icon at the bottom of the page"
+          "still black screen after refresh"
         ]
       },
       "acceptanceCriteria": [
-        "Page background uses the intended warm sepia/ink color scheme defined in index.css",
-        "All content is visible without requiring text selection",
-        "The manga list, controls, and all UI elements are properly displayed with correct colors"
+        "Page loads with visible content after refresh",
+        "Background colors render correctly with the warm sepia/ink palette",
+        "Text is visible without requiring mouse selection",
+        "All manga cards and UI components display properly on initial load"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure text content is visible by default without requiring mouse drag selection to reveal it",
+      "text": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "if i click and drag the mouse over the page, i can see some text that gets highlighted"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "All text elements have proper text color that contrasts with the background",
-        "Text is readable immediately on page load without any user interaction",
-        "No text elements have transparent or matching-background colors"
+        "OKLCH colors are correctly parsed and applied by browsers",
+        "Fallback colors are provided for browsers that don't support OKLCH",
+        "Background colors use the intended warm sepia tones, not black"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Verify the pink heart icon at the bottom is styled correctly and check if it should be visible or if it's an unintended element",
+      "text": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "except for a pink heart icon at the bottom of the page"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "Identify the source of the pink heart icon",
-        "Ensure it's either properly styled with the app theme or removed if unintended",
-        "Footer elements display with correct colors and positioning"
+        "Service worker cache-first strategy does not cause black screen",
+        "CSS and static assets are properly cached and served",
+        "Cache invalidation works correctly when styles are updated"
       ]
     }
   ],
   "constraints": [
-    "Maintain the warm sepia/ink color palette defined in index.css",
-    "Preserve existing dark mode support",
-    "Do not modify backend/main.mo or backend logic"
+    "Preserve the existing OKLCH warm sepia/ink color palette",
+    "Do not modify the backend actor or data models",
+    "Maintain compatibility with the service worker caching strategy"
   ],
   "nonGoals": [
-    "Adding new features or functionality",
-    "Changing the color scheme or theme",
-    "Modifying component structure beyond what's needed for the fix"
+    "Changing the overall visual design or color scheme",
+    "Modifying manga entry data structures",
+    "Implementing new features unrelated to the display issue"
   ],
   "imageRequirements": {
     "required": [],

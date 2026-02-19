@@ -43,7 +43,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </Button>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 bg-background">
         {children}
       </main>
       <footer className="border-t border-border mt-16 py-8 bg-background">

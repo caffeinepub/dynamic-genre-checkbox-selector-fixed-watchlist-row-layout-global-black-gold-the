@@ -1,5 +1,6 @@
-const CACHE_NAME = 'mangalist-v1';
-const RUNTIME_CACHE = 'mangalist-runtime-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `mangalist-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `mangalist-runtime-${CACHE_VERSION}`;
 
 // Assets to pre-cache on install
 const PRECACHE_URLS = [
@@ -26,6 +27,7 @@ self.addEventListener('activate', (event) => {
       return cacheNames.filter((cacheName) => !currentCaches.includes(cacheName));
     }).then((cachesToDelete) => {
       return Promise.all(cachesToDelete.map((cacheToDelete) => {
+        console.log('Deleting old cache:', cacheToDelete);
         return caches.delete(cacheToDelete);
       }));
     }).then(() => self.clients.claim())
@@ -61,10 +63,31 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for scripts, styles, images, and static assets
+  // Network-first for CSS files to ensure fresh styles
+  if (request.destination === 'style' || url.pathname.endsWith('.css')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cache the fresh CSS
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fall back to cached CSS if network fails
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // Cache-first for scripts, images, and static assets
   if (
     request.destination === 'script' ||
-    request.destination === 'style' ||
     request.destination === 'image' ||
     url.pathname.startsWith('/assets/')
   ) {
@@ -120,7 +143,10 @@ self.addEventListener('message', (event) => {
     event.waitUntil(
       caches.keys().then((cacheNames) => {
         return Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName))
+          cacheNames.map((cacheName) => {
+            console.log('Clearing cache:', cacheName);
+            return caches.delete(cacheName);
+          })
         );
       }).then(() => {
         return self.clients.matchAll();

@@ -2,11 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-diagnose-and-fix-the-black-screen-issue-where-the-entire-page-background-is-black-making-content-invisible-except-for-a-pink-heart-icon-at-the-bottom",
-      "featureTitle": "Diagnose and fix the black screen issue where the entire page background is black, making content invisible except for a pink heart icon at the bottom",
+      "featureId": "feature-investigate-and-fix-the-black-screen-issue-that-occurs-after-page-refresh-ensuring-the-manga-list-and-all-ui-elements-are-visible-without-requiring-mouse-selection",
+      "featureTitle": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,10 +25,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-text-content-is-visible-by-default-without-requiring-mouse-drag-selection-to-reveal-it",
-      "featureTitle": "Ensure text content is visible by default without requiring mouse drag selection to reveal it",
+      "featureId": "feature-verify-that-the-oklch-color-system-in-index-css-and-tailwind-config-js-is-properly-applied-and-not-causing-rendering-issues-with-black-backgrounds",
+      "featureTitle": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/index.html",
+        "frontend/src/index.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -43,10 +46,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-verify-the-pink-heart-icon-at-the-bottom-is-styled-correctly-and-check-if-it-should-be-visible-or-if-it-s-an-unintended-element",
-      "featureTitle": "Verify the pink heart icon at the bottom is styled correctly and check if it should be visible or if it's an unintended element",
+      "featureId": "feature-check-service-worker-cache-behavior-to-ensure-it-s-not-serving-stale-black-screen-content-after-refresh",
+      "featureTitle": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/public/service-worker.js",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/sw/registerServiceWorker.ts"
       ],
       "components": [
         "authorization@4.0.0",

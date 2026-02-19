@@ -1,88 +1,89 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix black screen display issue",
+  "title": "Fix black screen on page refresh",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Diagnose and fix the black screen issue where the entire page background is black, making content invisible except for a pink heart icon at the bottom",
+      "summary": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
       "acceptanceCriteria": [
-        "Page background uses the intended warm sepia/ink color scheme defined in index.css",
-        "All content is visible without requiring text selection",
-        "The manga list, controls, and all UI elements are properly displayed with correct colors"
+        "Page loads with visible content after refresh",
+        "Background colors render correctly with the warm sepia/ink palette",
+        "Text is visible without requiring mouse selection",
+        "All manga cards and UI components display properly on initial load"
       ],
       "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Review and fix the CSS configuration to ensure the warm sepia/ink color palette is properly applied to the page background. Check that the root element and body have the correct background colors defined and that dark mode overrides are not causing the black screen. Verify Tailwind color utility classes are correctly configured and accessible."
+          "description": "Add CSS fallback colors for browsers that don't fully support OKLCH color space. Wrap OKLCH color definitions with @supports queries and provide RGB fallbacks. Ensure body, html, and root elements have explicit background colors set that override any potential browser defaults. Verify the warm sepia/ink palette (--color-bg-base, --color-bg-surface, --color-text-primary) is properly defined with both OKLCH and fallback values."
         },
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/tailwind.config.js",
           "operation": "modify",
-          "description": "Verify that the main layout wrapper applies the correct background color classes and that no inline styles or className overrides are setting the background to black. Ensure the layout properly inherits the color scheme from index.css and that all sections (header, main, footer) have appropriate background/text color assignments."
+          "description": "Review and ensure the OKLCH color system configuration includes proper fallback color values for browsers with limited OKLCH support. Verify that backgroundColor and textColor theme extensions properly reference the CSS custom properties defined in index.css. Ensure no null or undefined color values are present in the configuration."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Check that the root App component does not apply any background color overrides that could cause the black screen. Ensure wrapper divs and loading states use the correct color scheme from the theme."
+          "description": "Add explicit background color class (bg-bg-base or equivalent) to the root container div to ensure the warm sepia background is applied immediately on mount, before any data loads. Verify no conditional rendering logic is preventing the base layout from displaying during the loading state. Ensure the layout structure renders with proper backgrounds even when backend connection is pending."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Add explicit background color classes to the main layout container and all major layout sections (header, main content area, footer) using the warm sepia palette. Ensure these background colors are applied via Tailwind classes that reference the OKLCH custom properties. Verify no CSS is inadvertently setting background to black or transparent."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the page container has explicit background color classes applied using the warm sepia palette. Verify the loading state, empty state, and error state all render with proper background colors. Add text color classes to ensure text visibility during all states, including initial load and while data is being fetched."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure text content is visible by default without requiring mouse drag selection to reveal it",
+      "summary": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
       "acceptanceCriteria": [
-        "All text elements have proper text color that contrasts with the background",
-        "Text is readable immediately on page load without any user interaction",
-        "No text elements have transparent or matching-background colors"
+        "OKLCH colors are correctly parsed and applied by browsers",
+        "Fallback colors are provided for browsers that don't support OKLCH",
+        "Background colors use the intended warm sepia tones, not black"
       ],
       "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Review and fix text color definitions in the CSS. Ensure default text colors provide sufficient contrast with backgrounds. Check that no global styles are setting text colors to transparent, black-on-black, or other invisible combinations. Verify Tailwind text color utilities are properly configured."
+          "description": "Implement comprehensive browser compatibility for OKLCH colors by adding @supports (color: oklch(0% 0 0)) queries with OKLCH definitions inside, and placing RGB/HSL fallback color definitions before the @supports block. Ensure fallbacks match the warm sepia/ink visual intent. Add comments documenting the color palette purpose and fallback strategy. Verify no CSS syntax errors exist that could cause the entire stylesheet to fail parsing."
         },
         {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Verify that all text elements in the manga list page have explicit text color classes that contrast with their backgrounds. Check that loading states, error messages, and empty states all use visible text colors."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaCard.tsx",
-          "operation": "modify",
-          "description": "Ensure manga card text content (titles, ratings, chapter counts) uses contrasting text colors. Verify that hover states and interactive elements maintain text visibility."
-        },
-        {
-          "path": "frontend/src/components/manga/MangaListControls.tsx",
-          "operation": "modify",
-          "description": "Check that all control labels, buttons, and input fields have visible text colors that contrast with their backgrounds. Ensure search inputs and filter controls are readable."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Verify header and footer text (logo, title, button labels) all use contrasting text colors that are visible against their backgrounds."
+          "description": "Add inline style to the root div element setting a fallback background color (warm sepia tone using standard CSS color format like rgb() or hex) to ensure something displays even if CSS fails to load or parse. This provides a last-resort visible background before any external styles are applied."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Verify the pink heart icon at the bottom is styled correctly and check if it should be visible or if it's an unintended element",
+      "summary": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
       "acceptanceCriteria": [
-        "Identify the source of the pink heart icon",
-        "Ensure it's either properly styled with the app theme or removed if unintended",
-        "Footer elements display with correct colors and positioning"
+        "Service worker cache-first strategy does not cause black screen",
+        "CSS and static assets are properly cached and served",
+        "Cache invalidation works correctly when styles are updated"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/public/service-worker.js",
           "operation": "modify",
-          "description": "Locate the pink heart icon in the footer section. Verify if it's an intentional design element or artifact. If it's a 'Made with ❤️' footer element, ensure it uses the correct theme colors (amber/gold instead of pink). If unintended, remove it. Ensure all footer elements have proper styling consistent with the warm sepia/ink theme."
+          "description": "Review the cache-first strategy implementation for CSS files and static assets. Add cache versioning using a cache name that includes a version identifier or timestamp. Implement proper cache cleanup in the activate event to remove outdated caches when the service worker updates. Ensure CSS files (index.css) are being cached and served correctly. Add logging to help diagnose cache-related issues. Consider adding a network-first or stale-while-revalidate strategy specifically for index.css to prevent serving stale styles after updates."
         },
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/sw/registerServiceWorker.ts",
           "operation": "modify",
-          "description": "Check if there are any heart icons or emoji in the HTML template that might be rendering with incorrect colors. Verify the root div and any static HTML content uses appropriate styling."
+          "description": "Add service worker update detection logic that prompts for page reload when a new service worker is waiting. Implement a mechanism to clear old caches when the app detects a version mismatch or on user-triggered cache clear. Ensure the clearServiceWorkerCache function properly handles cache deletion and confirms all relevant caches are removed. Add error handling for service worker registration failures that could leave the app in a broken state."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Add a development-mode cache diagnostic UI element or console logging that reports which resources were served from cache vs network. Consider adding a manual cache clear button visible in development or after detecting display issues. This helps verify that CSS and static assets are being served correctly after refresh."
         }
       ]
     }
