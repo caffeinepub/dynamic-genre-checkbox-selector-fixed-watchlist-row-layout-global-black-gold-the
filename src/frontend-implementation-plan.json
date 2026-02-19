@@ -1,89 +1,219 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix black screen on page refresh",
+  "title": "Gold and rainbow color styling updates with chapter editing",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
+      "summary": "Change all text colors to gold throughout the application, excluding status field text",
       "acceptanceCriteria": [
-        "Page loads with visible content after refresh",
-        "Background colors render correctly with the warm sepia/ink palette",
-        "Text is visible without requiring mouse selection",
-        "All manga cards and UI components display properly on initial load"
+        "All text elements display in gold color",
+        "Status field text retains its current color scheme",
+        "Gold color is applied consistently across all pages and components"
       ],
       "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add CSS fallback colors for browsers that don't fully support OKLCH color space. Wrap OKLCH color definitions with @supports queries and provide RGB fallbacks. Ensure body, html, and root elements have explicit background colors set that override any potential browser defaults. Verify the warm sepia/ink palette (--color-bg-base, --color-bg-surface, --color-text-primary) is properly defined with both OKLCH and fallback values."
+          "description": "Update Tailwind CSS custom properties to set default text colors to gold (#FFD700 or equivalent OKLCH value). Apply gold to base text color while preserving existing background and other theme colors."
         },
         {
           "path": "frontend/tailwind.config.js",
           "operation": "modify",
-          "description": "Review and ensure the OKLCH color system configuration includes proper fallback color values for browsers with limited OKLCH support. Verify that backgroundColor and textColor theme extensions properly reference the CSS custom properties defined in index.css. Ensure no null or undefined color values are present in the configuration."
+          "description": "Extend theme configuration to include a 'gold' color token and ensure text color utilities default to gold. Preserve existing color system for backgrounds and borders."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
           "operation": "modify",
-          "description": "Add explicit background color class (bg-bg-base or equivalent) to the root container div to ensure the warm sepia background is applied immediately on mount, before any data loads. Verify no conditional rendering logic is preventing the base layout from displaying during the loading state. Ensure the layout structure renders with proper backgrounds even when backend connection is pending."
+          "description": "Apply gold text color classes to all label, button text, and input elements. Ensure search input and filter labels display in gold while excluding status-specific text styling."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Add explicit background color classes to the main layout container and all major layout sections (header, main content area, footer) using the warm sepia palette. Ensure these background colors are applied via Tailwind classes that reference the OKLCH custom properties. Verify no CSS is inadvertently setting background to black or transparent."
+          "description": "Apply gold color to header title text, footer text, and any other text elements. Preserve layout structure and sticky behavior."
         },
         {
-          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Ensure the page container has explicit background color classes applied using the warm sepia palette. Verify the loading state, empty state, and error state all render with proper background colors. Add text color classes to ensure text visibility during all states, including initial load and while data is being fetched."
+          "description": "Apply gold text color to title, chapter display, and other text elements. Exclude status field text from gold styling to preserve existing status color scheme."
+        },
+        {
+          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
+          "operation": "modify",
+          "description": "Apply gold text color to form labels, input text, and dialog title. Ensure all text within the dialog displays in gold except validation messages if they require distinct colors."
+        },
+        {
+          "path": "frontend/src/components/manga/EditMangaDialog.tsx",
+          "operation": "modify",
+          "description": "Apply gold text color to form labels, input text, and dialog title, consistent with AddMangaDialog styling."
+        },
+        {
+          "path": "frontend/src/components/manga/EditNotesDialog.tsx",
+          "operation": "modify",
+          "description": "Apply gold text color to dialog title, labels, and textarea content."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
+          "operation": "modify",
+          "description": "Apply gold text color to dialog title, input labels, and input text for consistency with other dialogs."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
+      "summary": "Change watchlist card outlines to gold color by default",
       "acceptanceCriteria": [
-        "OKLCH colors are correctly parsed and applied by browsers",
-        "Fallback colors are provided for browsers that don't support OKLCH",
-        "Background colors use the intended warm sepia tones, not black"
+        "All manga card borders/outlines display in gold color",
+        "Gold outline is visible in all states except hover"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Implement comprehensive browser compatibility for OKLCH colors by adding @supports (color: oklch(0% 0 0)) queries with OKLCH definitions inside, and placing RGB/HSL fallback color definitions before the @supports block. Ensure fallbacks match the warm sepia/ink visual intent. Add comments documenting the color palette purpose and fallback strategy. Verify no CSS syntax errors exist that could cause the entire stylesheet to fail parsing."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Add inline style to the root div element setting a fallback background color (warm sepia tone using standard CSS color format like rgb() or hex) to ensure something displays even if CSS fails to load or parse. This provides a last-resort visible background before any external styles are applied."
+          "description": "Update card border/outline styling to use gold color by default. Replace existing border color classes with gold border utilities (e.g., border-gold or custom gold border color)."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
+      "summary": "Implement rainbow color outline for watchlist cards on hover",
       "acceptanceCriteria": [
-        "Service worker cache-first strategy does not cause black screen",
-        "CSS and static assets are properly cached and served",
-        "Cache invalidation works correctly when styles are updated"
+        "When hovering over a manga card, its outline transitions to rainbow color",
+        "Rainbow effect is smooth and visually appealing",
+        "Hover effect only applies to the currently hovered card"
       ],
       "file_operations": [
         {
-          "path": "frontend/public/service-worker.js",
+          "path": "frontend/src/components/manga/MangaCard.tsx",
           "operation": "modify",
-          "description": "Review the cache-first strategy implementation for CSS files and static assets. Add cache versioning using a cache name that includes a version identifier or timestamp. Implement proper cache cleanup in the activate event to remove outdated caches when the service worker updates. Ensure CSS files (index.css) are being cached and served correctly. Add logging to help diagnose cache-related issues. Consider adding a network-first or stale-while-revalidate strategy specifically for index.css to prevent serving stale styles after updates."
+          "description": "Add hover state styling that applies a rainbow gradient border on card hover. Implement using CSS gradient or animated border effect. Ensure smooth transition from gold to rainbow on hover."
         },
         {
-          "path": "frontend/src/sw/registerServiceWorker.ts",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add service worker update detection logic that prompts for page reload when a new service worker is waiting. Implement a mechanism to clear old caches when the app detects a version mismatch or on user-triggered cache clear. Ensure the clearServiceWorkerCache function properly handles cache deletion and confirms all relevant caches are removed. Add error handling for service worker registration failures that could leave the app in a broken state."
+          "description": "Define rainbow gradient utility classes or keyframe animations for the rainbow border effect. Use CSS custom properties or @keyframes to create a smooth, animated rainbow gradient."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Change all icons throughout the application to gold color, excluding status-related icons",
+      "acceptanceCriteria": [
+        "All icon elements display in gold color",
+        "Status field icons retain their current color scheme",
+        "Icons maintain proper visibility and contrast against backgrounds"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Apply gold color to all icon elements (bookmark, rating star, notes) except icons directly associated with status fields. Update icon className or style props to use gold color utilities."
         },
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
           "operation": "modify",
-          "description": "Add a development-mode cache diagnostic UI element or console logging that reports which resources were served from cache vs network. Consider adding a manual cache clear button visible in development or after detecting display issues. This helps verify that CSS and static assets are being served correctly after refresh."
+          "description": "Apply gold color to all icons in filter buttons, search input, and control elements. Update icon components to use gold color props or classes."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginLogoutButton.tsx",
+          "operation": "modify",
+          "description": "Apply gold color to any icons used within the login/logout button if present."
+        },
+        {
+          "path": "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "operation": "modify",
+          "description": "Apply gold color to expand/collapse icons in the floating controls panel."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Change filter and search input text colors to gold in MangaListControls",
+      "acceptanceCriteria": [
+        "Search input text displays in gold color",
+        "Filter labels and text display in gold color",
+        "Placeholder text is visible with appropriate gold shade"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Apply gold text color to search input value, placeholder text, and all filter label text. Use gold color utilities for input text and placeholder styling. Ensure readability with appropriate opacity for placeholders."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Make the 'Incomplete' status text turn red when selected in status filters or displays",
+      "acceptanceCriteria": [
+        "When 'Incomplete' status is selected or active, its text appears in red",
+        "Red color is applied specifically to the 'Incomplete' status option",
+        "Other status options maintain their default colors"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Add conditional styling logic to the completion status toggle that applies red text color when the incomplete/not-completed state is active. Use conditional className or inline styles to apply text-red-500 or equivalent when showing incomplete items."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Apply red text color to status display text when the manga entry has completed=false (incomplete status). Add conditional styling to show red text for incomplete entries."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Fill the rating star icon with gold color",
+      "acceptanceCriteria": [
+        "Star icons used for ratings are filled with solid gold color",
+        "Gold fill is visible and distinct from outline or empty state"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Update star icon used for rating display to be filled with gold color. Modify icon component props to use fill='currentColor' with gold text color class, or use a filled star icon variant with gold fill."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Make rating numbers display in rainbow color when the rating is 8.0 or higher",
+      "acceptanceCriteria": [
+        "Rating numbers >= 8.0 display in rainbow gradient color",
+        "Rating numbers < 8.0 maintain default gold color",
+        "Rainbow effect is visually clear and readable"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Add conditional styling logic to rating number display that applies rainbow gradient text when rating >= 8.0. Use CSS background-clip with linear-gradient for rainbow text effect or apply a rainbow text utility class. Ensure rating numbers below 8.0 display in gold."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Define rainbow text gradient utility class using background-clip: text and linear-gradient with rainbow colors. Make the class reusable for rating text and other potential rainbow text needs."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Make the chapters read/chapters available display in MangaCard clickable to allow inline editing of chapter progress",
+      "acceptanceCriteria": [
+        "Clicking on the chapter progress display (e.g., '5/12') makes it editable",
+        "User can update the chapters read value inline",
+        "Changes are saved to the backend when editing is completed",
+        "Visual feedback indicates the field is editable (cursor change, hover effect)",
+        "Pressing Enter or clicking outside saves the change; Escape cancels"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Convert chapter progress display into an editable inline component. Add onClick handler to switch to edit mode showing an input field. Implement state management for edit mode with input value binding. Add keyboard handlers for Enter (save), Escape (cancel), and blur handler to save on click-outside. Call the backend updateEntry mutation with new chaptersRead value when saving. Add visual feedback on hover (cursor pointer, underline, or highlight) to indicate editability. Preserve existing chapter formatting using formatChapterNumber utility."
         }
       ]
     }

@@ -134,10 +134,10 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0 bg-card border-gold">
         {/* Fixed Header */}
-        <DialogHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle>Add New Manga</DialogTitle>
+        <DialogHeader className="px-6 py-4 border-b border-gold shrink-0 flex flex-row items-center justify-between">
+          <DialogTitle className="text-gold">Add New Manga</DialogTitle>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -145,6 +145,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
               size="sm"
               onClick={handleClose}
               disabled={addMutation.isPending}
+              className="text-gold"
             >
               Cancel
             </Button>
@@ -156,11 +157,11 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             >
               {addMutation.isPending ? (
                 <>
-                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                  Adding...
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin text-gold" />
+                  <span className="text-gold">Adding...</span>
                 </>
               ) : (
-                'Add Manga'
+                <span className="text-gold">Add Manga</span>
               )}
             </Button>
           </div>
@@ -168,8 +169,8 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
 
         {/* Backend not ready warning */}
         {!isReady && (
-          <div className="px-6 py-2 bg-muted border-b">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="px-6 py-2 bg-muted border-b border-gold">
+            <div className="flex items-center gap-2 text-sm text-gold">
               <AlertCircle className="h-4 w-4" />
               <span>Backend is connecting. Please wait...</span>
             </div>
@@ -187,7 +188,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
         >
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title" className="text-gold">Title *</Label>
               <Input
                 id="title"
                 value={title}
@@ -195,34 +196,37 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                 placeholder="Enter manga title"
                 required
                 disabled={addMutation.isPending || !isReady}
+                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="alternate-title-1">Alternate Title 1</Label>
+                <Label htmlFor="alternate-title-1" className="text-gold">Alternate Title 1</Label>
                 <Input
                   id="alternate-title-1"
                   value={alternateTitle1}
                   onChange={(e) => setAlternateTitle1(e.target.value)}
                   placeholder="Optional"
                   disabled={addMutation.isPending || !isReady}
+                  className="border-gold text-gold placeholder:text-gold/50"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="alternate-title-2">Alternate Title 2</Label>
+                <Label htmlFor="alternate-title-2" className="text-gold">Alternate Title 2</Label>
                 <Input
                   id="alternate-title-2"
                   value={alternateTitle2}
                   onChange={(e) => setAlternateTitle2(e.target.value)}
                   placeholder="Optional"
                   disabled={addMutation.isPending || !isReady}
+                  className="border-gold text-gold placeholder:text-gold/50"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Genres</Label>
+              <Label className="text-gold">Genres</Label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={newGenreInput}
@@ -235,6 +239,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                       handleAddGenre();
                     }
                   }}
+                  className="border-gold text-gold placeholder:text-gold/50"
                 />
                 <Button
                   type="button"
@@ -242,7 +247,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   onClick={handleAddGenre}
                   disabled={!newGenreInput.trim() || addMutation.isPending || !isReady}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 text-gold" />
                 </Button>
               </div>
               <GenreCheckboxGrid
@@ -260,7 +265,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             </div>
 
             <div className="space-y-2">
-              <Label>Cover Images</Label>
+              <Label className="text-gold">Cover Images</Label>
               <CoverImagesField
                 coverImages={coverImages}
                 onChange={setCoverImages}
@@ -268,7 +273,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="synopsis">Synopsis</Label>
+              <Label htmlFor="synopsis" className="text-gold">Synopsis</Label>
               <Textarea
                 id="synopsis"
                 value={synopsis}
@@ -276,12 +281,13 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                 placeholder="Enter synopsis"
                 rows={4}
                 disabled={addMutation.isPending || !isReady}
+                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="chapters-read">Chapters Read</Label>
+                <Label htmlFor="chapters-read" className="text-gold">Chapters Read</Label>
                 <Input
                   id="chapters-read"
                   type="number"
@@ -290,10 +296,11 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={chaptersRead}
                   onChange={(e) => setChaptersRead(e.target.value)}
                   disabled={addMutation.isPending || !isReady}
+                  className="border-gold text-gold"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="available-chapters">Available Chapters</Label>
+                <Label htmlFor="available-chapters" className="text-gold">Available Chapters</Label>
                 <Input
                   id="available-chapters"
                   type="number"
@@ -302,29 +309,30 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
                   disabled={addMutation.isPending || !isReady}
+                  className="border-gold text-gold"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-gold">Status</Label>
                 <Select
                   value={status}
                   onValueChange={(value) => setStatus(value as 'incomplete' | 'complete')}
                   disabled={addMutation.isPending || !isReady}
                 >
-                  <SelectTrigger id="status">
+                  <SelectTrigger id="status" className="border-gold text-gold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="incomplete">Incomplete</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
+                    <SelectItem value="incomplete" className="text-red-500">Incomplete</SelectItem>
+                    <SelectItem value="complete" className="rainbow-text">Complete</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rating">Rating (0-10)</Label>
+                <Label htmlFor="rating" className="text-gold">Rating (0-10)</Label>
                 <Input
                   id="rating"
                   type="number"
@@ -334,6 +342,7 @@ export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDial
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
                   disabled={addMutation.isPending || !isReady}
+                  className="border-gold text-gold"
                 />
               </div>
             </div>

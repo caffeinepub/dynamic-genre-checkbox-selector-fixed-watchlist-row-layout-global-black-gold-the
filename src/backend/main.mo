@@ -324,24 +324,25 @@ actor {
       Runtime.trap("Unauthorized: Only admins can delete genres");
     };
 
-    // Remove genre from manga entries
-    let userMap = getUserMangaMap(caller);
-    let updatedEntriesMap = Map.empty<Nat, MangaEntry>();
+    // Remove genre from ALL users' manga entries
+    for ((userPrincipal, userMap) in userMangaEntries.entries()) {
+      let updatedEntriesMap = Map.empty<Nat, MangaEntry>();
 
-    for ((id, entry) in userMap.entries()) {
-      if (not entry.genres.any(func(g) { g == genreToDelete })) {
-        updatedEntriesMap.add(id, entry);
-      } else {
-        let filteredGenres = entry.genres.filter(
-          func(g) {
-            g != genreToDelete;
-          }
-        );
-        updatedEntriesMap.add(id, { entry with genres = filteredGenres });
+      for ((id, entry) in userMap.entries()) {
+        if (not entry.genres.any(func(g) { g == genreToDelete })) {
+          updatedEntriesMap.add(id, entry);
+        } else {
+          let filteredGenres = entry.genres.filter(
+            func(g) {
+              g != genreToDelete;
+            }
+          );
+          updatedEntriesMap.add(id, { entry with genres = filteredGenres });
+        };
       };
-    };
 
-    userMangaEntries.add(caller, updatedEntriesMap);
+      userMangaEntries.add(userPrincipal, updatedEntriesMap);
+    };
 
     // Remove from available genres
     availableGenres := availableGenres.filter(

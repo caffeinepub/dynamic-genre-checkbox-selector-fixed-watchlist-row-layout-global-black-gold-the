@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useSaveCallerUserProfile } from '../../hooks/useCurrentUserProfile';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Button } from '../ui/button';
+import { useSaveCallerUserProfile } from '../../hooks/useCurrentUserProfile';
+import { Loader2 } from 'lucide-react';
 
 interface ProfileSetupDialogProps {
   open: boolean;
@@ -11,42 +12,55 @@ interface ProfileSetupDialogProps {
 
 export function ProfileSetupDialog({ open }: ProfileSetupDialogProps) {
   const [name, setName] = useState('');
-  const saveProfile = useSaveCallerUserProfile();
+  const saveProfileMutation = useSaveCallerUserProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
-      await saveProfile.mutateAsync({ name: name.trim() });
+    if (!name.trim()) return;
+
+    try {
+      await saveProfileMutation.mutateAsync({ name: name.trim() });
+    } catch (error) {
+      console.error('Failed to save profile:', error);
     }
   };
 
   return (
     <Dialog open={open}>
-      <DialogContent className="sm:max-w-md [&>button]:hidden">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Welcome to MangaList</DialogTitle>
-            <DialogDescription>
-              Please enter your name to get started with your personal manga watchlist.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="name">Your Name</Label>
+      <DialogContent className="sm:max-w-md bg-card border-gold hide-close-button">
+        <DialogHeader>
+          <DialogTitle className="text-gold">Welcome!</DialogTitle>
+          <DialogDescription className="text-gold">
+            Please enter your name to get started.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-gold">Your Name</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="mt-2"
-              autoFocus
               required
+              disabled={saveProfileMutation.isPending}
+              className="border-gold text-gold"
             />
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={!name.trim() || saveProfile.isPending}>
-              {saveProfile.isPending ? 'Saving...' : 'Continue'}
-            </Button>
-          </DialogFooter>
+          <Button
+            type="submit"
+            disabled={!name.trim() || saveProfileMutation.isPending}
+            className="w-full"
+          >
+            {saveProfileMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Continue'
+            )}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

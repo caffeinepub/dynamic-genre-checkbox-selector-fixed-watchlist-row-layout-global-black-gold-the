@@ -159,10 +159,10 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0 bg-card border-gold">
         {/* Fixed Header */}
-        <DialogHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle>Edit Manga</DialogTitle>
+        <DialogHeader className="px-6 py-4 border-b border-gold shrink-0 flex flex-row items-center justify-between">
+          <DialogTitle className="text-gold">Edit Manga</DialogTitle>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -170,6 +170,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
               size="sm"
               onClick={handleClose}
               disabled={updateMutation.isPending}
+              className="text-gold"
             >
               Cancel
             </Button>
@@ -181,11 +182,11 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
             >
               {updateMutation.isPending ? (
                 <>
-                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                  Saving...
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin text-gold" />
+                  <span className="text-gold">Saving...</span>
                 </>
               ) : (
-                'Save Changes'
+                <span className="text-gold">Save Changes</span>
               )}
             </Button>
           </div>
@@ -193,17 +194,17 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
 
         {/* Backend not ready warning */}
         {!isReady && (
-          <div className="px-6 py-2 bg-muted border-b">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="px-6 py-2 bg-muted border-b border-gold">
+            <div className="flex items-center gap-2 text-sm text-gold">
               <AlertCircle className="h-4 w-4" />
               <span>Backend is connecting. Please wait...</span>
             </div>
           </div>
         )}
 
-        {/* Scrollable Body - deterministic scroll region with overscroll containment */}
+        {/* Scrollable Body */}
         <div 
-          className="flex-1 min-h-0 add-manga-dialog-scroll-body px-6"
+          className="flex-1 min-h-0 px-6"
           style={{ 
             maxHeight: '400px',
             overflowY: 'scroll',
@@ -212,7 +213,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
         >
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-title">Title *</Label>
+              <Label htmlFor="edit-title" className="text-gold">Title *</Label>
               <Input
                 id="edit-title"
                 value={title}
@@ -220,22 +221,24 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                 placeholder="Enter manga title"
                 required
                 disabled={updateMutation.isPending || !isReady}
+                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-alternate-titles">Alternate Titles</Label>
+              <Label htmlFor="edit-alternate-titles" className="text-gold">Alternate Titles (comma-separated)</Label>
               <Input
                 id="edit-alternate-titles"
                 value={alternateTitles}
                 onChange={(e) => setAlternateTitles(e.target.value)}
-                placeholder="Comma-separated alternate titles"
+                placeholder="Title 1, Title 2, ..."
                 disabled={updateMutation.isPending || !isReady}
+                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Genres</Label>
+              <Label className="text-gold">Genres</Label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={newGenreInput}
@@ -248,6 +251,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                       handleAddGenre();
                     }
                   }}
+                  className="border-gold text-gold placeholder:text-gold/50"
                 />
                 <Button
                   type="button"
@@ -255,7 +259,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                   onClick={handleAddGenre}
                   disabled={!newGenreInput.trim() || updateMutation.isPending || !isReady}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 text-gold" />
                 </Button>
               </div>
               <GenreCheckboxGrid
@@ -273,7 +277,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
             </div>
 
             <div className="space-y-2">
-              <Label>Cover Images</Label>
+              <Label className="text-gold">Cover Images</Label>
               <CoverImagesField
                 coverImages={coverImages}
                 onChange={setCoverImages}
@@ -281,7 +285,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-synopsis">Synopsis</Label>
+              <Label htmlFor="edit-synopsis" className="text-gold">Synopsis</Label>
               <Textarea
                 id="edit-synopsis"
                 value={synopsis}
@@ -289,12 +293,13 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                 placeholder="Enter synopsis"
                 rows={4}
                 disabled={updateMutation.isPending || !isReady}
+                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-chapters-read">Chapters Read</Label>
+                <Label htmlFor="edit-chapters-read" className="text-gold">Chapters Read</Label>
                 <Input
                   id="edit-chapters-read"
                   type="number"
@@ -303,10 +308,11 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                   value={chaptersRead}
                   onChange={(e) => setChaptersRead(e.target.value)}
                   disabled={updateMutation.isPending || !isReady}
+                  className="border-gold text-gold"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-available-chapters">Available Chapters</Label>
+                <Label htmlFor="edit-available-chapters" className="text-gold">Available Chapters</Label>
                 <Input
                   id="edit-available-chapters"
                   type="number"
@@ -315,6 +321,7 @@ export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: Edit
                   value={availableChapters}
                   onChange={(e) => setAvailableChapters(e.target.value)}
                   disabled={updateMutation.isPending || !isReady}
+                  className="border-gold text-gold"
                 />
               </div>
             </div>

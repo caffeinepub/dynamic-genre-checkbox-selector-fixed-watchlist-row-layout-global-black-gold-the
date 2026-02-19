@@ -1,40 +1,132 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Black screen persists after page refresh"
+  "summary": "A manga/anime watchlist application with black and gold theme",
+  "architectural_notes": [
+    "Black and gold theme with rainbow accents for high ratings and hover states"
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-investigate-and-fix-the-black-screen-issue-that-occurs-after-page-refresh-ensuring-the-manga-list-and-all-ui-elements-are-visible-without-requiring-mouse-selection",
-      "title": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
+      "id": "feature-change-all-text-colors-to-gold-throughout-the-application-excluding-status-field-text",
+      "title": "Change all text colors to gold throughout the application, excluding status field text",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-verify-that-the-oklch-color-system-in-index-css-and-tailwind-config-js-is-properly-applied-and-not-causing-rendering-issues-with-black-backgrounds",
-      "title": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
+      "id": "feature-change-watchlist-card-outlines-to-gold-color-by-default",
+      "title": "Change watchlist card outlines to gold color by default",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-check-service-worker-cache-behavior-to-ensure-it-s-not-serving-stale-black-screen-content-after-refresh",
-      "title": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
+      "id": "feature-implement-rainbow-color-outline-for-watchlist-cards-on-hover",
+      "title": "Implement rainbow color outline for watchlist cards on hover",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-change-all-icons-throughout-the-application-to-gold-color-excluding-status-related-icons",
+      "title": "Change all icons throughout the application to gold color, excluding status-related icons",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-filter-and-search-input-text-colors-to-gold-in-mangalistcontrols",
+      "title": "Change filter and search input text colors to gold in MangaListControls",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-incomplete-status-text-turn-red-when-selected-in-status-filters-or-displays",
+      "title": "Make the 'Incomplete' status text turn red when selected in status filters or displays",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fill-the-rating-star-icon-with-gold-color",
+      "title": "Fill the rating star icon with gold color",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-rating-numbers-display-in-rainbow-color-when-the-rating-is-8-0-or-higher",
+      "title": "Make rating numbers display in rainbow color when the rating is 8.0 or higher",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-chapters-read-chapters-available-display-in-mangacard-clickable-to-allow-inline-editing-of-chapter-progress",
+      "title": "Make the chapters read/chapters available display in MangaCard clickable to allow inline editing of chapter progress",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix black screen on page refresh",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Make all texts, watchlist outlines, and icons gold color (except status)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Make watchlist outline turn rainbow color on hover",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Make filters and search texts gold color",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Make 'Incomplete' status text turn red when selected",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Fill rating star icon with gold color",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Make rating numbers turn rainbow color if 8 or above",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Allow editing chapters read/available by clicking on the number display",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Gold and rainbow color styling updates with chapter editing",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

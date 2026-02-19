@@ -1,34 +1,32 @@
+import React from 'react';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/button';
-import { LogIn, LogOut } from 'lucide-react';
 import { clearMangaCache } from '../../utils/offlineMangaCache';
-import { clearMangaIndexedDbCache } from '../../utils/offlineMangaIndexedDbCache';
 import { clearCoverImagesForPrincipal } from '../../utils/offlineCoverImageIndexedDbCache';
 import { clearServiceWorkerCache } from '../../sw/registerServiceWorker';
 
-export function LoginLogoutButton() {
+export default function LoginLogoutButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
   const disabled = loginStatus === 'logging-in';
+  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
 
   const handleAuth = async () => {
     if (isAuthenticated) {
-      // Capture principal before clearing identity
-      const principal = identity!.getPrincipal().toString();
+      const principal = identity?.getPrincipal().toString();
       
-      // Clear identity and React Query cache
       await clear();
       queryClient.clear();
       
-      // Clear all caches for this principal
       clearMangaCache();
-      await clearMangaIndexedDbCache(principal);
-      await clearCoverImagesForPrincipal(principal);
       
-      // Clear service worker caches
+      if (principal) {
+        await clearCoverImagesForPrincipal(principal);
+      }
+      
       await clearServiceWorkerCache();
     } else {
       try {
@@ -48,21 +46,9 @@ export function LoginLogoutButton() {
       onClick={handleAuth}
       disabled={disabled}
       variant={isAuthenticated ? 'outline' : 'default'}
-      className="gap-2"
+      className="text-gold"
     >
-      {loginStatus === 'logging-in' ? (
-        'Logging in...'
-      ) : isAuthenticated ? (
-        <>
-          <LogOut className="h-4 w-4" />
-          Logout
-        </>
-      ) : (
-        <>
-          <LogIn className="h-4 w-4" />
-          Login
-        </>
-      )}
+      {text}
     </Button>
   );
 }

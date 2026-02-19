@@ -2,13 +2,17 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-investigate-and-fix-the-black-screen-issue-that-occurs-after-page-refresh-ensuring-the-manga-list-and-all-ui-elements-are-visible-without-requiring-mouse-selection",
-      "featureTitle": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
+      "featureId": "feature-change-all-text-colors-to-gold-throughout-the-application-excluding-status-field-text",
+      "featureTitle": "Change all text colors to gold throughout the application, excluding status field text",
       "files": [
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
         "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/manga/MangaListPage.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
+        "frontend/src/components/manga/AddMangaDialog.tsx",
+        "frontend/src/components/manga/EditMangaDialog.tsx",
+        "frontend/src/components/manga/EditNotesDialog.tsx",
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/index.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -25,11 +29,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-verify-that-the-oklch-color-system-in-index-css-and-tailwind-config-js-is-properly-applied-and-not-causing-rendering-issues-with-black-backgrounds",
-      "featureTitle": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
+      "featureId": "feature-change-watchlist-card-outlines-to-gold-color-by-default",
+      "featureTitle": "Change watchlist card outlines to gold color by default",
       "files": [
-        "frontend/index.html",
-        "frontend/src/index.css"
+        "frontend/src/components/manga/MangaCard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -46,12 +49,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-check-service-worker-cache-behavior-to-ensure-it-s-not-serving-stale-black-screen-content-after-refresh",
-      "featureTitle": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
+      "featureId": "feature-implement-rainbow-color-outline-for-watchlist-cards-on-hover",
+      "featureTitle": "Implement rainbow color outline for watchlist cards on hover",
       "files": [
-        "frontend/public/service-worker.js",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/sw/registerServiceWorker.ts"
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/index.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -64,6 +66,130 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-change-all-icons-throughout-the-application-to-gold-color-excluding-status-related-icons",
+      "featureTitle": "Change all icons throughout the application to gold color, excluding status-related icons",
+      "files": [
+        "frontend/src/components/auth/LoginLogoutButton.tsx",
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-change-filter-and-search-input-text-colors-to-gold-in-mangalistcontrols",
+      "featureTitle": "Change filter and search input text colors to gold in MangaListControls",
+      "files": [
+        "frontend/src/components/manga/MangaListControls.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-the-incomplete-status-text-turn-red-when-selected-in-status-filters-or-displays",
+      "featureTitle": "Make the 'Incomplete' status text turn red when selected in status filters or displays",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fill-the-rating-star-icon-with-gold-color",
+      "featureTitle": "Fill the rating star icon with gold color",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-rating-numbers-display-in-rainbow-color-when-the-rating-is-8-0-or-higher",
+      "featureTitle": "Make rating numbers display in rainbow color when the rating is 8.0 or higher",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-the-chapters-read-chapters-available-display-in-mangacard-clickable-to-allow-inline-editing-of-chapter-progress",
+      "featureTitle": "Make the chapters read/chapters available display in MangaCard clickable to allow inline editing of chapter progress",
+      "files": [
+        "frontend/src/components/manga/MangaCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
       ],
       "confidence": "high"
     }

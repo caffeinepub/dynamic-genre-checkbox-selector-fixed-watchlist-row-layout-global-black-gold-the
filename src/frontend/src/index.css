@@ -4,145 +4,145 @@
 
 @layer base {
   :root {
-    /* Warm sepia/ink palette with vermillion accents - RGB fallbacks */
-    --background: 252 250 245;
-    --foreground: 38 36 33;
+    /* Black and gold palette - RGB fallbacks */
+    --background: 0 0 0;
+    --foreground: 212 175 55;
 
-    --card: 247 244 238;
-    --card-foreground: 38 36 33;
+    --card: 20 20 20;
+    --card-foreground: 212 175 55;
 
-    --popover: 252 250 245;
-    --popover-foreground: 38 36 33;
+    --popover: 15 15 15;
+    --popover-foreground: 212 175 55;
 
-    --primary: 115 85 55;
-    --primary-foreground: 252 250 245;
+    --primary: 212 175 55;
+    --primary-foreground: 0 0 0;
 
-    --secondary: 230 220 205;
-    --secondary-foreground: 51 46 38;
+    --secondary: 40 40 40;
+    --secondary-foreground: 212 175 55;
 
-    --muted: 240 235 225;
-    --muted-foreground: 115 100 80;
+    --muted: 30 30 30;
+    --muted-foreground: 212 175 55;
 
-    --accent: 180 95 60;
-    --accent-foreground: 252 250 245;
+    --accent: 212 175 55;
+    --accent-foreground: 0 0 0;
 
-    --destructive: 165 75 55;
-    --destructive-foreground: 252 250 245;
+    --destructive: 220 38 38;
+    --destructive-foreground: 245 245 245;
 
-    --border: 220 210 195;
-    --input: 220 210 195;
-    --ring: 115 85 55;
+    --border: 60 60 60;
+    --input: 60 60 60;
+    --ring: 212 175 55;
 
     --radius: 0.5rem;
 
     /* Gold color for watchlist theme */
-    --gold: 215 180 100;
+    --gold: 212 175 55;
   }
 
   /* OKLCH colors for browsers that support it */
   @supports (color: oklch(0% 0 0)) {
     :root {
-      /* Warm sepia/ink palette with vermillion accents - avoiding blue/purple */
-      --background: oklch(0.98 0.01 60);
-      --foreground: oklch(0.15 0.02 30);
+      /* Black and gold palette - avoiding blue/purple */
+      --background: oklch(0 0 0);
+      --foreground: oklch(0.75 0.15 85);
 
-      --card: oklch(0.96 0.015 55);
-      --card-foreground: oklch(0.15 0.02 30);
+      --card: oklch(0.15 0 0);
+      --card-foreground: oklch(0.75 0.15 85);
 
-      --popover: oklch(0.98 0.01 60);
-      --popover-foreground: oklch(0.15 0.02 30);
+      --popover: oklch(0.10 0 0);
+      --popover-foreground: oklch(0.75 0.15 85);
 
-      --primary: oklch(0.45 0.15 35);
-      --primary-foreground: oklch(0.98 0.01 60);
+      --primary: oklch(0.75 0.15 85);
+      --primary-foreground: oklch(0 0 0);
 
-      --secondary: oklch(0.88 0.03 50);
-      --secondary-foreground: oklch(0.20 0.02 30);
+      --secondary: oklch(0.25 0 0);
+      --secondary-foreground: oklch(0.75 0.15 85);
 
-      --muted: oklch(0.92 0.02 55);
-      --muted-foreground: oklch(0.45 0.02 35);
+      --muted: oklch(0.20 0 0);
+      --muted-foreground: oklch(0.75 0.15 85);
 
-      --accent: oklch(0.60 0.20 30);
-      --accent-foreground: oklch(0.98 0.01 60);
+      --accent: oklch(0.75 0.15 85);
+      --accent-foreground: oklch(0 0 0);
 
       --destructive: oklch(0.55 0.22 25);
-      --destructive-foreground: oklch(0.98 0.01 60);
+      --destructive-foreground: oklch(0.95 0 0);
 
-      --border: oklch(0.85 0.02 50);
-      --input: oklch(0.85 0.02 50);
-      --ring: oklch(0.45 0.15 35);
+      --border: oklch(0.30 0 0);
+      --input: oklch(0.30 0 0);
+      --ring: oklch(0.75 0.15 85);
 
       /* Gold color for watchlist theme */
-      --gold: oklch(0.75 0.15 75);
+      --gold: oklch(0.75 0.15 85);
     }
   }
 
   .dark {
-    /* Dark mode - RGB fallbacks */
-    --background: 30 28 25;
-    --foreground: 245 242 238;
+    /* Dark mode - RGB fallbacks (same as light for black theme) */
+    --background: 0 0 0;
+    --foreground: 212 175 55;
 
-    --card: 38 35 30;
-    --card-foreground: 245 242 238;
+    --card: 20 20 20;
+    --card-foreground: 212 175 55;
 
-    --popover: 30 28 25;
-    --popover-foreground: 245 242 238;
+    --popover: 15 15 15;
+    --popover-foreground: 212 175 55;
 
-    --primary: 180 140 90;
-    --primary-foreground: 30 28 25;
+    --primary: 212 175 55;
+    --primary-foreground: 0 0 0;
 
-    --secondary: 65 58 48;
-    --secondary-foreground: 245 242 238;
+    --secondary: 40 40 40;
+    --secondary-foreground: 212 175 55;
 
-    --muted: 55 50 43;
-    --muted-foreground: 160 140 115;
+    --muted: 30 30 30;
+    --muted-foreground: 212 175 55;
 
-    --accent: 180 110 70;
-    --accent-foreground: 30 28 25;
+    --accent: 212 175 55;
+    --accent-foreground: 0 0 0;
 
-    --destructive: 165 75 55;
-    --destructive-foreground: 245 242 238;
+    --destructive: 220 38 38;
+    --destructive-foreground: 245 245 245;
 
-    --border: 65 58 48;
-    --input: 65 58 48;
-    --ring: 180 140 90;
+    --border: 60 60 60;
+    --input: 60 60 60;
+    --ring: 212 175 55;
 
     /* Gold color for watchlist theme in dark mode */
-    --gold: 225 190 110;
+    --gold: 212 175 55;
   }
 
   /* OKLCH colors for dark mode in browsers that support it */
   @supports (color: oklch(0% 0 0)) {
     .dark {
-      --background: oklch(0.12 0.02 30);
-      --foreground: oklch(0.95 0.01 60);
+      --background: oklch(0 0 0);
+      --foreground: oklch(0.75 0.15 85);
 
-      --card: oklch(0.15 0.02 30);
-      --card-foreground: oklch(0.95 0.01 60);
+      --card: oklch(0.15 0 0);
+      --card-foreground: oklch(0.75 0.15 85);
 
-      --popover: oklch(0.12 0.02 30);
-      --popover-foreground: oklch(0.95 0.01 60);
+      --popover: oklch(0.10 0 0);
+      --popover-foreground: oklch(0.75 0.15 85);
 
-      --primary: oklch(0.65 0.18 40);
-      --primary-foreground: oklch(0.12 0.02 30);
+      --primary: oklch(0.75 0.15 85);
+      --primary-foreground: oklch(0 0 0);
 
-      --secondary: oklch(0.25 0.03 35);
-      --secondary-foreground: oklch(0.95 0.01 60);
+      --secondary: oklch(0.25 0 0);
+      --secondary-foreground: oklch(0.75 0.15 85);
 
-      --muted: oklch(0.22 0.02 35);
-      --muted-foreground: oklch(0.60 0.02 40);
+      --muted: oklch(0.20 0 0);
+      --muted-foreground: oklch(0.75 0.15 85);
 
-      --accent: oklch(0.65 0.20 30);
-      --accent-foreground: oklch(0.12 0.02 30);
+      --accent: oklch(0.75 0.15 85);
+      --accent-foreground: oklch(0 0 0);
 
       --destructive: oklch(0.55 0.22 25);
-      --destructive-foreground: oklch(0.95 0.01 60);
+      --destructive-foreground: oklch(0.95 0 0);
 
-      --border: oklch(0.25 0.02 35);
-      --input: oklch(0.25 0.02 35);
-      --ring: oklch(0.65 0.18 40);
+      --border: oklch(0.30 0 0);
+      --input: oklch(0.30 0 0);
+      --ring: oklch(0.75 0.15 85);
 
       /* Gold color for watchlist theme in dark mode */
-      --gold: oklch(0.80 0.15 75);
+      --gold: oklch(0.75 0.15 85);
     }
   }
 }
@@ -152,10 +152,10 @@
     @apply border-border;
   }
   html {
-    @apply bg-background text-foreground;
+    @apply bg-background text-gold;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-gold;
   }
 }
 

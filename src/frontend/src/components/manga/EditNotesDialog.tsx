@@ -41,7 +41,7 @@ export function EditNotesDialog({ open, onOpenChange, currentNotes, onSave, isSa
           <DialogTitle className="text-gold">Edit Notes</DialogTitle>
         </DialogHeader>
         {!isReady && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-2 rounded">
+          <div className="flex items-center gap-2 text-sm text-gold bg-muted p-2 rounded">
             <AlertCircle className="h-4 w-4" />
             <span>Backend is connecting. Please wait...</span>
           </div>
@@ -54,17 +54,17 @@ export function EditNotesDialog({ open, onOpenChange, currentNotes, onSave, isSa
           disabled={isSaving || !isReady}
         />
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+          <Button variant="outline" onClick={handleCancel} disabled={isSaving} className="text-gold">
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={!canSave}>
             {isSaving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
+                <Loader2 className="h-4 w-4 mr-2 animate-spin text-gold" />
+                <span className="text-gold">Saving...</span>
               </>
             ) : (
-              'Save'
+              <span className="text-gold">Save</span>
             )}
           </Button>
         </DialogFooter>

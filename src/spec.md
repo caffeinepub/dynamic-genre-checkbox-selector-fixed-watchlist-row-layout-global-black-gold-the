@@ -1,12 +1,17 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the black screen issue that appears after page refresh, ensuring all manga list content and UI elements are immediately visible.
+**Goal:** Update the manga watchlist application with gold and rainbow color styling, and enable inline chapter editing.
 
 **Planned changes:**
-- Investigate and resolve the black screen rendering issue on page refresh
-- Verify OKLCH color system is properly applied with appropriate browser fallbacks
-- Check service worker cache behavior to ensure correct CSS and asset delivery
-- Ensure warm sepia/ink background colors render correctly on initial load
+- Change all text colors to gold throughout the application (except status field text)
+- Change watchlist card outlines to gold by default
+- Add rainbow color outline effect on card hover
+- Change all icons to gold color (except status-related icons)
+- Update filter and search input text to gold color
+- Make 'Incomplete' status text turn red when selected
+- Fill rating star icons with gold color
+- Display rating numbers in rainbow color when rating is 8.0 or higher
+- Make chapter progress display clickable for inline editing with backend persistence
 
-**User-visible outcome:** After refreshing the page, users will immediately see the manga list with all content visible in the intended warm sepia color palette, without needing to interact with the page first.
+**User-visible outcome:** Users will see a gold-themed interface with rainbow hover effects on cards and high ratings, and can edit chapter progress directly from the watchlist by clicking on the chapter numbers.

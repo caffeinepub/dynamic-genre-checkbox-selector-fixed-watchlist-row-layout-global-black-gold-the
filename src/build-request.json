@@ -1,67 +1,182 @@
 {
   "kind": "build_request",
-  "title": "Fix black screen on page refresh",
-  "priority": "high",
+  "title": "Gold and rainbow color styling updates with chapter editing",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Investigate and fix the black screen issue that occurs after page refresh, ensuring the manga list and all UI elements are visible without requiring mouse selection",
+      "text": "Change all text colors to gold throughout the application, excluding status field text",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
         ],
         "quotes": [
-          "still black screen after refresh"
+          "make all texts, watchlist outlines, and icons gold color, except for the status"
         ]
       },
       "acceptanceCriteria": [
-        "Page loads with visible content after refresh",
-        "Background colors render correctly with the warm sepia/ink palette",
-        "Text is visible without requiring mouse selection",
-        "All manga cards and UI components display properly on initial load"
+        "All text elements display in gold color",
+        "Status field text retains its current color scheme",
+        "Gold color is applied consistently across all pages and components"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Verify that the OKLCH color system in index.css and tailwind.config.js is properly applied and not causing rendering issues with black backgrounds",
+      "text": "Change watchlist card outlines to gold color by default",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
+        ],
+        "quotes": [
+          "make all texts, watchlist outlines, and icons gold color"
         ]
       },
       "acceptanceCriteria": [
-        "OKLCH colors are correctly parsed and applied by browsers",
-        "Fallback colors are provided for browsers that don't support OKLCH",
-        "Background colors use the intended warm sepia tones, not black"
+        "All manga card borders/outlines display in gold color",
+        "Gold outline is visible in all states except hover"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Check service worker cache behavior to ensure it's not serving stale black screen content after refresh",
+      "text": "Implement rainbow color outline for watchlist cards on hover",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
+        ],
+        "quotes": [
+          "Make the outline of the watchlist that the mouse is currently hovering over turn rainbow color instead"
         ]
       },
       "acceptanceCriteria": [
-        "Service worker cache-first strategy does not cause black screen",
-        "CSS and static assets are properly cached and served",
-        "Cache invalidation works correctly when styles are updated"
+        "When hovering over a manga card, its outline transitions to rainbow color",
+        "Rainbow effect is smooth and visually appealing",
+        "Hover effect only applies to the currently hovered card"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Change all icons throughout the application to gold color, excluding status-related icons",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "make all texts, watchlist outlines, and icons gold color, except for the status"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All icon elements display in gold color",
+        "Status field icons retain their current color scheme",
+        "Icons maintain proper visibility and contrast against backgrounds"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Change filter and search input text colors to gold in MangaListControls",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "also make sure the filters and search texts are gold color"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Search input text displays in gold color",
+        "Filter labels and text display in gold color",
+        "Placeholder text is visible with appropriate gold shade"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Make the 'Incomplete' status text turn red when selected in status filters or displays",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Make the Incomplete text on 'status' turn red when selected"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When 'Incomplete' status is selected or active, its text appears in red",
+        "Red color is applied specifically to the 'Incomplete' status option",
+        "Other status options maintain their default colors"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Fill the rating star icon with gold color",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Fill the rating star icon with the color gold"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Star icons used for ratings are filled with solid gold color",
+        "Gold fill is visible and distinct from outline or empty state"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Make rating numbers display in rainbow color when the rating is 8.0 or higher",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Make the rating numbers turn rainbow color if it is 8 or above"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Rating numbers >= 8.0 display in rainbow gradient color",
+        "Rating numbers < 8.0 maintain default gold color",
+        "Rainbow effect is visually clear and readable"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Make the chapters read/chapters available display in MangaCard clickable to allow inline editing of chapter progress",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Let me edit the 'chapters read/chapters available' from the watchlist by clicking on the number display area"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking on the chapter progress display (e.g., '5/12') makes it editable",
+        "User can update the chapters read value inline",
+        "Changes are saved to the backend when editing is completed",
+        "Visual feedback indicates the field is editable (cursor change, hover effect)",
+        "Pressing Enter or clicking outside saves the change; Escape cancels"
       ]
     }
   ],
   "constraints": [
-    "Preserve the existing OKLCH warm sepia/ink color palette",
-    "Do not modify the backend actor or data models",
-    "Maintain compatibility with the service worker caching strategy"
+    "Do not modify backend/main.mo actor architecture",
+    "Maintain existing black background theme",
+    "Do not edit immutable frontend paths: useInternetIdentity.ts, useInternetIdentity.tsx, useActor.ts, main.tsx, and components/ui directory",
+    "Preserve all existing functionality while adding color and interaction changes"
   ],
   "nonGoals": [
-    "Changing the overall visual design or color scheme",
-    "Modifying manga entry data structures",
-    "Implementing new features unrelated to the display issue"
+    "Changing the overall black background theme",
+    "Modifying authentication or profile setup flows",
+    "Adding new fields to manga entries beyond chapter editing",
+    "Restructuring component architecture"
   ],
   "imageRequirements": {
     "required": [],

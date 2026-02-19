@@ -1,62 +1,64 @@
-import { ReactNode, useState } from 'react';
-import { LoginLogoutButton } from '../auth/LoginLogoutButton';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Heart } from 'lucide-react';
 
 interface AppLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  header?: React.ReactNode;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, header }: AppLayoutProps) {
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
 
+  const appIdentifier = typeof window !== 'undefined' 
+    ? encodeURIComponent(window.location.hostname)
+    : 'unknown-app';
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className={`border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300 ${isHeaderCollapsed ? 'py-2' : 'py-4'}`}>
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          {!isHeaderCollapsed && (
-            <>
-              <div className="flex items-center gap-3">
-                <img 
-                  src="/assets/generated/app-logo.dim_512x512.png" 
-                  alt="MangaList" 
-                  className="h-10 w-10"
-                />
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">MangaList</h1>
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 bg-background border-b border-gold shadow-md">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {!isHeaderCollapsed && (
+              <div className="flex-1">
+                {header}
               </div>
-              <LoginLogoutButton />
-            </>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 ${isHeaderCollapsed ? 'mx-auto' : 'ml-4'}`}
-            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-            aria-label={isHeaderCollapsed ? 'Expand header' : 'Collapse header'}
-          >
-            {isHeaderCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
             )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+              className="ml-auto text-gold hover:bg-gold/10"
+              aria-label={isHeaderCollapsed ? 'Expand header' : 'Collapse header'}
+            >
+              {isHeaderCollapsed ? (
+                <ChevronDown className="h-5 w-5" />
+              ) : (
+                <ChevronUp className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-8 bg-background">
+
+      {/* Main Content */}
+      <main className="flex-1 container mx-auto px-4 py-6 bg-background">
         {children}
       </main>
-      <footer className="border-t border-border mt-16 py-8 bg-background">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+
+      {/* Footer */}
+      <footer className="border-t border-gold bg-background py-4">
+        <div className="container mx-auto px-4 text-center text-sm text-gold">
           <p>
-            © {new Date().getFullYear()}. Built with{' '}
-            <Heart className="inline h-4 w-4 text-accent fill-accent" aria-label="love" />{' '}
+            © {new Date().getFullYear()} Built with{' '}
+            <Heart className="inline h-4 w-4 text-accent fill-accent" />{' '}
             using{' '}
-            <a 
-              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== 'undefined' ? window.location.hostname : 'mangalist-app')}`}
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="underline hover:text-foreground transition-colors"
+            <a
+              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold hover:underline font-semibold"
             >
               caffeine.ai
             </a>
