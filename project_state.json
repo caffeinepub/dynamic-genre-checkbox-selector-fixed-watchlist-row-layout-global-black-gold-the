@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Manga watchlist app with Internet Identity login (single user only), black background with gold outline color scheme. App is deployed live at backend canister jrdgw-hiaaa-aaaal-quqwa-cai.",
+  "architectural_notes": [
+    "App uses Internet Identity for authentication - configured for single user (owner only) access",
+    "Color scheme: black background with gold outlines/accents, rainbow hover effects, red incomplete status, filled gold rating stars",
+    "Live backend canister ID: jrdgw-hiaaa-aaaal-quqwa-cai",
+    "App is a manga watchlist with statuses: Reading, Completed, On Hold, Plan to Read; stores title, cover image URL, current chapter, total chapters, rating out of 10"
+  ],
+  "known_issues": [
+    "Live app cycles running low; Caffeine subscription credits do not automatically refill canister cycles; manual top-up via NNS dapp required"
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-ensure-the-frontend-authentication-flow-does-not-block-or-reject-users-based-on-a-specific-principal-any-authenticated-internet-identity-user-should-be-permitted-to-proceed-past-the-login-screen-to-the-main-app",
+      "title": "Ensure the frontend authentication flow does not block or reject users based on a specific principal. Any authenticated Internet Identity user should be permitted to proceed past the login screen to the main app.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-and-enforce-the-black-background-with-gold-outline-color-scheme-consistently-across-all-ui-components-including-cards-borders-buttons-inputs-headers-and-text-highlights-the-global-css-and-tailwind-config-must-reflect-background-color-black-000000-or-equivalent-primary-accent-outline-color-gold-e-g-ffd700-or-the-existing-css-variable-and-no-deviation-from-this-palette-on-any-page-or-dialog",
+      "title": "Restore and enforce the black background with gold outline color scheme consistently across all UI components, including cards, borders, buttons, inputs, headers, and text highlights. The global CSS and Tailwind config must reflect: background color black (#000000 or equivalent), primary accent/outline color gold (e.g. #FFD700 or the existing CSS variable), and no deviation from this palette on any page or dialog.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Remove any hard-coded principal or whitelist-based access control in the backend that restricts login to a single specific Internet Identity principal. All users who authenticate via Internet Identity must be able to log in and use the app with their own personal watchlist data, isolated per principal.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "MangaList",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

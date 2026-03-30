@@ -1,0 +1,63 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-ensure-the-frontend-authentication-flow-does-not-block-or-reject-users-based-on-a-specific-principal-any-authenticated-internet-identity-user-should-be-permitted-to-proceed-past-the-login-screen-to-the-main-app",
+      "featureTitle": "Ensure the frontend authentication flow does not block or reject users based on a specific principal. Any authenticated Internet Identity user should be permitted to proceed past the login screen to the main app.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/LoginLogoutButton.tsx",
+        "frontend/src/hooks/useCurrentUserProfile.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-restore-and-enforce-the-black-background-with-gold-outline-color-scheme-consistently-across-all-ui-components-including-cards-borders-buttons-inputs-headers-and-text-highlights-the-global-css-and-tailwind-config-must-reflect-background-color-black-000000-or-equivalent-primary-accent-outline-color-gold-e-g-ffd700-or-the-existing-css-variable-and-no-deviation-from-this-palette-on-any-page-or-dialog",
+      "featureTitle": "Restore and enforce the black background with gold outline color scheme consistently across all UI components, including cards, borders, buttons, inputs, headers, and text highlights. The global CSS and Tailwind config must reflect: background color black (#000000 or equivalent), primary accent/outline color gold (e.g. #FFD700 or the existing CSS variable), and no deviation from this palette on any page or dialog.",
+      "files": [
+        "frontend/src/components/auth/LoginLogoutButton.tsx",
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/manga/AddMangaDialog.tsx",
+        "frontend/src/components/manga/CoverHoverPopup.tsx",
+        "frontend/src/components/manga/EditMangaDialog.tsx",
+        "frontend/src/components/manga/EditNotesDialog.tsx",
+        "frontend/src/components/manga/FloatingControlsPanel.tsx",
+        "frontend/src/components/manga/GenreCheckboxGrid.tsx",
+        "frontend/src/components/manga/MangaCard.tsx",
+        "frontend/src/components/manga/MangaListControls.tsx",
+        "frontend/src/components/manga/MangaListPage.tsx",
+        "frontend/src/components/manga/MangaRowActions.tsx",
+        "frontend/src/components/manga/NotesPreviewOverlay.tsx",
+        "frontend/src/components/manga/PaginationControls.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

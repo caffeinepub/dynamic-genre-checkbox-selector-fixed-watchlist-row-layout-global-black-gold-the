@@ -1,0 +1,136 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Remove single-user restriction and restore black/gold color scheme",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Remove frontend principal-based access restrictions to allow any authenticated Internet Identity user to access the app",
+      "acceptanceCriteria": [
+        "A user logging in with any valid Internet Identity principal is taken to the profile setup or main watchlist page.",
+        "No 'unauthorized' or 'access denied' messages appear for valid Internet Identity logins.",
+        "Logout and re-login with a different principal works correctly."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Review and remove any hard-coded principal checks or whitelist logic that blocks authenticated users from accessing the main application. Ensure that after successful Internet Identity login and profile setup, all authenticated users proceed to MangaListPage regardless of their principal. Verify the component uses the authorization component's access control patterns correctly, allowing any authenticated user with the #user role to access the watchlist."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginLogoutButton.tsx",
+          "operation": "modify",
+          "description": "Review and remove any principal-based authorization checks that prevent valid Internet Identity users from logging in. Ensure the login flow does not reject users based on their principal ID. Verify that the logout flow properly clears all user data and allows re-login with a different principal."
+        },
+        {
+          "path": "frontend/src/hooks/useCurrentUserProfile.ts",
+          "operation": "modify",
+          "description": "Review profile fetching logic to ensure it does not contain principal-based restrictions. Verify that getCallerUserProfile and saveCallerUserProfile work for any authenticated principal without rejecting based on principal ID. Ensure proper error handling distinguishes between backend authorization failures and other errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Restore and enforce the black background with gold outline color scheme across all UI components",
+      "acceptanceCriteria": [
+        "All page backgrounds render as black.",
+        "All card borders, button outlines, input borders, and UI accent elements render in gold.",
+        "No components display off-theme colors (e.g. blue, purple, grey backgrounds) that contradict the black/gold scheme.",
+        "The Tailwind config and index.css CSS variables are aligned to the black and gold palette.",
+        "The gold/rainbow hover and status effects documented in feature_evidence.json are preserved."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Restore and enforce the black background (#000000) with gold outline (#FFD700) color scheme in the global CSS. Review all CSS custom properties and ensure: background colors are set to black, primary accent/border colors use gold, no blue/purple/grey background colors remain. Preserve the rainbow hover effects and OKLCH color system animations. Verify that the color variables match both the Tailwind config and the intended black/gold palette."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Update the Tailwind configuration to enforce the black and gold color palette. Ensure all theme colors reference CSS variables that map to black backgrounds and gold accents. Remove any theme color definitions that introduce off-palette colors (blue, purple, grey backgrounds). Verify that border, text, and background utilities default to the black/gold scheme. Preserve custom animations and plugins."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Review and update AppLayout component to use black background and gold borders/accents. Ensure the header, main content area, and footer all respect the black/gold color scheme. Remove any hardcoded color classes that introduce off-theme colors. Use Tailwind utility classes that reference the updated theme colors."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListPage.tsx",
+          "operation": "modify",
+          "description": "Review and update MangaListPage to enforce black background with gold accents. Ensure all container backgrounds, borders, loading states, and error messages use the black/gold palette. Remove any blue, purple, or grey background classes. Verify controls, filters, and pagination elements respect the theme."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaCard.tsx",
+          "operation": "modify",
+          "description": "Review and update MangaCard component to use black background with gold borders and accents. Ensure card containers, borders, rating controls, bookmark icons, and chapter progress elements all respect the black/gold scheme. Preserve rainbow hover effects. Remove any off-theme color classes."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaListControls.tsx",
+          "operation": "modify",
+          "description": "Review and update MangaListControls to enforce black backgrounds with gold borders on all filter inputs, checkboxes, dropdowns, and buttons. Ensure search fields, genre filters, and sort controls use the black/gold palette. Remove any blue, grey, or purple styling."
+        },
+        {
+          "path": "frontend/src/components/manga/AddMangaDialog.tsx",
+          "operation": "modify",
+          "description": "Review and update AddMangaDialog to use black background with gold borders and accents. Ensure the dialog container, form fields, buttons, and input borders all respect the black/gold scheme. Remove any off-theme colors from the modal overlay and content areas."
+        },
+        {
+          "path": "frontend/src/components/manga/EditMangaDialog.tsx",
+          "operation": "modify",
+          "description": "Review and update EditMangaDialog to enforce black background with gold borders and accents. Ensure all form fields, buttons, dialog chrome, and input elements use the black/gold palette. Remove any off-theme color classes."
+        },
+        {
+          "path": "frontend/src/components/manga/EditNotesDialog.tsx",
+          "operation": "modify",
+          "description": "Review and update EditNotesDialog to use black background with gold borders. Ensure the textarea, buttons, and dialog container all respect the black/gold color scheme. Remove any grey or blue styling."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
+          "operation": "modify",
+          "description": "Review and update ProfileSetupDialog to enforce black background with gold borders and accents. Ensure the modal, input field, and buttons all use the black/gold palette. Remove any off-theme colors."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginLogoutButton.tsx",
+          "operation": "modify",
+          "description": "Review and update LoginLogoutButton styling to use gold borders/text on black background. Remove any blue, grey, or off-palette button styling. Ensure hover states preserve the gold accent theme."
+        },
+        {
+          "path": "frontend/src/components/manga/FloatingControlsPanel.tsx",
+          "operation": "modify",
+          "description": "Review and update FloatingControlsPanel to use black background with gold borders and accents. Ensure the collapsible panel respects the black/gold color scheme. Remove any off-theme styling."
+        },
+        {
+          "path": "frontend/src/components/manga/PaginationControls.tsx",
+          "operation": "modify",
+          "description": "Review and update PaginationControls to enforce black background with gold borders and text. Ensure page number buttons, navigation arrows, and jump-to-page input all use the black/gold palette. Remove any blue or grey button styling."
+        },
+        {
+          "path": "frontend/src/components/manga/CoverHoverPopup.tsx",
+          "operation": "modify",
+          "description": "Review and update CoverHoverPopup to use black background with gold borders and accents. Ensure the popup container, action buttons, and text elements all respect the black/gold color scheme. Remove any off-theme colors."
+        },
+        {
+          "path": "frontend/src/components/manga/NotesPreviewOverlay.tsx",
+          "operation": "modify",
+          "description": "Review and update NotesPreviewOverlay to use black background with gold border. Ensure the overlay box respects the black/gold color scheme. Remove any grey or off-palette styling."
+        },
+        {
+          "path": "frontend/src/components/manga/GenreCheckboxGrid.tsx",
+          "operation": "modify",
+          "description": "Review and update GenreCheckboxGrid to enforce gold borders/accents on checkboxes against black background. Ensure checkbox labels and containers respect the black/gold palette. Remove any off-theme styling."
+        },
+        {
+          "path": "frontend/src/components/manga/CoverImagesField.tsx",
+          "operation": "modify",
+          "description": "Review and update CoverImagesField to use black background with gold borders. Ensure file upload controls, image previews, and remove buttons all respect the black/gold color scheme. Remove any off-theme colors."
+        },
+        {
+          "path": "frontend/src/components/manga/MangaRowActions.tsx",
+          "operation": "modify",
+          "description": "Review and update MangaRowActions to enforce gold borders/accents on action buttons (edit, delete) against black background. Ensure confirmation dialogs respect the black/gold palette. Remove any off-theme button styling."
+        }
+      ]
+    }
+  ]
+}

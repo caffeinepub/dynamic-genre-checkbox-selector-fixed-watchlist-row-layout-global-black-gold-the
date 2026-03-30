@@ -1,0 +1,80 @@
+{
+  "kind": "build_request",
+  "title": "Remove single-user restriction and restore black/gold color scheme",
+  "projectName": "Manga Watchlist",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Remove any hard-coded principal or whitelist-based access control in the backend that restricts login to a single specific Internet Identity principal. All users who authenticate via Internet Identity must be able to log in and use the app with their own personal watchlist data, isolated per principal.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-20"
+        ],
+        "quotes": [
+          "the app made it so that only i can log in with my internet identity, nobody else"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A second Internet Identity principal can log in and access the app without receiving an authorization error.",
+        "Each user's watchlist data is stored and retrieved per their own principal (no data leakage between users).",
+        "The original single-user principal continues to work as before.",
+        "No hard-coded principal IDs remain in the backend access control logic."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure the frontend authentication flow does not block or reject users based on a specific principal. Any authenticated Internet Identity user should be permitted to proceed past the login screen to the main app.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-20"
+        ],
+        "quotes": [
+          "the app made it so that only i can log in with my internet identity, nobody else"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A user logging in with any valid Internet Identity principal is taken to the profile setup or main watchlist page.",
+        "No 'unauthorized' or 'access denied' messages appear for valid Internet Identity logins.",
+        "Logout and re-login with a different principal works correctly."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Restore and enforce the black background with gold outline color scheme consistently across all UI components, including cards, borders, buttons, inputs, headers, and text highlights. The global CSS and Tailwind config must reflect: background color black (#000000 or equivalent), primary accent/outline color gold (e.g. #FFD700 or the existing CSS variable), and no deviation from this palette on any page or dialog.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-20"
+        ],
+        "quotes": [
+          "the color schemes were black background with gold outline"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All page backgrounds render as black.",
+        "All card borders, button outlines, input borders, and UI accent elements render in gold.",
+        "No components display off-theme colors (e.g. blue, purple, grey backgrounds) that contradict the black/gold scheme.",
+        "The Tailwind config and index.css CSS variables are aligned to the black and gold palette.",
+        "The gold/rainbow hover and status effects documented in feature_evidence.json are preserved."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not break per-principal data isolation — each user's watchlist must remain private to their own Internet Identity.",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Preserve existing features: pagination, cover images, genre filters, notes, bookmarks, rainbow hover effects, chapter decimal support."
+  ],
+  "nonGoals": [
+    "Adding new features beyond multi-user access and color scheme restoration.",
+    "Changing the authentication provider from Internet Identity.",
+    "Modifying the data model or adding new fields to manga entries.",
+    "Automatic cycle management or canister top-up logic."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
