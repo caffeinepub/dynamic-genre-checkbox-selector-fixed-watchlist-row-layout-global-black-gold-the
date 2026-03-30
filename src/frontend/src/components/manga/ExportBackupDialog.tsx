@@ -8,8 +8,7 @@ import {
 import React, { useState, useCallback } from "react";
 import { useBackendConnectionSingleton } from "../../hooks/useBackendConnectionSingleton";
 import {
-  buildChunks,
-  chunkFilename,
+  buildZipChunks,
   fetchImageAsBase64,
   makeBackupId,
   serializeEntry,
@@ -29,8 +28,7 @@ interface ExportBackupDialogProps {
   onOpenChange: (v: boolean) => void;
 }
 
-function triggerDownload(json: string, filename: string) {
-  const blob = new Blob([json], { type: "application/json" });
+function triggerDownloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -93,36 +91,31 @@ export default function ExportBackupDialog({
       }
 
       setPhase("generating");
-      setStatusMsg("Generating backup chunks...");
       const backupId = makeBackupId();
       const serialized = entries.map(serializeEntry);
-      const chunks = buildChunks(backupId, serialized, imageMap);
+
+      const chunks = await buildZipChunks(
+        backupId,
+        serialized,
+        imageMap,
+        (msg) => setStatusMsg(msg),
+      );
 
       setPhase("downloading");
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
-        setStatusMsg(`Saving chunk ${i + 1} of ${chunks.length}...`);
-        const filename = chunkFilename(
-          backupId,
-          chunk.chunkIndex,
-          chunk.totalChunks,
-        );
-        const json = JSON.stringify(
-          chunk,
-          (_, v) => (typeof v === "bigint" ? v.toString() : v),
-          2,
-        );
-        triggerDownload(json, filename);
+        setStatusMsg(`Saving file ${i + 1} of ${chunks.length}...`);
+        triggerDownloadBlob(chunk.blob, chunk.filename);
         if (i < chunks.length - 1) {
-          await new Promise((r) => setTimeout(r, 300));
+          await new Promise((r) => setTimeout(r, 400));
         }
       }
 
       setPhase("done");
       setStatusMsg(
-        `Export complete! ${chunks.length} file${
+        `Export complete! ${chunks.length} ZIP file${
           chunks.length > 1 ? "s" : ""
-        } downloaded (${entries.length} entries).`,
+        } downloaded (${entries.length} entries). Each ZIP contains manifest.json and a covers/ folder.`,
       );
     } catch (err: any) {
       setErrorMsg(String(err?.message || err));
@@ -155,8 +148,12 @@ export default function ExportBackupDialog({
 
         <div className="py-2 space-y-4">
           <p className="text-sm" style={{ color: "#b8860b" }}>
-            Exports all manga entries and cover images. Large libraries will be
-            split into multiple files (max 40 MB each).
+            Exports all manga entries as a ZIP file. Each ZIP contains a{" "}
+            <strong style={{ color: "#d4a017" }}>manifest.json</strong>{" "}
+            (metadata) and a{" "}
+            <strong style={{ color: "#d4a017" }}>covers/</strong> folder with
+            all cover images. Large libraries are split into multiple ZIP files
+            (max 40 MB each).
           </p>
 
           {phase === "idle" && (

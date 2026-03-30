@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { ExternalBlob, type MangaEntry } from "../backend";
 
 export const MAX_CHUNK_BYTES = 40 * 1024 * 1024; // 40 MB
@@ -12,13 +13,13 @@ export interface SerializedEntry {
   synopsis: string;
   genres: string[];
   notes: string;
-  coverImages: string[]; // filenames
+  coverImages: string[]; // filenames (no path prefix)
   rating: number;
   alternateTitles: string[];
   isBookmarked: boolean;
 }
 
-export interface BackupChunk {
+export interface BackupManifest {
   backupId: string;
   version: number;
   exportDate: string;
@@ -26,7 +27,11 @@ export interface BackupChunk {
   chunkIndex: number;
   totalChunks: number;
   entries: SerializedEntry[];
-  images: Record<string, string>;
+}
+
+// Legacy format for backward-compat import
+export interface BackupChunk extends BackupManifest {
+  images?: Record<string, string>;
 }
 
 export function makeBackupId(): string {
@@ -92,81 +97,166 @@ export async function fetchImageAsBase64(
   }
 }
 
-export function buildChunks(
+/**
+ * Build ZIP blobs: one ZIP per chunk, each containing:
+ *   - manifest.json  (metadata + entry list, no images)
+ *   - covers/<filename>.jpg  (raw image files)
+ */
+export async function buildZipChunks(
   backupId: string,
   entries: SerializedEntry[],
-  imageMap: Record<string, string>,
-): BackupChunk[] {
+  imageMap: Record<string, string>, // filename -> data URL
+  onProgress?: (msg: string) => void,
+): Promise<{ filename: string; blob: Blob }[]> {
   const exportDate = new Date().toISOString();
   const totalEntries = entries.length;
 
-  const imageEntries = Object.entries(imageMap);
-  const chunks: BackupChunk[] = [];
-
-  // Compute base overhead per chunk (entries + metadata, no images)
-  const baseObj = {
-    backupId,
-    version: 1,
-    exportDate,
-    totalEntries,
-    chunkIndex: 1,
-    totalChunks: 1,
-    entries,
-    images: {} as Record<string, string>,
-  };
-  const baseJson = JSON.stringify(baseObj, (_, v) =>
-    typeof v === "bigint" ? v.toString() : v,
-  );
-  const baseSize = new TextEncoder().encode(baseJson).length;
-
-  // Group images into chunks
-  const imageChunks: Array<Record<string, string>> = [];
-  let currentChunkImages: Record<string, string> = {};
-  let currentChunkSize = baseSize;
-
-  for (const [filename, dataUrl] of imageEntries) {
-    const entrySize =
-      new TextEncoder().encode(JSON.stringify({ [filename]: dataUrl })).length +
-      2;
-    if (
-      currentChunkSize + entrySize > MAX_CHUNK_BYTES &&
-      Object.keys(currentChunkImages).length > 0
-    ) {
-      imageChunks.push(currentChunkImages);
-      currentChunkImages = {};
-      currentChunkSize = baseSize;
-    }
-    currentChunkImages[filename] = dataUrl;
-    currentChunkSize += entrySize;
+  // Convert images to raw byte arrays once
+  const imageBytes: Record<string, Uint8Array> = {};
+  let imgCount = 0;
+  for (const [filename, dataUrl] of Object.entries(imageMap)) {
+    imageBytes[filename] = base64ToBytes(dataUrl);
+    imgCount++;
+    if (onProgress)
+      onProgress(
+        `Preparing image ${imgCount} of ${Object.keys(imageMap).length}...`,
+      );
   }
-  imageChunks.push(currentChunkImages);
 
-  const totalChunks = imageChunks.length;
-  for (let i = 0; i < imageChunks.length; i++) {
-    chunks.push({
+  // Group images into chunks of max 40 MB
+  const imageFilenames = Object.keys(imageBytes);
+  const chunkGroups: string[][] = [[]];
+  let currentSize = 0;
+
+  // Reserve ~2MB for the JSON manifest overhead
+  const reservedForManifest = 2 * 1024 * 1024;
+  const imageLimit = MAX_CHUNK_BYTES - reservedForManifest;
+
+  for (const filename of imageFilenames) {
+    const size = imageBytes[filename].length;
+    if (
+      currentSize + size > imageLimit &&
+      chunkGroups[chunkGroups.length - 1].length > 0
+    ) {
+      chunkGroups.push([]);
+      currentSize = 0;
+    }
+    chunkGroups[chunkGroups.length - 1].push(filename);
+    currentSize += size;
+  }
+
+  if (chunkGroups[0].length === 0 && imageFilenames.length === 0) {
+    // No images — single chunk
+    chunkGroups[0] = [];
+  }
+
+  const totalChunks = chunkGroups.length;
+  const results: { filename: string; blob: Blob }[] = [];
+
+  for (let i = 0; i < totalChunks; i++) {
+    if (onProgress) onProgress(`Building ZIP ${i + 1} of ${totalChunks}...`);
+    const zip = new JSZip();
+
+    // Add manifest JSON (metadata only, no images embedded)
+    const manifest: BackupManifest = {
       backupId,
-      version: 1,
+      version: 2,
       exportDate,
       totalEntries,
       chunkIndex: i + 1,
       totalChunks,
       entries,
-      images: imageChunks[i],
+    };
+    const manifestJson = JSON.stringify(
+      manifest,
+      (_, v) => (typeof v === "bigint" ? v.toString() : v),
+      2,
+    );
+    zip.file("manifest.json", manifestJson);
+
+    // Add images to covers/ folder
+    const coversFolder = zip.folder("covers");
+    if (coversFolder) {
+      for (const filename of chunkGroups[i]) {
+        coversFolder.file(filename, imageBytes[filename]);
+      }
+    }
+
+    const blob = await zip.generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 },
     });
+    const chunkFilename = buildZipFilename(backupId, i + 1, totalChunks);
+    results.push({ filename: chunkFilename, blob });
   }
 
-  return chunks;
+  return results;
 }
 
-export function chunkFilename(
+export function buildZipFilename(
   backupId: string,
   chunkIndex: number,
   totalChunks: number,
 ): string {
-  if (totalChunks === 1) return `manga-backup-${backupId}.json`;
+  if (totalChunks === 1) return `manga-backup-${backupId}.zip`;
   const ci = String(chunkIndex).padStart(3, "0");
   const ct = String(totalChunks).padStart(3, "0");
-  return `manga-backup-${backupId}-part${ci}of${ct}.json`;
+  return `manga-backup-${backupId}-part${ci}of${ct}.zip`;
+}
+
+/**
+ * Parse a ZIP backup file. Returns the manifest and an image map.
+ */
+export async function parseZipBackup(
+  file: File,
+): Promise<{ manifest: BackupManifest; imageMap: Record<string, string> }> {
+  const zip = await JSZip.loadAsync(file);
+
+  const manifestFile = zip.file("manifest.json");
+  if (!manifestFile) throw new Error("No manifest.json found in ZIP.");
+
+  const manifestText = await manifestFile.async("text");
+  const manifest = JSON.parse(manifestText) as BackupManifest;
+  if (!manifest.entries || !Array.isArray(manifest.entries)) {
+    throw new Error("Invalid manifest.json format.");
+  }
+
+  // Extract images from covers/ folder
+  const imageMap: Record<string, string> = {};
+  const coversFolder = zip.folder("covers");
+  if (coversFolder) {
+    const promises: Promise<void>[] = [];
+    coversFolder.forEach((relativePath, zipEntry) => {
+      if (!zipEntry.dir) {
+        promises.push(
+          zipEntry.async("base64").then((b64) => {
+            // Determine mime type from extension
+            const ext = relativePath.split(".").pop()?.toLowerCase() || "jpg";
+            const mime =
+              ext === "png"
+                ? "image/png"
+                : ext === "webp"
+                  ? "image/webp"
+                  : "image/jpeg";
+            imageMap[relativePath] = `data:${mime};base64,${b64}`;
+          }),
+        );
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  return { manifest, imageMap };
+}
+
+// Legacy JSON format support
+export function parseLegacyJsonBackup(text: string): BackupChunk {
+  const data = JSON.parse(text) as BackupChunk;
+  if (!data.entries || !Array.isArray(data.entries)) {
+    throw new Error("Invalid backup file format.");
+  }
+  return data;
 }
 
 export function reconstructEntry(

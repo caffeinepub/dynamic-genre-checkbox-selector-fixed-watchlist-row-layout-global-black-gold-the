@@ -7,29 +7,22 @@ import {
 } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
-import {
-  type ChangeEvent,
-  forwardRef,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { useBackendConnectionSingleton } from "../../hooks/useBackendConnectionSingleton";
-import { type BackupChunk, reconstructEntry } from "../../utils/backupUtils";
+import {
+  type BackupManifest,
+  parseLegacyJsonBackup,
+  parseZipBackup,
+  reconstructEntry,
+} from "../../utils/backupUtils";
 
 type Phase = "idle" | "parsed" | "importing" | "done" | "error";
+type FileFormat = "zip" | "json";
 
 interface ImportBackupDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }
-
-// Wrapper for folder input with non-standard webkitdirectory attribute
-const FolderInput = forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement> & { webkitdirectory?: string }
->((props, ref) => <input ref={ref} {...props} />);
-FolderInput.displayName = "FolderInput";
 
 export default function ImportBackupDialog({
   open,
@@ -41,20 +34,24 @@ export default function ImportBackupDialog({
   const [phase, setPhase] = useState<Phase>("idle");
   const [statusMsg, setStatusMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [parsedChunk, setParsedChunk] = useState<BackupChunk | null>(null);
-  const [folderFiles, setFolderFiles] = useState<FileList | null>(null);
+  const [parsedManifest, setParsedManifest] = useState<BackupManifest | null>(
+    null,
+  );
+  const [parsedImageMap, setParsedImageMap] = useState<Record<string, string>>(
+    {},
+  );
+  const [fileFormat, setFileFormat] = useState<FileFormat>("zip");
 
-  const jsonInputRef = useRef<HTMLInputElement>(null);
-  const folderInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetState = useCallback(() => {
     setPhase("idle");
     setStatusMsg("");
     setErrorMsg("");
-    setParsedChunk(null);
-    setFolderFiles(null);
-    if (jsonInputRef.current) jsonInputRef.current.value = "";
-    if (folderInputRef.current) folderInputRef.current.value = "";
+    setParsedManifest(null);
+    setParsedImageMap({});
+    setFileFormat("zip");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
   const handleClose = useCallback(() => {
@@ -64,54 +61,37 @@ export default function ImportBackupDialog({
     }
   }, [phase, resetState, onOpenChange]);
 
-  const handleJsonFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
+  const handleFileChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
       try {
-        const text = ev.target?.result as string;
-        const data = JSON.parse(text) as BackupChunk;
-        if (!data.entries || !Array.isArray(data.entries)) {
-          throw new Error("Invalid backup file format.");
+        if (file.name.endsWith(".zip")) {
+          setFileFormat("zip");
+          const { manifest, imageMap } = await parseZipBackup(file);
+          setParsedManifest(manifest);
+          setParsedImageMap(imageMap);
+          setPhase("parsed");
+          setErrorMsg("");
+        } else if (file.name.endsWith(".json")) {
+          setFileFormat("json");
+          const text = await file.text();
+          const chunk = parseLegacyJsonBackup(text);
+          setParsedManifest(chunk);
+          setParsedImageMap(chunk.images || {});
+          setPhase("parsed");
+          setErrorMsg("");
+        } else {
+          setErrorMsg("Please select a .zip or .json backup file.");
+          setPhase("error");
         }
-        setParsedChunk(data);
-        setPhase("parsed");
-        setStatusMsg("");
-        setErrorMsg("");
       } catch (err: any) {
         setErrorMsg(`Failed to parse backup file: ${err?.message || err}`);
         setPhase("error");
       }
-    };
-    reader.readAsText(file);
-  }, []);
-
-  const handleFolderSelect = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setFolderFiles(e.target.files);
-  }, []);
-
-  const buildImageMap = useCallback(
-    async (chunk: BackupChunk): Promise<Record<string, string>> => {
-      const map: Record<string, string> = { ...chunk.images };
-      if (folderFiles) {
-        for (let i = 0; i < folderFiles.length; i++) {
-          const file = folderFiles[i];
-          const filename = file.name;
-          await new Promise<void>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              const data = ev.target?.result as string;
-              if (data) map[filename] = data;
-              resolve();
-            };
-            reader.readAsDataURL(file);
-          });
-        }
-      }
-      return map;
     },
-    [folderFiles],
+    [],
   );
 
   const runImport = useCallback(async () => {
@@ -120,17 +100,17 @@ export default function ImportBackupDialog({
       setPhase("error");
       return;
     }
-    if (!parsedChunk) return;
+    if (!parsedManifest) return;
 
     try {
       setPhase("importing");
-      setStatusMsg("Building image map...");
-      const imageMap = await buildImageMap(parsedChunk);
-
-      const total = parsedChunk.entries.length;
+      const total = parsedManifest.entries.length;
       for (let i = 0; i < total; i++) {
         setStatusMsg(`Restoring entry ${i + 1} of ${total}...`);
-        const entry = reconstructEntry(parsedChunk.entries[i], imageMap);
+        const entry = reconstructEntry(
+          parsedManifest.entries[i],
+          parsedImageMap,
+        );
         await actor.addEntry(entry);
       }
 
@@ -141,7 +121,7 @@ export default function ImportBackupDialog({
       setErrorMsg(String(err?.message || err));
       setPhase("error");
     }
-  }, [actor, isReady, parsedChunk, buildImageMap, queryClient]);
+  }, [actor, isReady, parsedManifest, parsedImageMap, queryClient]);
 
   const fileInputStyle: React.CSSProperties = {
     color: "#d4a017",
@@ -173,56 +153,34 @@ export default function ImportBackupDialog({
 
         <div className="py-2 space-y-4">
           <p className="text-sm" style={{ color: "#b8860b" }}>
-            Select a backup JSON file to restore your manga list. Optionally
-            select an images folder to restore cover images.
+            Select a backup <strong style={{ color: "#d4a017" }}>.zip</strong>{" "}
+            file to restore your manga list. Legacy{" "}
+            <strong style={{ color: "#d4a017" }}>.json</strong> backup files are
+            also supported.
           </p>
 
-          {/* File Inputs */}
-          <div className="space-y-3">
-            <div>
-              <label
-                htmlFor="import-json-input"
-                className="block text-xs mb-1"
-                style={{ color: "#8a6a10" }}
-              >
-                Backup File (.json)
-              </label>
-              <input
-                id="import-json-input"
-                ref={jsonInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleJsonFile}
-                disabled={phase === "importing"}
-                style={fileInputStyle}
-                data-ocid="import_backup.upload_button"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="import-folder-input"
-                className="block text-xs mb-1"
-                style={{ color: "#8a6a10" }}
-              >
-                Images Folder (optional)
-              </label>
-              <FolderInput
-                id="import-folder-input"
-                ref={folderInputRef}
-                type="file"
-                webkitdirectory=""
-                multiple
-                onChange={handleFolderSelect}
-                disabled={phase === "importing"}
-                style={fileInputStyle}
-                data-ocid="import_backup.dropzone"
-              />
-            </div>
+          <div>
+            <label
+              htmlFor="import-file-input"
+              className="block text-xs mb-1"
+              style={{ color: "#8a6a10" }}
+            >
+              Backup File (.zip or .json)
+            </label>
+            <input
+              id="import-file-input"
+              ref={fileInputRef}
+              type="file"
+              accept=".zip,.json"
+              onChange={handleFileChange}
+              disabled={phase === "importing"}
+              style={fileInputStyle}
+              data-ocid="import_backup.upload_button"
+            />
           </div>
 
           {/* Parsed preview */}
-          {phase === "parsed" && parsedChunk && (
+          {phase === "parsed" && parsedManifest && (
             <div className="space-y-3">
               <div
                 style={{
@@ -233,13 +191,29 @@ export default function ImportBackupDialog({
                 }}
               >
                 <p className="text-sm" style={{ color: "#d4a017" }}>
-                  Found <strong>{parsedChunk.entries.length}</strong> entries to
-                  restore.
+                  Found <strong>{parsedManifest.entries.length}</strong> entries
+                  to restore.
                 </p>
-                {parsedChunk.exportDate && (
+                {Object.keys(parsedImageMap).length > 0 && (
+                  <p className="text-xs mt-1" style={{ color: "#8a6a10" }}>
+                    {Object.keys(parsedImageMap).length} cover image
+                    {Object.keys(parsedImageMap).length !== 1 ? "s" : ""} found
+                    {fileFormat === "zip"
+                      ? " in covers/ folder"
+                      : " (embedded)"}
+                    .
+                  </p>
+                )}
+                {parsedManifest.exportDate && (
                   <p className="text-xs mt-1" style={{ color: "#8a6a10" }}>
                     Exported:{" "}
-                    {new Date(parsedChunk.exportDate).toLocaleString()}
+                    {new Date(parsedManifest.exportDate).toLocaleString()}
+                  </p>
+                )}
+                {(parsedManifest.totalChunks ?? 1) > 1 && (
+                  <p className="text-xs mt-1" style={{ color: "#c0a020" }}>
+                    Chunk {parsedManifest.chunkIndex} of{" "}
+                    {parsedManifest.totalChunks} — import all chunks separately.
                   </p>
                 )}
               </div>
