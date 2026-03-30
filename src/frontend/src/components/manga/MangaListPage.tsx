@@ -1,384 +1,298 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useGetAllMangaEntries } from '../../hooks/useAllMangaEntries';
-import { useActorWithRetry } from '../../hooks/useActorWithRetry';
-import { useLibraryGenres } from '../../hooks/useLibraryGenres';
-import { useUniformWatchlistRowWidth } from '../../hooks/useUniformWatchlistRowWidth';
-import { AddMangaDialog } from './AddMangaDialog';
-import { PaginationControls } from './PaginationControls';
-import { MangaRowActions } from './MangaRowActions';
-import { FloatingControlsPanel } from './FloatingControlsPanel';
-import { Button } from '../ui/button';
-import { BookOpen, AlertCircle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
-import { Skeleton } from '../ui/skeleton';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Loader2 } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useGetAllMangaEntries } from "../../hooks/useAllMangaEntries";
+import { useLibraryGenres } from "../../hooks/useLibraryGenres";
+import { useUniformWatchlistRowWidth } from "../../hooks/useUniformWatchlistRowWidth";
+import AddMangaDialog from "./AddMangaDialog";
+import FloatingControlsPanel from "./FloatingControlsPanel";
+import MangaRowActions from "./MangaRowActions";
+import PaginationControls from "./PaginationControls";
 
-const ENTRIES_PER_PAGE = 30;
-const MIN_ROW_WIDTH = 925;
+const ITEMS_PER_PAGE = 30;
 
-export function MangaListPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [watchlistAlignment, setWatchlistAlignment] = useState<'left' | 'center' | 'right'>('center');
-  
-  const [titleSearch, setTitleSearch] = useState('');
-  const [synopsisSearch, setSynopsisSearch] = useState('');
-  const [notesSearch, setNotesSearch] = useState('');
+type SortOption =
+  | "title-asc"
+  | "title-desc"
+  | "rating-asc"
+  | "rating-desc"
+  | "chapters-asc"
+  | "chapters-desc";
+
+type CompletionFilter = "all" | "complete" | "incomplete";
+
+export default function MangaListPage() {
+  const {
+    data: allEntries = [],
+    isLoading,
+    isError,
+    error,
+  } = useGetAllMangaEntries();
+  const { genres: libraryGenres } = useLibraryGenres();
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
-  const [completedOnly, setCompletedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc'>('title-asc');
-  
-  const { 
-    isConnecting, 
-    isError: actorError, 
-    errorMessage: actorErrorMessage, 
-    errorCategory,
-    retry: retryActor,
-    isRetrying,
-    isActorReady,
-    readinessStatus,
-    elapsedTime,
-    connectionPhase,
-    hasGivenUp,
-    retryCount,
-  } = useActorWithRetry();
-  
-  const { data: allEntries, isLoading, error: dataError } = useGetAllMangaEntries();
-  const { genres: availableGenres } = useLibraryGenres();
+  const [sortOption, setSortOption] = useState<SortOption>("title-asc");
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
+  const [completionFilter, setCompletionFilter] =
+    useState<CompletionFilter>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [alignment, setAlignment] = useState<"left" | "center">("left");
 
-  const isOfflineMode = dataError && allEntries && allEntries.length > 0;
+  // useUniformWatchlistRowWidth takes a dependencies array
+  const { uniformWidth, registerRow } = useUniformWatchlistRowWidth([
+    currentPage,
+    searchQuery,
+    selectedGenres,
+    sortOption,
+  ]);
 
-  // Auto-prune selectedGenres when availableGenres changes
+  // Auto-prune invalid genre selections
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedGenres intentionally excluded to avoid infinite loop
   useEffect(() => {
-    setSelectedGenres(prev => {
-      const validGenres = prev.filter(g => availableGenres.includes(g));
-      // Only update if something changed to avoid unnecessary re-renders
-      if (validGenres.length !== prev.length) {
-        return validGenres;
+    if (libraryGenres.length > 0 && selectedGenres.length > 0) {
+      const validGenres = selectedGenres.filter((g) =>
+        libraryGenres.includes(g),
+      );
+      if (validGenres.length !== selectedGenres.length) {
+        setSelectedGenres(validGenres);
       }
-      return prev;
-    });
-  }, [availableGenres]);
-
-  // Format elapsed time for display
-  const formatElapsedTime = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    return `${seconds}s`;
-  };
-
-  const filteredAndSortedEntries = useMemo(() => {
-    if (!allEntries) return [];
-
-    let filtered = [...allEntries];
-
-    if (titleSearch.trim()) {
-      const searchLower = titleSearch.toLowerCase();
-      filtered = filtered.filter(entry => {
-        // Search in primary title
-        if (entry.title.toLowerCase().includes(searchLower)) {
-          return true;
-        }
-        // Search in alternate titles
-        return entry.alternateTitles.some(altTitle => 
-          altTitle.toLowerCase().includes(searchLower)
-        );
-      });
     }
+  }, [libraryGenres]);
 
-    if (synopsisSearch.trim()) {
-      const searchLower = synopsisSearch.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.synopsis.toLowerCase().includes(searchLower)
-      );
-    }
-
-    if (notesSearch.trim()) {
-      const searchLower = notesSearch.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.notes.toLowerCase().includes(searchLower)
-      );
-    }
-
-    if (selectedGenres.length > 0) {
-      filtered = filtered.filter(entry =>
-        entry.genres.some(genre => selectedGenres.includes(genre))
-      );
-    }
-
-    if (bookmarkedOnly) {
-      filtered = filtered.filter(entry => entry.isBookmarked);
-    }
-
-    if (completedOnly) {
-      filtered = filtered.filter(entry => entry.completed);
-    }
-
-    if (sortBy === 'title-asc') {
-      filtered.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'title-desc') {
-      filtered.sort((a, b) => b.title.localeCompare(a.title));
-    } else if (sortBy === 'rating-desc') {
-      filtered.sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === 'rating-asc') {
-      filtered.sort((a, b) => a.rating - b.rating);
-    }
-
-    return filtered;
-  }, [allEntries, titleSearch, synopsisSearch, notesSearch, selectedGenres, bookmarkedOnly, completedOnly, sortBy]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE));
-  const paginatedEntries = useMemo(() => {
-    const startIndex = (currentPage - 1) * ENTRIES_PER_PAGE;
-    return filteredAndSortedEntries.slice(startIndex, startIndex + ENTRIES_PER_PAGE);
-  }, [filteredAndSortedEntries, currentPage]);
-
-  const handlePageChange = useCallback((page: number) => {
-    const clampedPage = Math.max(1, Math.min(page, totalPages));
-    setCurrentPage(clampedPage);
-  }, [totalPages]);
-
+  // Reset to page 1 when filters change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: these deps intentionally trigger the page reset
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
+    setCurrentPage(1);
+  }, [
+    searchQuery,
+    selectedGenres,
+    sortOption,
+    showBookmarkedOnly,
+    completionFilter,
+  ]);
+
+  const filteredAndSorted = React.useMemo(() => {
+    let entries = [...allEntries];
+
+    // Search filter (title + alternate titles)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      entries = entries.filter(
+        (e) =>
+          e.title.toLowerCase().includes(q) ||
+          e.alternateTitles.some((t) => t.toLowerCase().includes(q)),
+      );
     }
-  }, [currentPage, totalPages]);
 
-  const { uniformWidth, registerRow } = useUniformWatchlistRowWidth([currentPage, filteredAndSortedEntries.length]);
+    // Genre filter
+    if (selectedGenres.length > 0) {
+      entries = entries.filter((e) =>
+        selectedGenres.every((g) => e.genres.includes(g)),
+      );
+    }
 
-  const alignmentClass = useMemo(() => {
-    if (watchlistAlignment === 'left') return 'justify-start';
-    if (watchlistAlignment === 'right') return 'justify-end';
-    return 'justify-center';
-  }, [watchlistAlignment]);
+    // Bookmark filter
+    if (showBookmarkedOnly) {
+      entries = entries.filter((e) => e.isBookmarked);
+    }
 
-  const handleAddDialogOpenChange = useCallback((open: boolean) => {
-    setIsAddDialogOpen(open);
-  }, []);
+    // Completion filter
+    if (completionFilter === "complete") {
+      entries = entries.filter((e) => e.completed);
+    } else if (completionFilter === "incomplete") {
+      entries = entries.filter((e) => !e.completed);
+    }
 
-  const handleTitleSearchChange = useCallback((value: string) => {
-    setTitleSearch(value);
-    setCurrentPage(1);
-  }, []);
+    // Sort
+    entries.sort((a, b) => {
+      switch (sortOption) {
+        case "title-asc":
+          return a.title.localeCompare(b.title);
+        case "title-desc":
+          return b.title.localeCompare(a.title);
+        case "rating-asc":
+          return a.rating - b.rating;
+        case "rating-desc":
+          return b.rating - a.rating;
+        case "chapters-asc":
+          return a.chaptersRead - b.chaptersRead;
+        case "chapters-desc":
+          return b.chaptersRead - a.chaptersRead;
+        default:
+          return a.title.localeCompare(b.title);
+      }
+    });
 
-  const handleSynopsisSearchChange = useCallback((value: string) => {
-    setSynopsisSearch(value);
-    setCurrentPage(1);
-  }, []);
+    return entries;
+  }, [
+    allEntries,
+    searchQuery,
+    selectedGenres,
+    sortOption,
+    showBookmarkedOnly,
+    completionFilter,
+  ]);
 
-  const handleNotesSearchChange = useCallback((value: string) => {
-    setNotesSearch(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleGenresChange = useCallback((genres: string[]) => {
-    setSelectedGenres(genres);
-    setCurrentPage(1);
-  }, []);
-
-  const handleBookmarkedOnlyChange = useCallback((value: boolean) => {
-    setBookmarkedOnly(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCompletedOnlyChange = useCallback((value: boolean) => {
-    setCompletedOnly(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleSortByChange = useCallback((value: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc') => {
-    setSortBy(value);
-  }, []);
-
-  const handleWatchlistAlignmentChange = useCallback((value: 'left' | 'center' | 'right') => {
-    setWatchlistAlignment(value);
-  }, []);
-
-  // Show terminal error state when backend has given up
-  if (hasGivenUp && actorError) {
-    return (
-      <div className="space-y-6 bg-background text-foreground">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex flex-col gap-3">
-            <div>
-              <strong>Unable to connect to backend</strong>
-              <p className="mt-1">{actorErrorMessage}</p>
-              {errorCategory && (
-                <p className="text-xs mt-1 opacity-80">Error type: {errorCategory}</p>
-              )}
-            </div>
-            <Button
-              onClick={retryActor}
-              disabled={isRetrying}
-              variant="outline"
-              size="sm"
-              className="w-fit"
-            >
-              {isRetrying ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Retrying...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Retry Connection
-                </>
-              )}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // Show connecting state
-  if (isConnecting) {
-    return (
-      <div className="space-y-6 bg-background text-foreground">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                {connectionPhase === 'initializing' && 'Initializing connection...'}
-                {connectionPhase === 'connecting' && 'Connecting to backend...'}
-                {connectionPhase === 'verifying' && 'Verifying connection...'}
-                {connectionPhase === 'retrying' && `Retrying connection (attempt ${retryCount})...`}
-              </p>
-              {elapsedTime > 0 && (
-                <p className="text-xs text-muted-foreground/70">
-                  Elapsed: {formatElapsedTime(elapsedTime)}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state for data
-  if (isLoading) {
-    return (
-      <div className="space-y-6 bg-background text-foreground">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  // Show offline mode banner if applicable
-  const offlineBanner = isOfflineMode && (
-    <Alert className="mb-4">
-      <WifiOff className="h-4 w-4" />
-      <AlertDescription>
-        <strong>Offline Mode:</strong> Showing cached data. Some features may be unavailable.
-      </AlertDescription>
-    </Alert>
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE),
+  );
+  const clampedPage = Math.min(currentPage, totalPages);
+  const paginatedEntries = filteredAndSorted.slice(
+    (clampedPage - 1) * ITEMS_PER_PAGE,
+    clampedPage * ITEMS_PER_PAGE,
   );
 
-  // Show empty state
-  if (!allEntries || allEntries.length === 0) {
-    return (
-      <div className="space-y-6 bg-background text-foreground">
-        {offlineBanner}
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2 text-foreground">No manga entries yet</h2>
-          <p className="text-muted-foreground mb-6">Start building your watchlist by adding your first manga.</p>
-          <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
-        </div>
-      </div>
-    );
-  }
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
-  // Show no results state
-  if (filteredAndSortedEntries.length === 0) {
+  if (isLoading) {
     return (
-      <div className="space-y-6 bg-background text-foreground">
-        {offlineBanner}
-        <FloatingControlsPanel
-          titleSearch={titleSearch}
-          onTitleSearchChange={handleTitleSearchChange}
-          synopsisSearch={synopsisSearch}
-          onSynopsisSearchChange={handleSynopsisSearchChange}
-          notesSearch={notesSearch}
-          onNotesSearchChange={handleNotesSearchChange}
-          selectedGenres={selectedGenres}
-          onSelectedGenresChange={handleGenresChange}
-          availableGenres={availableGenres}
-          bookmarkedOnly={bookmarkedOnly}
-          onBookmarkedOnlyChange={handleBookmarkedOnlyChange}
-          completedOnly={completedOnly}
-          onCompletedOnlyChange={handleCompletedOnlyChange}
-          sortBy={sortBy}
-          onSortByChange={handleSortByChange}
-          watchlistAlignment={watchlistAlignment}
-          onWatchlistAlignmentChange={handleWatchlistAlignmentChange}
-          onAddManga={() => setIsAddDialogOpen(true)}
-          isBackendReady={isActorReady}
+      <div
+        className="flex flex-col items-center justify-center min-h-[60vh] gap-4"
+        style={{ backgroundColor: "#000000" }}
+      >
+        <Loader2
+          className="animate-spin"
+          style={{ color: "#d4a017" }}
+          size={40}
         />
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2 text-foreground">No results found</h2>
-          <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
-        </div>
-        <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
+        <p style={{ color: "#8a6a10" }}>Loading your manga collection...</p>
       </div>
     );
   }
 
-  // Main content
-  return (
-    <div className="space-y-6 bg-background text-foreground">
-      {offlineBanner}
-      
-      <FloatingControlsPanel
-        titleSearch={titleSearch}
-        onTitleSearchChange={handleTitleSearchChange}
-        synopsisSearch={synopsisSearch}
-        onSynopsisSearchChange={handleSynopsisSearchChange}
-        notesSearch={notesSearch}
-        onNotesSearchChange={handleNotesSearchChange}
-        selectedGenres={selectedGenres}
-        onSelectedGenresChange={handleGenresChange}
-        availableGenres={availableGenres}
-        bookmarkedOnly={bookmarkedOnly}
-        onBookmarkedOnlyChange={handleBookmarkedOnlyChange}
-        completedOnly={completedOnly}
-        onCompletedOnlyChange={handleCompletedOnlyChange}
-        sortBy={sortBy}
-        onSortByChange={handleSortByChange}
-        watchlistAlignment={watchlistAlignment}
-        onWatchlistAlignmentChange={handleWatchlistAlignmentChange}
-        onAddManga={() => setIsAddDialogOpen(true)}
-        isBackendReady={isActorReady}
-      />
+  if (isError) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center min-h-[60vh] gap-4"
+        style={{ backgroundColor: "#000000" }}
+      >
+        <p className="text-lg font-serif" style={{ color: "#d4a017" }}>
+          Failed to load manga entries
+        </p>
+        <p className="text-sm" style={{ color: "#8a6a10" }}>
+          {error instanceof Error ? error.message : "Unknown error occurred"}
+        </p>
+      </div>
+    );
+  }
 
-      <div className={`flex flex-col gap-4 ${alignmentClass}`}>
-        {paginatedEntries.map((entry) => (
-          <div
-            key={entry.stableId.toString()}
-            ref={registerRow}
-            style={{
-              minWidth: `${MIN_ROW_WIDTH}px`,
-              width: uniformWidth ? `${uniformWidth}px` : 'auto',
-            }}
-          >
-            <MangaRowActions manga={entry} currentPage={currentPage} isBackendReady={isActorReady} />
+  return (
+    <div className="min-h-screen w-full" style={{ backgroundColor: "#000000" }}>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Floating Controls */}
+        <FloatingControlsPanel
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedGenres={selectedGenres}
+          onGenresChange={setSelectedGenres}
+          availableGenres={libraryGenres}
+          sortOption={sortOption}
+          onSortChange={(v) => setSortOption(v as SortOption)}
+          showBookmarkedOnly={showBookmarkedOnly}
+          onBookmarkToggle={() => setShowBookmarkedOnly((p) => !p)}
+          completionFilter={completionFilter}
+          onCompletionFilterChange={(v) =>
+            setCompletionFilter(v as CompletionFilter)
+          }
+          alignment={alignment}
+          onAlignmentChange={setAlignment}
+          onAddManga={() => setAddDialogOpen(true)}
+          totalCount={filteredAndSorted.length}
+        />
+
+        {/* Entry count */}
+        <div className="mb-3 mt-2">
+          <span className="text-sm font-serif" style={{ color: "#8a6a10" }}>
+            {filteredAndSorted.length}{" "}
+            {filteredAndSorted.length === 1 ? "entry" : "entries"}
+            {filteredAndSorted.length !== allEntries.length &&
+              ` (filtered from ${allEntries.length})`}
+          </span>
+        </div>
+
+        {/* Manga List */}
+        <div
+          className="space-y-2"
+          style={{
+            minWidth: "925px",
+            overflowX: "auto",
+          }}
+        >
+          {paginatedEntries.length === 0 ? (
+            <div
+              className="flex flex-col items-center justify-center py-16 gap-4"
+              style={{
+                border: "1px solid #d4a017",
+                backgroundColor: "#0a0a0a",
+              }}
+            >
+              <p className="text-lg font-serif" style={{ color: "#d4a017" }}>
+                {allEntries.length === 0
+                  ? "Your watchlist is empty"
+                  : "No entries match your filters"}
+              </p>
+              {allEntries.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAddDialogOpen(true)}
+                  className="px-6 py-2 border font-serif text-sm transition-all"
+                  style={{
+                    borderColor: "#d4a017",
+                    color: "#d4a017",
+                    backgroundColor: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "rgba(212,160,23,0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "transparent";
+                  }}
+                >
+                  Add Your First Manga
+                </button>
+              )}
+            </div>
+          ) : (
+            paginatedEntries.map((entry) => (
+              <MangaRowActions
+                key={entry.stableId.toString()}
+                entry={entry}
+                uniformWidth={uniformWidth}
+                registerRow={registerRow}
+                alignment={alignment}
+                currentPage={clampedPage}
+              />
+            ))
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <PaginationControls
+              currentPage={clampedPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
-        ))}
+        )}
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
+      {/* Add Manga Dialog */}
+      <AddMangaDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        currentPage={clampedPage}
       />
-
-      <AddMangaDialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange} currentPage={currentPage} />
     </div>
   );
 }

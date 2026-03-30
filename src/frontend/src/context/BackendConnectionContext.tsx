@@ -1,7 +1,12 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useBackendConnection, BackendConnectionState } from '../hooks/useBackendConnection';
+import React, { createContext, useContext, type ReactNode } from "react";
+import {
+  type BackendConnectionState,
+  useBackendConnection,
+} from "../hooks/useBackendConnection";
 
-const BackendConnectionContext = createContext<BackendConnectionState | null>(null);
+const BackendConnectionContext = createContext<BackendConnectionState | null>(
+  null,
+);
 
 interface BackendConnectionProviderProps {
   children: ReactNode;
@@ -11,7 +16,9 @@ interface BackendConnectionProviderProps {
  * Provider that creates a single backend connection instance for the entire app.
  * This prevents multiple competing connection loops/timers when hooks mount across the tree.
  */
-export function BackendConnectionProvider({ children }: BackendConnectionProviderProps) {
+export function BackendConnectionProvider({
+  children,
+}: BackendConnectionProviderProps) {
   const connection = useBackendConnection();
 
   return (
@@ -27,13 +34,13 @@ export function BackendConnectionProvider({ children }: BackendConnectionProvide
  */
 export function useBackendConnectionContext(): BackendConnectionState {
   const context = useContext(BackendConnectionContext);
-  
+
   if (!context) {
     throw new Error(
-      'useBackendConnectionContext must be used within BackendConnectionProvider. ' +
-      'Wrap your app with <BackendConnectionProvider> to use backend connection hooks.'
+      "useBackendConnectionContext must be used within BackendConnectionProvider. " +
+        "Wrap your app with <BackendConnectionProvider> to use backend connection hooks.",
     );
   }
-  
+
   return context;
 }

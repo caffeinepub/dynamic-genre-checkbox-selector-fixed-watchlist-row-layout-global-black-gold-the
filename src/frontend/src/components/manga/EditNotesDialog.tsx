@@ -1,73 +1,124 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
-import { useBackendConnectionSingleton } from '../../hooks/useBackendConnectionSingleton';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { BACKEND_NOT_READY_MESSAGE } from '../../utils/backendNotReadyMessage';
+import { Loader2, Save } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import type { MangaEntry } from "../../backend";
+import { useBackendConnectionSingleton } from "../../hooks/useBackendConnectionSingleton";
+import { useUpdateNotes } from "../../hooks/useMangaMutations";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
 interface EditNotesDialogProps {
+  entry: MangaEntry;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentNotes: string;
-  onSave: (notes: string) => Promise<void>;
-  isSaving: boolean;
 }
 
-export function EditNotesDialog({ open, onOpenChange, currentNotes, onSave, isSaving }: EditNotesDialogProps) {
-  const [notes, setNotes] = useState(currentNotes);
-  const { isReady } = useBackendConnectionSingleton();
+export default function EditNotesDialog({
+  entry,
+  open,
+  onOpenChange,
+}: EditNotesDialogProps) {
+  const [notes, setNotes] = useState(entry.notes);
+  const updateNotes = useUpdateNotes();
+  const { isConnecting } = useBackendConnectionSingleton();
 
-  const handleSave = async () => {
-    if (!isReady) {
-      console.error(BACKEND_NOT_READY_MESSAGE);
-      return;
-    }
-    await onSave(notes);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await updateNotes.mutateAsync({ stableId: entry.stableId, notes });
     onOpenChange(false);
   };
-
-  const handleCancel = () => {
-    setNotes(currentNotes);
-    onOpenChange(false);
-  };
-
-  const canSave = isReady && !isSaving;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-amber-50 border-2 border-gold max-w-2xl">
+      <DialogContent
+        className="sm:max-w-md"
+        style={{
+          backgroundColor: "#0a0a0a",
+          border: "1px solid #d4a017",
+          color: "#d4a017",
+        }}
+      >
         <DialogHeader>
-          <DialogTitle className="text-gold">Edit Notes</DialogTitle>
+          <DialogTitle
+            className="font-serif text-lg"
+            style={{ color: "#d4a017" }}
+          >
+            Edit Notes
+          </DialogTitle>
+          <p className="text-xs font-serif" style={{ color: "#8a6a10" }}>
+            {entry.title}
+          </p>
         </DialogHeader>
-        {!isReady && (
-          <div className="flex items-center gap-2 text-sm text-gold bg-muted p-2 rounded">
-            <AlertCircle className="h-4 w-4" />
-            <span>Backend is connecting. Please wait...</span>
+
+        {isConnecting && (
+          <div
+            className="flex items-center gap-2 px-3 py-2 text-xs"
+            style={{ border: "1px solid #8a6a10", color: "#8a6a10" }}
+          >
+            <Loader2 size={12} className="animate-spin" />
+            Connecting to backend...
           </div>
         )}
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Add your notes here..."
-          className="min-h-[200px] bg-white border-gold text-blue-900"
-          disabled={isSaving || !isReady}
-        />
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isSaving} className="text-gold">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!canSave}>
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin text-gold" />
-                <span className="text-gold">Saving...</span>
-              </>
-            ) : (
-              <span className="text-gold">Save</span>
-            )}
-          </Button>
-        </DialogFooter>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={6}
+            placeholder="Add your notes here..."
+            className="w-full px-3 py-2 text-sm outline-none resize-none"
+            style={{
+              backgroundColor: "#f5f0e8",
+              border: "1px solid #d4a017",
+              color: "#1a1a2e",
+              borderRadius: "2px",
+            }}
+          />
+
+          {updateNotes.isError && (
+            <p className="text-sm" style={{ color: "#cc4444" }}>
+              {updateNotes.error instanceof Error
+                ? updateNotes.error.message
+                : "Failed to save notes."}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-3 py-1.5 text-xs border font-serif transition-all"
+              style={{
+                borderColor: "#8a6a10",
+                color: "#8a6a10",
+                backgroundColor: "transparent",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updateNotes.isPending || isConnecting}
+              className="px-3 py-1.5 text-xs border font-serif transition-all disabled:opacity-50 flex items-center gap-1"
+              style={{
+                borderColor: "#d4a017",
+                color: "#d4a017",
+                backgroundColor: "transparent",
+              }}
+            >
+              {updateNotes.isPending ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={12} />
+                  Save Notes
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

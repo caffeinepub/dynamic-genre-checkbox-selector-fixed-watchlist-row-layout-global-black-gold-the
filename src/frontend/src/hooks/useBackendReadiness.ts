@@ -1,6 +1,6 @@
-import { useBackendConnectionSingleton } from './useBackendConnectionSingleton';
+import { useBackendConnectionSingleton } from "./useBackendConnectionSingleton";
 
-export type ReadinessStatus = 'idle' | 'connecting' | 'ready' | 'failed';
+export type ReadinessStatus = "idle" | "connecting" | "ready" | "failed";
 
 export interface BackendReadinessState {
   status: ReadinessStatus;
@@ -9,7 +9,13 @@ export interface BackendReadinessState {
   isFailed: boolean;
   error: unknown | null;
   errorMessage: string | null;
-  errorCategory: 'connecting' | 'transient' | 'authorization' | 'application' | 'timeout' | null;
+  errorCategory:
+    | "connecting"
+    | "transient"
+    | "authorization"
+    | "application"
+    | "timeout"
+    | null;
   retry: () => void;
   retryCount: number;
 }
@@ -22,13 +28,13 @@ export function useBackendReadiness(): BackendReadinessState {
   const connection = useBackendConnectionSingleton();
 
   // Map connection status to readiness status
-  let status: ReadinessStatus = 'idle';
+  let status: ReadinessStatus = "idle";
   if (connection.isConnecting) {
-    status = 'connecting';
+    status = "connecting";
   } else if (connection.isReady) {
-    status = 'ready';
+    status = "ready";
   } else if (connection.isFailed) {
-    status = 'failed';
+    status = "failed";
   }
 
   return {

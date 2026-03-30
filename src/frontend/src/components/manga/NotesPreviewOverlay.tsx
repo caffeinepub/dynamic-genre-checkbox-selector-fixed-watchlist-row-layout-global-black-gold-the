@@ -1,19 +1,45 @@
-import { createPortal } from 'react-dom';
+import React from "react";
+import { createPortal } from "react-dom";
 
 interface NotesPreviewOverlayProps {
   notes: string;
-  visible: boolean;
+  anchorRect: DOMRect;
 }
 
-export function NotesPreviewOverlay({ notes, visible }: NotesPreviewOverlayProps) {
-  if (!visible || !notes.trim()) return null;
+export default function NotesPreviewOverlay({
+  notes,
+  anchorRect,
+}: NotesPreviewOverlayProps) {
+  const top = anchorRect.bottom + window.scrollY + 8;
+  const left = anchorRect.left + window.scrollX;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      <div className="notes-preview-overlay bg-amber-50 border-2 border-gold rounded-lg p-4 max-w-md max-h-[400px] overflow-auto shadow-gold-glow">
-        <p className="text-blue-900 text-sm whitespace-pre-wrap">{notes}</p>
-      </div>
+    <div
+      style={{
+        position: "absolute",
+        top,
+        left,
+        zIndex: 9999,
+        maxWidth: "320px",
+        minWidth: "200px",
+        backgroundColor: "#f5f0e8",
+        border: "1px solid #d4a017",
+        padding: "10px 12px",
+        boxShadow: "0 4px 16px rgba(212,160,23,0.3)",
+        pointerEvents: "none",
+      }}
+    >
+      <p
+        className="text-xs leading-relaxed"
+        style={{
+          color: "#1a1a2e",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
+      >
+        {notes}
+      </p>
     </div>,
-    document.body
+    document.body,
   );
 }

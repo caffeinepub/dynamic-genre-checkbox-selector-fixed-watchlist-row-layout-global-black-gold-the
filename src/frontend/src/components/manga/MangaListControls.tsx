@@ -1,180 +1,215 @@
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Bookmark, Plus } from 'lucide-react';
-import { GenreCheckboxGrid } from './GenreCheckboxGrid';
+import { AlignCenter, AlignLeft, Bookmark, Plus, Search } from "lucide-react";
+import type React from "react";
+import { GenreCheckboxGrid } from "./GenreCheckboxGrid";
+
+type CompletionFilter = "all" | "complete" | "incomplete";
 
 interface MangaListControlsProps {
-  titleSearch: string;
-  onTitleSearchChange: (value: string) => void;
-  synopsisSearch: string;
-  onSynopsisSearchChange: (value: string) => void;
-  notesSearch: string;
-  onNotesSearchChange: (value: string) => void;
+  searchQuery: string;
+  onSearchChange: (v: string) => void;
   selectedGenres: string[];
-  onSelectedGenresChange: (genres: string[]) => void;
+  onGenresChange: (v: string[]) => void;
   availableGenres: string[];
-  bookmarkedOnly: boolean;
-  onBookmarkedOnlyChange: (value: boolean) => void;
-  completedOnly: boolean;
-  onCompletedOnlyChange: (value: boolean) => void;
-  sortBy: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc';
-  onSortByChange: (value: 'title-asc' | 'title-desc' | 'rating-desc' | 'rating-asc') => void;
+  sortOption: string;
+  onSortChange: (v: string) => void;
+  showBookmarkedOnly: boolean;
+  onBookmarkToggle: () => void;
+  completionFilter: CompletionFilter;
+  onCompletionFilterChange: (v: string) => void;
+  alignment?: "left" | "center";
+  onAlignmentChange?: (v: "left" | "center") => void;
   onAddManga: () => void;
-  isBackendReady: boolean;
-  watchlistAlignment: 'left' | 'center' | 'right';
-  onWatchlistAlignmentChange: (value: 'left' | 'center' | 'right') => void;
+  totalCount?: number;
 }
 
-export function MangaListControls({
-  titleSearch,
-  onTitleSearchChange,
-  synopsisSearch,
-  onSynopsisSearchChange,
-  notesSearch,
-  onNotesSearchChange,
+const inputStyle: React.CSSProperties = {
+  backgroundColor: "#0a0a0a",
+  border: "1px solid #d4a017",
+  color: "#d4a017",
+  padding: "4px 8px",
+  fontSize: "13px",
+  outline: "none",
+  borderRadius: "2px",
+};
+
+const labelStyle: React.CSSProperties = {
+  color: "#d4a017",
+  fontSize: "12px",
+  fontFamily: "Cinzel, serif",
+};
+
+export default function MangaListControls({
+  searchQuery,
+  onSearchChange,
   selectedGenres,
-  onSelectedGenresChange,
+  onGenresChange,
   availableGenres,
-  bookmarkedOnly,
-  onBookmarkedOnlyChange,
-  completedOnly,
-  onCompletedOnlyChange,
-  sortBy,
-  onSortByChange,
+  sortOption,
+  onSortChange,
+  showBookmarkedOnly,
+  onBookmarkToggle,
+  completionFilter,
+  onCompletionFilterChange,
+  alignment,
+  onAlignmentChange,
   onAddManga,
-  isBackendReady,
-  watchlistAlignment,
-  onWatchlistAlignmentChange,
 }: MangaListControlsProps) {
+  const handleGenreToggle = (genre: string) => {
+    if (selectedGenres.includes(genre)) {
+      onGenresChange(selectedGenres.filter((g) => g !== genre));
+    } else {
+      onGenresChange([...selectedGenres, genre]);
+    }
+  };
+
   return (
-    <div className="space-y-3">
-      {/* Search Inputs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <div className="space-y-1">
-          <Label htmlFor="title-search" className="text-xs text-gold">Search Title</Label>
-          <Input
-            id="title-search"
-            type="text"
-            placeholder="Search by title..."
-            value={titleSearch}
-            onChange={(e) => onTitleSearchChange(e.target.value)}
-            className="h-8 text-sm border-gold text-gold placeholder:text-gold/50"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="synopsis-search" className="text-xs text-gold">Search Synopsis</Label>
-          <Input
-            id="synopsis-search"
-            type="text"
-            placeholder="Search synopsis..."
-            value={synopsisSearch}
-            onChange={(e) => onSynopsisSearchChange(e.target.value)}
-            className="h-8 text-sm border-gold text-gold placeholder:text-gold/50"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="notes-search" className="text-xs text-gold">Search Notes</Label>
-          <Input
-            id="notes-search"
-            type="text"
-            placeholder="Search notes..."
-            value={notesSearch}
-            onChange={(e) => onNotesSearchChange(e.target.value)}
-            className="h-8 text-sm border-gold text-gold placeholder:text-gold/50"
-          />
-        </div>
-      </div>
-
-      {/* Filters Row */}
+    <div className="space-y-3 p-3" style={{ backgroundColor: "#000000" }}>
+      {/* Row 1: Search + Sort + Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Bookmarked Only */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="bookmarked-only"
-            checked={bookmarkedOnly}
-            onCheckedChange={onBookmarkedOnlyChange}
-            className="border-gold"
+        {/* Search */}
+        <div className="flex items-center gap-2 flex-1 min-w-48">
+          <Search size={14} style={{ color: "#d4a017", flexShrink: 0 }} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search titles..."
+            style={{ ...inputStyle, flex: 1 }}
           />
-          <Label htmlFor="bookmarked-only" className="text-xs text-gold cursor-pointer flex items-center gap-1">
-            <Bookmark className="h-3 w-3 text-gold" />
-            Bookmarked Only
-          </Label>
         </div>
 
-        {/* Completed Only */}
+        {/* Sort */}
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="completed-only"
-            checked={completedOnly}
-            onCheckedChange={onCompletedOnlyChange}
-            className="border-gold"
-          />
-          <Label htmlFor="completed-only" className="text-xs text-gold cursor-pointer">
-            Completed Only
-          </Label>
+          <label htmlFor="sort-select" style={labelStyle}>
+            Sort:
+          </label>
+          <select
+            id="sort-select"
+            value={sortOption}
+            onChange={(e) => onSortChange(e.target.value)}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            <option value="title-asc">Title A→Z</option>
+            <option value="title-desc">Title Z→A</option>
+            <option value="rating-desc">Rating ↓</option>
+            <option value="rating-asc">Rating ↑</option>
+            <option value="chapters-desc">Chapters ↓</option>
+            <option value="chapters-asc">Chapters ↑</option>
+          </select>
         </div>
 
-        {/* Sort By */}
+        {/* Completion Filter */}
         <div className="flex items-center gap-2">
-          <Label htmlFor="sort-by" className="text-xs text-gold shrink-0">Sort:</Label>
-          <Select value={sortBy} onValueChange={onSortByChange}>
-            <SelectTrigger id="sort-by" className="h-8 w-[140px] text-xs border-gold text-gold">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="title-asc" className="text-gold">Title A–Z</SelectItem>
-              <SelectItem value="title-desc" className="text-gold">Title Z–A</SelectItem>
-              <SelectItem value="rating-desc" className="text-gold">Rating High–Low</SelectItem>
-              <SelectItem value="rating-asc" className="text-gold">Rating Low–High</SelectItem>
-            </SelectContent>
-          </Select>
+          <label htmlFor="completion-select" style={labelStyle}>
+            Status:
+          </label>
+          <select
+            id="completion-select"
+            value={completionFilter}
+            onChange={(e) => onCompletionFilterChange(e.target.value)}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            <option value="all">All</option>
+            <option value="complete">Complete</option>
+            <option value="incomplete">Incomplete</option>
+          </select>
         </div>
 
-        {/* Watchlist Alignment */}
-        <div className="flex items-center gap-2">
-          <Label htmlFor="alignment" className="text-xs text-gold shrink-0">Align:</Label>
-          <Select value={watchlistAlignment} onValueChange={onWatchlistAlignmentChange}>
-            <SelectTrigger id="alignment" className="h-8 w-[100px] text-xs border-gold text-gold">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="left" className="text-gold">Left</SelectItem>
-              <SelectItem value="center" className="text-gold">Center</SelectItem>
-              <SelectItem value="right" className="text-gold">Right</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Add Manga Button */}
-        <Button
-          onClick={onAddManga}
-          disabled={!isBackendReady}
-          size="sm"
-          className="ml-auto h-8 text-xs"
+        {/* Bookmark Toggle */}
+        <button
+          type="button"
+          onClick={onBookmarkToggle}
+          className="flex items-center gap-1.5 px-3 py-1 text-xs font-serif border transition-all"
+          style={{
+            borderColor: showBookmarkedOnly ? "#d4a017" : "#8a6a10",
+            color: showBookmarkedOnly ? "#d4a017" : "#8a6a10",
+            backgroundColor: showBookmarkedOnly
+              ? "rgba(212,160,23,0.1)"
+              : "transparent",
+          }}
         >
-          <Plus className="h-3 w-3 mr-1 text-gold" />
-          <span className="text-gold">Add Manga</span>
-        </Button>
+          <Bookmark
+            size={12}
+            style={{ fill: showBookmarkedOnly ? "#d4a017" : "none" }}
+          />
+          Bookmarked
+        </button>
+
+        {/* Alignment */}
+        {onAlignmentChange && (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onAlignmentChange("left")}
+              className="p-1 border transition-all"
+              style={{
+                borderColor: alignment === "left" ? "#d4a017" : "#8a6a10",
+                color: alignment === "left" ? "#d4a017" : "#8a6a10",
+                backgroundColor:
+                  alignment === "left" ? "rgba(212,160,23,0.1)" : "transparent",
+              }}
+              title="Left align"
+            >
+              <AlignLeft size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onAlignmentChange("center")}
+              className="p-1 border transition-all"
+              style={{
+                borderColor: alignment === "center" ? "#d4a017" : "#8a6a10",
+                color: alignment === "center" ? "#d4a017" : "#8a6a10",
+                backgroundColor:
+                  alignment === "center"
+                    ? "rgba(212,160,23,0.1)"
+                    : "transparent",
+              }}
+              title="Center align"
+            >
+              <AlignCenter size={12} />
+            </button>
+          </div>
+        )}
+
+        {/* Add Button */}
+        <button
+          type="button"
+          onClick={onAddManga}
+          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-serif border transition-all ml-auto"
+          style={{
+            borderColor: "#d4a017",
+            color: "#d4a017",
+            backgroundColor: "transparent",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              "rgba(212,160,23,0.15)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow =
+              "0 0 8px rgba(212,160,23,0.4)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              "transparent";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+          }}
+        >
+          <Plus size={14} />
+          Add Manga
+        </button>
       </div>
 
       {/* Genre Filter */}
       {availableGenres.length > 0 && (
-        <div className="space-y-1">
-          <Label className="text-xs text-gold">Filter by Genre</Label>
+        <div>
+          <span
+            style={{ ...labelStyle, display: "block", marginBottom: "6px" }}
+          >
+            Genres:
+          </span>
           <GenreCheckboxGrid
             genres={availableGenres}
             selectedGenres={selectedGenres}
-            onGenreToggle={(genre) => {
-              if (selectedGenres.includes(genre)) {
-                onSelectedGenresChange(selectedGenres.filter(g => g !== genre));
-              } else {
-                onSelectedGenresChange([...selectedGenres, genre]);
-              }
-            }}
-            disabled={false}
+            onGenreToggle={handleGenreToggle}
           />
         </div>
       )}

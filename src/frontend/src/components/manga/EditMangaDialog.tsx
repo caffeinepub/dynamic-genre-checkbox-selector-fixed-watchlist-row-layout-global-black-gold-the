@@ -1,330 +1,426 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { useUpdateMangaEntry } from '../../hooks/useMangaMutations';
-import { useBackendConnectionSingleton } from '../../hooks/useBackendConnectionSingleton';
-import { MangaEntry, ExternalBlob, UpdateFields } from '../../backend';
-import { CoverImagesField } from './CoverImagesField';
-import { GenreCheckboxGrid } from './GenreCheckboxGrid';
-import { useLibraryGenres } from '../../hooks/useLibraryGenres';
-import { Loader2, AlertCircle, Plus } from 'lucide-react';
-import { BACKEND_NOT_READY_MESSAGE } from '../../utils/backendNotReadyMessage';
+import { Loader2, Save, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import type { ExternalBlob, MangaEntry, UpdateFields } from "../../backend";
+import { useLibraryGenres } from "../../hooks/useLibraryGenres";
+import { useUpdateMangaEntry } from "../../hooks/useMangaMutations";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { CoverImagesField } from "./CoverImagesField";
+import { GenreCheckboxGrid } from "./GenreCheckboxGrid";
 
 interface EditMangaDialogProps {
+  entry: MangaEntry;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  manga: MangaEntry;
   currentPage: number;
 }
 
-export function EditMangaDialog({ open, onOpenChange, manga, currentPage }: EditMangaDialogProps) {
-  const [title, setTitle] = useState(manga.title);
-  const [alternateTitles, setAlternateTitles] = useState(manga.alternateTitles.join(', '));
-  const [selectedGenres, setSelectedGenres] = useState<string[]>(manga.genres);
-  const [coverImages, setCoverImages] = useState<ExternalBlob[]>(manga.coverImages);
-  const [synopsis, setSynopsis] = useState(manga.synopsis);
-  const [chaptersRead, setChaptersRead] = useState(manga.chaptersRead.toString());
-  const [availableChapters, setAvailableChapters] = useState(manga.availableChapters.toString());
-  const [newGenreInput, setNewGenreInput] = useState('');
-  const [customGenres, setCustomGenres] = useState<string[]>([]);
+const inputStyle: React.CSSProperties = {
+  backgroundColor: "#0a0a0a",
+  border: "1px solid #d4a017",
+  color: "#d4a017",
+  padding: "6px 10px",
+  fontSize: "13px",
+  outline: "none",
+  borderRadius: "2px",
+  width: "100%",
+};
 
-  const { isReady } = useBackendConnectionSingleton();
-  const updateMutation = useUpdateMangaEntry(currentPage);
+const labelStyle: React.CSSProperties = {
+  color: "#d4a017",
+  fontSize: "12px",
+  fontFamily: "Cinzel, serif",
+  display: "block",
+  marginBottom: "4px",
+};
+
+export default function EditMangaDialog({
+  entry,
+  open,
+  onOpenChange,
+  currentPage,
+}: EditMangaDialogProps) {
   const { genres: libraryGenres } = useLibraryGenres();
+  const updateEntry = useUpdateMangaEntry(currentPage);
 
-  // Union of library genres and custom genres (selected genres are a subset)
-  const allAvailableGenres = Array.from(
-    new Set([...libraryGenres, ...customGenres])
-  ).sort((a, b) => a.localeCompare(b));
+  const [title, setTitle] = useState(entry.title);
+  const [alternateTitles, setAlternateTitles] = useState<string[]>(
+    entry.alternateTitles,
+  );
+  const [altTitleInput, setAltTitleInput] = useState("");
+  const [synopsis, setSynopsis] = useState(entry.synopsis);
+  const [chaptersRead, setChaptersRead] = useState(String(entry.chaptersRead));
+  const [availableChapters, setAvailableChapters] = useState(
+    String(entry.availableChapters),
+  );
+  const [rating, setRating] = useState(String(entry.rating));
+  const [completed, setCompleted] = useState(entry.completed);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(entry.genres);
+  const [coverImages, setCoverImages] = useState<ExternalBlob[]>(
+    entry.coverImages,
+  );
+  const [newGenreInput, setNewGenreInput] = useState("");
 
-  // Reset form when manga changes or dialog opens
+  // Sync state when entry changes
   useEffect(() => {
-    if (open) {
-      setTitle(manga.title);
-      setAlternateTitles(manga.alternateTitles.join(', '));
-      setSelectedGenres(manga.genres);
-      setCoverImages(manga.coverImages);
-      setSynopsis(manga.synopsis);
-      setChaptersRead(manga.chaptersRead.toString());
-      setAvailableChapters(manga.availableChapters.toString());
-      setNewGenreInput('');
-      setCustomGenres([]);
-    }
-  }, [open, manga]);
+    setTitle(entry.title);
+    setAlternateTitles(entry.alternateTitles);
+    setSynopsis(entry.synopsis);
+    setChaptersRead(String(entry.chaptersRead));
+    setAvailableChapters(String(entry.availableChapters));
+    setRating(String(entry.rating));
+    setCompleted(entry.completed);
+    setSelectedGenres(entry.genres);
+    setCoverImages(entry.coverImages);
+  }, [entry]);
 
-  // Auto-prune selectedGenres when library genres change
-  useEffect(() => {
-    setSelectedGenres(prev => {
-      const validGenres = prev.filter(g => 
-        libraryGenres.includes(g) || customGenres.includes(g)
-      );
-      if (validGenres.length !== prev.length) {
-        return validGenres;
-      }
-      return prev;
-    });
-  }, [libraryGenres, customGenres]);
-
-  const handleAddGenre = () => {
-    const trimmed = newGenreInput.trim();
-    if (trimmed && !allAvailableGenres.includes(trimmed)) {
-      setCustomGenres([...customGenres, trimmed]);
-      setSelectedGenres([...selectedGenres, trimmed]);
-      setNewGenreInput('');
-    } else if (trimmed && allAvailableGenres.includes(trimmed)) {
-      // If genre already exists, just select it
-      if (!selectedGenres.includes(trimmed)) {
-        setSelectedGenres([...selectedGenres, trimmed]);
-      }
-      setNewGenreInput('');
+  const handleAddAltTitle = () => {
+    if (altTitleInput.trim()) {
+      setAlternateTitles((prev) => [...prev, altTitleInput.trim()]);
+      setAltTitleInput("");
     }
+  };
+
+  const handleRemoveAltTitle = (idx: number) => {
+    setAlternateTitles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleGenreToggle = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
+    );
+  };
+
+  const handleAddNewGenre = () => {
+    const g = newGenreInput.trim();
+    if (g && !selectedGenres.includes(g)) {
+      setSelectedGenres((prev) => [...prev, g]);
+    }
+    setNewGenreInput("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) return;
 
-    if (!isReady) {
-      console.error(BACKEND_NOT_READY_MESSAGE);
-      return;
-    }
-
-    const alternateTitlesArray = alternateTitles
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t.length > 0);
-
-    // Compute delta: only include fields that changed
-    const updates: UpdateFields = {
-      stableId: manga.stableId,
-    };
-
-    if (title !== manga.title) {
-      updates.title = title;
-    }
-
-    const altTitlesChanged = 
-      alternateTitlesArray.length !== manga.alternateTitles.length ||
-      alternateTitlesArray.some((t, i) => t !== manga.alternateTitles[i]);
-    if (altTitlesChanged) {
-      updates.alternateTitles = alternateTitlesArray;
-    }
-
-    const genresChanged = 
-      selectedGenres.length !== manga.genres.length ||
-      selectedGenres.some((g, i) => g !== manga.genres[i]);
-    if (genresChanged) {
+    // Only send changed fields
+    const updates: UpdateFields = { stableId: entry.stableId };
+    if (title.trim() !== entry.title) updates.title = title.trim();
+    if (
+      JSON.stringify(alternateTitles) !== JSON.stringify(entry.alternateTitles)
+    )
+      updates.alternateTitles = alternateTitles;
+    if (synopsis !== entry.synopsis) updates.synopsis = synopsis;
+    const parsedChaptersRead = Number.parseFloat(chaptersRead) || 0;
+    if (parsedChaptersRead !== entry.chaptersRead)
+      updates.chaptersRead = parsedChaptersRead;
+    const parsedAvailableChapters = Number.parseFloat(availableChapters) || 0;
+    if (parsedAvailableChapters !== entry.availableChapters)
+      updates.availableChapters = parsedAvailableChapters;
+    const parsedRating = Number.parseFloat(rating) || 0;
+    if (parsedRating !== entry.rating) updates.rating = parsedRating;
+    if (completed !== entry.completed) updates.completed = completed;
+    if (JSON.stringify(selectedGenres) !== JSON.stringify(entry.genres))
       updates.genres = selectedGenres;
-    }
+    if (coverImages !== entry.coverImages) updates.coverImages = coverImages;
 
-    // Only send coverImages if they changed
-    const coversChanged = 
-      coverImages.length !== manga.coverImages.length ||
-      coverImages.some((c, i) => c.getDirectURL() !== manga.coverImages[i].getDirectURL());
-    if (coversChanged) {
-      updates.coverImages = coverImages;
-    }
-
-    if (synopsis !== manga.synopsis) {
-      updates.synopsis = synopsis;
-    }
-
-    const newChaptersRead = parseFloat(chaptersRead);
-    if (!isNaN(newChaptersRead) && newChaptersRead !== manga.chaptersRead) {
-      updates.chaptersRead = newChaptersRead;
-    }
-
-    const newAvailableChapters = parseFloat(availableChapters);
-    if (!isNaN(newAvailableChapters) && newAvailableChapters !== manga.availableChapters) {
-      updates.availableChapters = newAvailableChapters;
-    }
-
-    try {
-      await updateMutation.mutateAsync({ stableId: manga.stableId, updates });
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Failed to update manga:', error);
-    }
+    await updateEntry.mutateAsync({ stableId: entry.stableId, updates });
+    onOpenChange(false);
   };
 
-  const handleClose = () => {
-    if (!updateMutation.isPending) {
-      onOpenChange(false);
-    }
-  };
-
-  const canSubmit = title.trim() && isReady && !updateMutation.isPending;
+  const allAvailableGenres = Array.from(
+    new Set([...libraryGenres, ...selectedGenres]),
+  ).sort();
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0 bg-card border-gold">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="sm:max-w-lg flex flex-col"
+        style={{
+          backgroundColor: "#0a0a0a",
+          border: "1px solid #d4a017",
+          color: "#d4a017",
+          maxHeight: "90vh",
+          padding: 0,
+        }}
+      >
         {/* Fixed Header */}
-        <DialogHeader className="px-6 py-4 border-b border-gold shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle className="text-gold">Edit Manga</DialogTitle>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleClose}
-              disabled={updateMutation.isPending}
-              className="text-gold"
+        <DialogHeader
+          className="px-4 py-3 flex-shrink-0"
+          style={{ borderBottom: "1px solid #d4a017" }}
+        >
+          <div className="flex items-center justify-between">
+            <DialogTitle
+              className="font-serif text-lg"
+              style={{ color: "#d4a017" }}
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-            >
-              {updateMutation.isPending ? (
-                <>
-                  <Loader2 className="h-3 w-3 mr-2 animate-spin text-gold" />
-                  <span className="text-gold">Saving...</span>
-                </>
-              ) : (
-                <span className="text-gold">Save Changes</span>
-              )}
-            </Button>
+              Edit Manga Entry
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <button
+                form="edit-manga-form"
+                type="submit"
+                disabled={!title.trim() || updateEntry.isPending}
+                className="text-xs px-3 py-1 border font-serif transition-all disabled:opacity-50 flex items-center gap-1"
+                style={{
+                  borderColor: "#d4a017",
+                  color: "#d4a017",
+                  backgroundColor: "transparent",
+                }}
+              >
+                {updateEntry.isPending ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={12} />
+                    Save
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </DialogHeader>
 
-        {/* Backend not ready warning */}
-        {!isReady && (
-          <div className="px-6 py-2 bg-muted border-b border-gold">
-            <div className="flex items-center gap-2 text-sm text-gold">
-              <AlertCircle className="h-4 w-4" />
-              <span>Backend is connecting. Please wait...</span>
-            </div>
-          </div>
-        )}
-
         {/* Scrollable Body */}
-        <div 
-          className="flex-1 min-h-0 px-6"
-          style={{ 
-            maxHeight: '400px',
-            overflowY: 'scroll',
-            overscrollBehavior: 'contain'
-          }}
+        <div
+          className="overflow-y-auto flex-1"
+          style={{ maxHeight: "400px", overscrollBehavior: "contain" }}
         >
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-title" className="text-gold">Title *</Label>
-              <Input
+          <form
+            id="edit-manga-form"
+            onSubmit={handleSubmit}
+            className="p-4 space-y-4"
+          >
+            {/* Title */}
+            <div>
+              <label htmlFor="edit-title" style={labelStyle}>
+                Title *
+              </label>
+              <input
                 id="edit-title"
+                type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter manga title"
+                style={inputStyle}
                 required
-                disabled={updateMutation.isPending || !isReady}
-                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-alternate-titles" className="text-gold">Alternate Titles (comma-separated)</Label>
-              <Input
-                id="edit-alternate-titles"
-                value={alternateTitles}
-                onChange={(e) => setAlternateTitles(e.target.value)}
-                placeholder="Title 1, Title 2, ..."
-                disabled={updateMutation.isPending || !isReady}
-                className="border-gold text-gold placeholder:text-gold/50"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gold">Genres</Label>
+            {/* Alternate Titles */}
+            <div>
+              <label htmlFor="edit-alt-title" style={labelStyle}>
+                Alternate Titles
+              </label>
               <div className="flex gap-2 mb-2">
-                <Input
-                  value={newGenreInput}
-                  onChange={(e) => setNewGenreInput(e.target.value)}
-                  placeholder="Add new genre"
-                  disabled={updateMutation.isPending || !isReady}
+                <input
+                  id="edit-alt-title"
+                  type="text"
+                  value={altTitleInput}
+                  onChange={(e) => setAltTitleInput(e.target.value)}
+                  placeholder="Add alternate title..."
+                  style={{ ...inputStyle, flex: 1 }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      handleAddGenre();
+                      handleAddAltTitle();
                     }
                   }}
-                  className="border-gold text-gold placeholder:text-gold/50"
                 />
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  onClick={handleAddGenre}
-                  disabled={!newGenreInput.trim() || updateMutation.isPending || !isReady}
+                  onClick={handleAddAltTitle}
+                  className="px-2 py-1 border text-xs font-serif"
+                  style={{
+                    borderColor: "#d4a017",
+                    color: "#d4a017",
+                    backgroundColor: "transparent",
+                  }}
                 >
-                  <Plus className="h-4 w-4 text-gold" />
-                </Button>
+                  Add
+                </button>
               </div>
-              <GenreCheckboxGrid
-                genres={allAvailableGenres}
-                selectedGenres={selectedGenres}
-                onGenreToggle={(genre) => {
-                  if (selectedGenres.includes(genre)) {
-                    setSelectedGenres(selectedGenres.filter(g => g !== genre));
-                  } else {
-                    setSelectedGenres([...selectedGenres, genre]);
-                  }
-                }}
-                disabled={updateMutation.isPending || !isReady}
+              {alternateTitles.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {alternateTitles.map((t, i) => {
+                    const altKey = `${t}-${i}`;
+                    return (
+                      <span
+                        key={altKey}
+                        className="flex items-center gap-1 text-xs px-2 py-0.5"
+                        style={{
+                          border: "1px solid #8a6a10",
+                          color: "#8a6a10",
+                        }}
+                      >
+                        {t}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAltTitle(i)}
+                          style={{
+                            color: "#8a6a10",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Synopsis */}
+            <div>
+              <label htmlFor="edit-synopsis" style={labelStyle}>
+                Synopsis
+              </label>
+              <textarea
+                id="edit-synopsis"
+                value={synopsis}
+                onChange={(e) => setSynopsis(e.target.value)}
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical" }}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gold">Cover Images</Label>
+            {/* Chapters */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="edit-chapters-read" style={labelStyle}>
+                  Chapters Read
+                </label>
+                <input
+                  id="edit-chapters-read"
+                  type="number"
+                  value={chaptersRead}
+                  onChange={(e) => setChaptersRead(e.target.value)}
+                  style={inputStyle}
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-total-chapters" style={labelStyle}>
+                  Total Chapters
+                </label>
+                <input
+                  id="edit-total-chapters"
+                  type="number"
+                  value={availableChapters}
+                  onChange={(e) => setAvailableChapters(e.target.value)}
+                  style={inputStyle}
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div>
+              <label htmlFor="edit-rating" style={labelStyle}>
+                Rating (0–10)
+              </label>
+              <input
+                id="edit-rating"
+                type="number"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                style={inputStyle}
+                min="0"
+                max="10"
+                step="0.1"
+              />
+            </div>
+
+            {/* Completed */}
+            <div className="flex items-center gap-3">
+              <span style={labelStyle}>Status:</span>
+              <label
+                htmlFor="edit-completed"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  id="edit-completed"
+                  type="checkbox"
+                  checked={completed}
+                  onChange={(e) => setCompleted(e.target.checked)}
+                  style={{ accentColor: "#d4a017" }}
+                />
+                <span
+                  className="text-xs font-serif"
+                  style={{ color: "#d4a017" }}
+                >
+                  Completed
+                </span>
+              </label>
+            </div>
+
+            {/* Genres */}
+            <div>
+              <label htmlFor="edit-new-genre" style={labelStyle}>
+                Genres
+              </label>
+              {allAvailableGenres.length > 0 && (
+                <div className="mb-2">
+                  <GenreCheckboxGrid
+                    genres={allAvailableGenres}
+                    selectedGenres={selectedGenres}
+                    onGenreToggle={handleGenreToggle}
+                  />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  id="edit-new-genre"
+                  type="text"
+                  value={newGenreInput}
+                  onChange={(e) => setNewGenreInput(e.target.value)}
+                  placeholder="Add new genre..."
+                  style={{ ...inputStyle, flex: 1 }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddNewGenre();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddNewGenre}
+                  className="px-2 py-1 border text-xs font-serif"
+                  style={{
+                    borderColor: "#d4a017",
+                    color: "#d4a017",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Cover Images */}
+            <div>
+              <span style={labelStyle}>Cover Images</span>
               <CoverImagesField
                 coverImages={coverImages}
                 onChange={setCoverImages}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-synopsis" className="text-gold">Synopsis</Label>
-              <Textarea
-                id="edit-synopsis"
-                value={synopsis}
-                onChange={(e) => setSynopsis(e.target.value)}
-                placeholder="Enter synopsis"
-                rows={4}
-                disabled={updateMutation.isPending || !isReady}
-                className="border-gold text-gold placeholder:text-gold/50"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-chapters-read" className="text-gold">Chapters Read</Label>
-                <Input
-                  id="edit-chapters-read"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={chaptersRead}
-                  onChange={(e) => setChaptersRead(e.target.value)}
-                  disabled={updateMutation.isPending || !isReady}
-                  className="border-gold text-gold"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-available-chapters" className="text-gold">Available Chapters</Label>
-                <Input
-                  id="edit-available-chapters"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={availableChapters}
-                  onChange={(e) => setAvailableChapters(e.target.value)}
-                  disabled={updateMutation.isPending || !isReady}
-                  className="border-gold text-gold"
-                />
-              </div>
-            </div>
+            {updateEntry.isError && (
+              <p className="text-sm" style={{ color: "#cc4444" }}>
+                {updateEntry.error instanceof Error
+                  ? updateEntry.error.message
+                  : "Failed to update entry. Please try again."}
+              </p>
+            )}
           </form>
         </div>
       </DialogContent>

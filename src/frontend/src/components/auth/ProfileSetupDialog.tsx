@@ -1,66 +1,118 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { useSaveCallerUserProfile } from '../../hooks/useCurrentUserProfile';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useSaveCallerUserProfile } from "../../hooks/useCurrentUserProfile";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
-interface ProfileSetupDialogProps {
-  open: boolean;
-}
-
-export function ProfileSetupDialog({ open }: ProfileSetupDialogProps) {
-  const [name, setName] = useState('');
-  const saveProfileMutation = useSaveCallerUserProfile();
+export default function ProfileSetupDialog() {
+  const [name, setName] = useState("");
+  const [open] = useState(true);
+  const saveProfile = useSaveCallerUserProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-
-    try {
-      await saveProfileMutation.mutateAsync({ name: name.trim() });
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-    }
+    await saveProfile.mutateAsync({ name: name.trim() });
   };
 
   return (
-    <Dialog open={open}>
-      <DialogContent className="sm:max-w-md bg-card border-gold hide-close-button">
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent
+        className="sm:max-w-md"
+        style={{
+          backgroundColor: "#0a0a0a",
+          border: "1px solid #d4a017",
+          color: "#d4a017",
+        }}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle className="text-gold">Welcome!</DialogTitle>
-          <DialogDescription className="text-gold">
-            Please enter your name to get started.
+          <DialogTitle
+            className="font-serif text-xl"
+            style={{ color: "#d4a017" }}
+          >
+            Welcome to Manga Watchlist
+          </DialogTitle>
+          <DialogDescription style={{ color: "#8a6a10" }}>
+            Please enter your display name to get started.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-gold">Your Name</Label>
-            <Input
-              id="name"
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div>
+            <label
+              htmlFor="display-name"
+              className="block text-sm font-serif mb-1"
+              style={{ color: "#d4a017" }}
+            >
+              Display Name
+            </label>
+            <input
+              id="display-name"
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-              disabled={saveProfileMutation.isPending}
-              className="border-gold text-gold"
+              placeholder="Enter your name..."
+              className="w-full px-3 py-2 text-sm outline-none focus:ring-1"
+              style={{
+                backgroundColor: "#0a0a0a",
+                border: "1px solid #d4a017",
+                color: "#d4a017",
+                borderRadius: "4px",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 0 6px rgba(212,160,23,0.5)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = "none";
+              }}
             />
           </div>
-          <Button
+
+          {saveProfile.isError && (
+            <p className="text-sm" style={{ color: "#cc4444" }}>
+              {saveProfile.error instanceof Error
+                ? saveProfile.error.message
+                : "Failed to save profile. Please try again."}
+            </p>
+          )}
+
+          <button
             type="submit"
-            disabled={!name.trim() || saveProfileMutation.isPending}
-            className="w-full"
+            disabled={!name.trim() || saveProfile.isPending}
+            className="w-full py-2 font-serif text-sm border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{
+              borderColor: "#d4a017",
+              color: "#d4a017",
+              backgroundColor: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              if (!saveProfile.isPending && name.trim()) {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "rgba(212,160,23,0.15)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "transparent";
+            }}
           >
-            {saveProfileMutation.isPending ? (
+            {saveProfile.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
+                <Loader2 size={14} className="animate-spin" />
+                <span>Saving...</span>
               </>
             ) : (
-              'Continue'
+              "Get Started"
             )}
-          </Button>
+          </button>
         </form>
       </DialogContent>
     </Dialog>

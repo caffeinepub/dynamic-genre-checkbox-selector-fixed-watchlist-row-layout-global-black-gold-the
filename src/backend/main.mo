@@ -12,6 +12,8 @@ import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -302,7 +304,6 @@ actor {
     };
   };
 
-  // Store available genres
   var availableGenres : [Text] = [];
 
   public shared ({ caller }) func updateAvailableGenres(genres : [Text]) : async () {

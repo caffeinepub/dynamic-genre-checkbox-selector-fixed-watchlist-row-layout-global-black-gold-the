@@ -3,9 +3,12 @@
  */
 
 export class TimeoutError extends Error {
-  constructor(message: string, public readonly timeoutMs: number) {
+  constructor(
+    message: string,
+    public readonly timeoutMs: number,
+  ) {
     super(message);
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
@@ -19,15 +22,15 @@ export class TimeoutError extends Error {
 export function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(
         new TimeoutError(
           errorMessage || `Operation timed out after ${timeoutMs}ms`,
-          timeoutMs
-        )
+          timeoutMs,
+        ),
       );
     }, timeoutMs);
 
@@ -46,14 +49,17 @@ export function withTimeout<T>(
 /**
  * Create a timeout promise that rejects after specified time
  */
-export function createTimeout(timeoutMs: number, errorMessage?: string): Promise<never> {
+export function createTimeout(
+  timeoutMs: number,
+  errorMessage?: string,
+): Promise<never> {
   return new Promise((_, reject) => {
     setTimeout(() => {
       reject(
         new TimeoutError(
           errorMessage || `Timeout after ${timeoutMs}ms`,
-          timeoutMs
-        )
+          timeoutMs,
+        ),
       );
     }, timeoutMs);
   });

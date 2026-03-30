@@ -1,384 +1,326 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MangaEntry } from '../../backend';
-import { Star, Bookmark, FileText, AlertCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { useUpdateMangaRating, useToggleBookmark, useUpdateNotes, useUpdateCompletionStatus, useUpdateChapterProgress } from '../../hooks/useMangaMutations';
-import { useBackendConnectionSingleton } from '../../hooks/useBackendConnectionSingleton';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { Loader2 } from 'lucide-react';
-import { EditNotesDialog } from './EditNotesDialog';
-import { NotesPreviewOverlay } from './NotesPreviewOverlay';
-import { AutoScrollTitle } from './AutoScrollTitle';
-import { CoverHoverPopup } from './CoverHoverPopup';
-import { useCachedCoverImageUrl } from '../../hooks/useCachedCoverImageUrl';
-import { formatChapterNumber } from '../../utils/formatChapterNumber';
+import { Bookmark, BookmarkCheck, Star } from "lucide-react";
+import type React from "react";
+import { useCallback, useState } from "react";
+import type { MangaEntry } from "../../backend";
+import { useCachedCoverImageUrl } from "../../hooks/useCachedCoverImageUrl";
+import { useInternetIdentity } from "../../hooks/useInternetIdentity";
+import {
+  useToggleBookmark,
+  useUpdateChapterProgress,
+} from "../../hooks/useMangaMutations";
+import { formatChapterNumber } from "../../utils/formatChapterNumber";
+import { AutoScrollTitle } from "./AutoScrollTitle";
+import CoverHoverPopup from "./CoverHoverPopup";
+import NotesPreviewOverlay from "./NotesPreviewOverlay";
 
 interface MangaCardProps {
-  manga: MangaEntry;
+  entry: MangaEntry;
+  width?: number;
 }
 
-const MangaCardComponent = ({ manga }: MangaCardProps) => {
+export default function MangaCard({ entry, width }: MangaCardProps) {
+  const [showNotesOverlay, setShowNotesOverlay] = useState(false);
+  const [notesAnchorRect, setNotesAnchorRect] = useState<DOMRect | null>(null);
+  const [showCoverPopup, setShowCoverPopup] = useState(false);
   const [titleIndex, setTitleIndex] = useState(0);
-  const [ratingPopoverOpen, setRatingPopoverOpen] = useState(false);
-  const [newRating, setNewRating] = useState(manga.rating.toString());
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  const [notesHovered, setNotesHovered] = useState(false);
-  const [coverPopupOpen, setCoverPopupOpen] = useState(false);
-  const [isEditingChapters, setIsEditingChapters] = useState(false);
-  const [editChaptersRead, setEditChaptersRead] = useState(manga.chaptersRead.toString());
-  
-  const coverRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const chapterInputRef = useRef<HTMLInputElement>(null);
-  
-  const { isReady } = useBackendConnectionSingleton();
+  const [editingChapters, setEditingChapters] = useState(false);
+  const [chaptersValue, setChaptersValue] = useState("");
+
   const { identity } = useInternetIdentity();
-  const updateRatingMutation = useUpdateMangaRating();
-  const toggleBookmarkMutation = useToggleBookmark();
-  const updateNotesMutation = useUpdateNotes();
-  const updateCompletionMutation = useUpdateCompletionStatus();
-  const updateChapterProgressMutation = useUpdateChapterProgress();
-  
-  const networkCoverUrl = manga.coverImages.length > 0 
-    ? manga.coverImages[0].getDirectURL() 
-    : '/assets/generated/cover-placeholder.dim_600x900.png';
-
   const principal = identity?.getPrincipal().toString();
-  const coverUrl = useCachedCoverImageUrl(principal, manga.stableId, networkCoverUrl);
 
-  const allTitles = [manga.title, ...manga.alternateTitles];
-  const hasAlternateTitles = manga.alternateTitles.length > 0;
-  const currentTitle = allTitles[titleIndex];
+  const toggleBookmark = useToggleBookmark();
+  const updateChapterProgress = useUpdateChapterProgress();
 
-  const hasNotes = manga.notes.trim().length > 0;
-  const isHighRating = manga.rating >= 8.0;
+  const networkCoverUrl =
+    entry.coverImages && entry.coverImages.length > 0
+      ? entry.coverImages[0].getDirectURL()
+      : "/assets/generated/cover-placeholder.dim_600x900.png";
 
-  const cycleTitle = useCallback(() => {
+  // useCachedCoverImageUrl(principal, stableId, networkUrl)
+  const coverUrl = useCachedCoverImageUrl(
+    principal,
+    entry.stableId,
+    networkCoverUrl,
+  );
+
+  const allTitles = [entry.title, ...entry.alternateTitles].filter(Boolean);
+  const currentTitle = allTitles[titleIndex] ?? entry.title;
+
+  const handleTitleCycle = useCallback(() => {
     if (allTitles.length > 1) {
       setTitleIndex((prev) => (prev + 1) % allTitles.length);
     }
   }, [allTitles.length]);
 
-  const handleRatingSubmit = useCallback(async () => {
-    if (!isReady) return;
-    
-    const rating = parseFloat(newRating);
-    if (isNaN(rating) || rating < 0 || rating > 10) return;
+  const handleBookmarkToggle = useCallback(() => {
+    toggleBookmark.mutate(entry.stableId);
+  }, [toggleBookmark, entry.stableId]);
 
-    try {
-      await updateRatingMutation.mutateAsync({ stableId: manga.stableId, rating });
-      setRatingPopoverOpen(false);
-    } catch (error) {
-      console.error('Failed to update rating:', error);
-    }
-  }, [isReady, newRating, updateRatingMutation, manga.stableId]);
-
-  const handleChapterEditClick = useCallback(() => {
-    setIsEditingChapters(true);
-    setEditChaptersRead(manga.chaptersRead.toString());
-  }, [manga.chaptersRead]);
-
-  const handleChapterEditSave = useCallback(async () => {
-    if (!isReady) return;
-    
-    const chaptersRead = parseFloat(editChaptersRead);
-    
-    if (isNaN(chaptersRead) || chaptersRead < 0) {
-      setIsEditingChapters(false);
-      setEditChaptersRead(manga.chaptersRead.toString());
-      return;
-    }
-
-    try {
-      await updateChapterProgressMutation.mutateAsync({ 
-        stableId: manga.stableId, 
-        chaptersRead, 
-        availableChapters: manga.availableChapters 
-      });
-      setIsEditingChapters(false);
-    } catch (error) {
-      console.error('Failed to update chapter progress:', error);
-      setIsEditingChapters(false);
-      setEditChaptersRead(manga.chaptersRead.toString());
-    }
-  }, [isReady, editChaptersRead, updateChapterProgressMutation, manga.stableId, manga.availableChapters, manga.chaptersRead]);
-
-  const handleChapterEditCancel = useCallback(() => {
-    setIsEditingChapters(false);
-    setEditChaptersRead(manga.chaptersRead.toString());
-  }, [manga.chaptersRead]);
-
-  const handleChapterEditKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleChapterEditSave();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      handleChapterEditCancel();
-    }
-  }, [handleChapterEditSave, handleChapterEditCancel]);
-
-  useEffect(() => {
-    if (isEditingChapters && chapterInputRef.current) {
-      chapterInputRef.current.focus();
-      chapterInputRef.current.select();
-    }
-  }, [isEditingChapters]);
-
-  const handleBookmarkToggle = useCallback(async () => {
-    if (!isReady) return;
-    
-    try {
-      await toggleBookmarkMutation.mutateAsync(manga.stableId);
-    } catch (error) {
-      console.error('Failed to toggle bookmark:', error);
-    }
-  }, [isReady, toggleBookmarkMutation, manga.stableId]);
-
-  const handleNotesSave = useCallback(async (notes: string) => {
-    if (!isReady) return;
-    
-    try {
-      await updateNotesMutation.mutateAsync({ stableId: manga.stableId, notes });
-    } catch (error) {
-      console.error('Failed to update notes:', error);
-    }
-  }, [isReady, updateNotesMutation, manga.stableId]);
-
-  const handleCompletionChange = useCallback(async (value: string) => {
-    if (!isReady) return;
-    
-    const completed = value === 'complete';
-    try {
-      await updateCompletionMutation.mutateAsync({ stableId: manga.stableId, completed });
-    } catch (error) {
-      console.error('Failed to update completion status:', error);
-    }
-  }, [isReady, updateCompletionMutation, manga.stableId]);
-
-  const startCloseTimer = useCallback(() => {
-    closeTimerRef.current = setTimeout(() => {
-      setCoverPopupOpen(false);
-    }, 500);
-  }, []);
-
-  const cancelCloseTimer = useCallback(() => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
+  const handleNotesMouseEnter = useCallback(
+    (e: React.MouseEvent) => {
+      if (entry.notes?.trim()) {
+        setNotesAnchorRect(
+          (e.currentTarget as HTMLElement).getBoundingClientRect(),
+        );
+        setShowNotesOverlay(true);
       }
-    };
+    },
+    [entry.notes],
+  );
+
+  const handleNotesMouseLeave = useCallback(() => {
+    setShowNotesOverlay(false);
+    setNotesAnchorRect(null);
   }, []);
+
+  const handleCoverClick = useCallback(() => {
+    setShowCoverPopup(true);
+  }, []);
+
+  const handleChaptersClick = useCallback(() => {
+    setEditingChapters(true);
+    setChaptersValue(formatChapterNumber(entry.chaptersRead));
+  }, [entry.chaptersRead]);
+
+  const handleChaptersBlur = useCallback(() => {
+    const parsed = Number.parseFloat(chaptersValue);
+    if (!Number.isNaN(parsed) && parsed >= 0) {
+      updateChapterProgress.mutate({
+        stableId: entry.stableId,
+        chaptersRead: parsed,
+        availableChapters: entry.availableChapters,
+      });
+    }
+    setEditingChapters(false);
+  }, [
+    chaptersValue,
+    entry.stableId,
+    entry.availableChapters,
+    updateChapterProgress,
+  ]);
+
+  const handleChaptersKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        (e.currentTarget as HTMLInputElement).blur();
+      } else if (e.key === "Escape") {
+        setEditingChapters(false);
+      }
+    },
+    [],
+  );
+
+  const isComplete = entry.completed;
+  const hasHighRating = entry.rating >= 8.0;
+
+  const cardStyle: React.CSSProperties = {
+    width: width ? `${width}px` : "100%",
+    backgroundColor: "#0a0a0a",
+    border: "1px solid #d4a017",
+    color: "#d4a017",
+    display: "flex",
+    alignItems: "stretch",
+    minHeight: "72px",
+    position: "relative",
+    transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+  };
 
   return (
     <>
-      <div className="bg-card border-2 border-gold rounded-lg overflow-hidden shadow-lg hover:shadow-gold-glow transition-all duration-300 hover:rainbow-border-shift group">
+      <div
+        style={cardStyle}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLDivElement;
+          el.style.animation = "rainbow-border-shift 3s linear infinite";
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLDivElement;
+          el.style.animation = "";
+          el.style.borderColor = "#d4a017";
+          el.style.boxShadow = "none";
+        }}
+      >
         {/* Cover Image */}
-        <div 
-          ref={coverRef}
-          className="relative w-full aspect-[2/3] bg-muted cursor-pointer"
-          onClick={() => setCoverPopupOpen(true)}
-          onMouseEnter={cancelCloseTimer}
-          onMouseLeave={startCloseTimer}
+        <button
+          type="button"
+          className="flex-shrink-0 cursor-pointer overflow-hidden"
+          style={{
+            width: "48px",
+            minHeight: "72px",
+            padding: 0,
+            border: "none",
+            background: "none",
+          }}
+          onClick={handleCoverClick}
         >
           <img
             src={coverUrl}
-            alt={manga.title}
+            alt={entry.title}
             className="w-full h-full object-cover"
+            style={{ minHeight: "72px" }}
           />
-          
-          {/* Bookmark Icon - Top Right */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleBookmarkToggle();
-            }}
-            disabled={!isReady || toggleBookmarkMutation.isPending}
-            className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-full hover:bg-black/90 transition-colors disabled:opacity-50"
-          >
-            {toggleBookmarkMutation.isPending ? (
-              <Loader2 className="h-5 w-5 text-gold animate-spin" />
+        </button>
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0 flex items-center px-3 gap-3">
+          {/* Title */}
+          <div className="flex-1 min-w-0" style={{ maxWidth: "280px" }}>
+            <AutoScrollTitle
+              title={currentTitle}
+              onClick={handleTitleCycle}
+              className="text-sm font-serif"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="flex-shrink-0 w-24 text-center">
+            {isComplete ? (
+              <span className="text-xs font-serif rainbow-text">Complete</span>
             ) : (
-              <Bookmark
-                className={`h-5 w-5 text-gold ${manga.isBookmarked ? 'fill-gold' : ''}`}
-              />
+              <span className="text-xs font-serif" style={{ color: "#cc3333" }}>
+                Incomplete
+              </span>
             )}
-          </button>
-
-          {/* Notes Icon - Bottom Right */}
-          <div
-            className="absolute bottom-2 right-2"
-            onMouseEnter={() => setNotesHovered(true)}
-            onMouseLeave={() => setNotesHovered(false)}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotesDialogOpen(true);
-              }}
-              className="p-1.5 bg-black/70 rounded-full hover:bg-black/90 transition-colors relative"
-            >
-              <FileText className="h-5 w-5 text-gold" />
-              {hasNotes && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full flex items-center justify-center">
-                  <AlertCircle className="h-2 w-2 text-white" />
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-3 space-y-2">
-          {/* Title with scroll animation */}
-          <AutoScrollTitle
-            title={currentTitle}
-            onClick={hasAlternateTitles ? cycleTitle : undefined}
-            className="text-gold"
-          />
-
-          {/* Genres Grid - max 3 rows × 4 columns */}
-          {manga.genres.length > 0 && (
-            <div className="grid grid-cols-4 gap-1 max-h-[4.5rem] overflow-hidden bg-amber-900/30 p-1.5 rounded">
-              {manga.genres.slice(0, 12).map((genre, idx) => (
-                <span
-                  key={idx}
-                  className="text-[10px] text-gold text-center truncate px-1 py-0.5 bg-black/40 rounded"
-                  title={genre}
-                >
-                  {genre}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Status Selector */}
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-gold shrink-0">Status:</Label>
-            <Select
-              value={manga.completed ? 'complete' : 'incomplete'}
-              onValueChange={handleCompletionChange}
-              disabled={!isReady || updateCompletionMutation.isPending}
-            >
-              <SelectTrigger className="h-7 text-xs border-gold">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="incomplete" className="text-red-500">Incomplete</SelectItem>
-                <SelectItem value="complete" className="rainbow-text">Complete</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
-          {/* Chapters Progress - Clickable to Edit */}
-          <div className="flex items-center justify-center gap-2">
-            {isEditingChapters ? (
-              <div className="flex items-center gap-1">
-                <Input
-                  ref={chapterInputRef}
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={editChaptersRead}
-                  onChange={(e) => setEditChaptersRead(e.target.value)}
-                  onKeyDown={handleChapterEditKeyDown}
-                  onBlur={handleChapterEditSave}
-                  className="h-7 w-16 text-xs text-center border-gold text-gold"
-                  disabled={!isReady || updateChapterProgressMutation.isPending}
-                />
-                <span className="text-xs text-gold">/</span>
-                <span className="text-xs text-gold">{formatChapterNumber(manga.availableChapters)}</span>
-              </div>
+          {/* Chapters */}
+          <div className="flex-shrink-0 w-28 text-center">
+            {editingChapters ? (
+              <input
+                type="number"
+                value={chaptersValue}
+                onChange={(e) => setChaptersValue(e.target.value)}
+                onBlur={handleChaptersBlur}
+                onKeyDown={handleChaptersKeyDown}
+                className="w-16 text-center text-xs px-1 py-0.5 outline-none"
+                style={{
+                  backgroundColor: "#0a0a0a",
+                  border: "1px solid #d4a017",
+                  color: "#d4a017",
+                  borderRadius: "2px",
+                }}
+                // biome-ignore lint/a11y/noAutofocus: intentional focus for inline editing
+                autoFocus
+                step="0.1"
+                min="0"
+              />
             ) : (
               <button
-                onClick={handleChapterEditClick}
-                className="text-xs text-gold hover:underline cursor-pointer"
-                disabled={!isReady}
+                type="button"
+                onClick={handleChaptersClick}
+                className="text-xs font-serif hover:underline"
+                style={{
+                  color: "#d4a017",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+                title="Click to edit chapters read"
               >
-                {formatChapterNumber(manga.chaptersRead)} / {formatChapterNumber(manga.availableChapters)} chapters
+                {formatChapterNumber(entry.chaptersRead)}
+                {entry.availableChapters > 0 && (
+                  <span style={{ color: "#8a6a10" }}>
+                    /{formatChapterNumber(entry.availableChapters)}
+                  </span>
+                )}
               </button>
             )}
           </div>
 
           {/* Rating */}
-          <Popover open={ratingPopoverOpen} onOpenChange={setRatingPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button className="flex items-center justify-center gap-1 w-full hover:bg-muted/50 rounded p-1 transition-colors">
-                <Star className="h-4 w-4 text-gold fill-gold" />
-                <span className={`text-sm font-semibold ${isHighRating ? 'rainbow-text' : 'text-gold'}`}>
-                  {manga.rating.toFixed(1)}
-                </span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 bg-card border-gold">
-              <div className="space-y-2">
-                <Label htmlFor="rating-input" className="text-gold">Rating (0-10)</Label>
-                <Input
-                  id="rating-input"
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={newRating}
-                  onChange={(e) => setNewRating(e.target.value)}
-                  disabled={!isReady || updateRatingMutation.isPending}
-                  className="border-gold text-gold"
-                />
-                <Button
-                  onClick={handleRatingSubmit}
-                  disabled={!isReady || updateRatingMutation.isPending}
-                  className="w-full"
-                  size="sm"
-                >
-                  {updateRatingMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Rating'
-                  )}
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <div className="flex-shrink-0 w-20 flex items-center justify-center gap-1">
+            <Star size={12} style={{ color: "#d4a017", fill: "#d4a017" }} />
+            <span
+              className={`text-xs font-serif ${hasHighRating ? "rainbow-text" : ""}`}
+              style={hasHighRating ? {} : { color: "#d4a017" }}
+            >
+              {entry.rating > 0 ? entry.rating.toFixed(1) : "—"}
+            </span>
+          </div>
+
+          {/* Genres */}
+          <div className="flex-shrink-0 w-32 hidden md:flex flex-wrap gap-1">
+            {entry.genres.slice(0, 2).map((genre) => (
+              <span
+                key={genre}
+                className="text-xs px-1 py-0.5"
+                style={{
+                  border: "1px solid #8a6a10",
+                  color: "#8a6a10",
+                  fontSize: "10px",
+                }}
+              >
+                {genre}
+              </span>
+            ))}
+            {entry.genres.length > 2 && (
+              <span
+                className="text-xs"
+                style={{ color: "#8a6a10", fontSize: "10px" }}
+              >
+                +{entry.genres.length - 2}
+              </span>
+            )}
+          </div>
+
+          {/* Notes indicator */}
+          {entry.notes?.trim() && (
+            <div
+              className="flex-shrink-0 cursor-pointer"
+              onMouseEnter={handleNotesMouseEnter}
+              onMouseLeave={handleNotesMouseLeave}
+            >
+              <span
+                className="text-xs px-1.5 py-0.5"
+                style={{
+                  border: "1px solid #d4a017",
+                  color: "#d4a017",
+                  fontSize: "10px",
+                }}
+              >
+                Notes
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Bookmark */}
+        <div className="flex-shrink-0 flex items-center px-2">
+          <button
+            type="button"
+            onClick={handleBookmarkToggle}
+            disabled={toggleBookmark.isPending}
+            className="p-1 transition-colors disabled:opacity-50"
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+            title={entry.isBookmarked ? "Remove bookmark" : "Add bookmark"}
+          >
+            {entry.isBookmarked ? (
+              <BookmarkCheck
+                size={16}
+                style={{ color: "#d4a017", fill: "#d4a017" }}
+              />
+            ) : (
+              <Bookmark size={16} style={{ color: "#8a6a10" }} />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Notes Dialog */}
-      <EditNotesDialog
-        open={notesDialogOpen}
-        onOpenChange={setNotesDialogOpen}
-        currentNotes={manga.notes}
-        onSave={handleNotesSave}
-        isSaving={updateNotesMutation.isPending}
-      />
-
-      {/* Notes Preview Overlay */}
-      <NotesPreviewOverlay notes={manga.notes} visible={notesHovered && hasNotes} />
+      {/* Notes Overlay */}
+      {showNotesOverlay && notesAnchorRect && (
+        <NotesPreviewOverlay notes={entry.notes} anchorRect={notesAnchorRect} />
+      )}
 
       {/* Cover Popup */}
-      {coverPopupOpen && (
+      {showCoverPopup && (
         <CoverHoverPopup
-          manga={manga}
-          onClose={() => setCoverPopupOpen(false)}
-          onMouseEnter={cancelCloseTimer}
-          onMouseLeave={startCloseTimer}
+          entry={entry}
+          onClose={() => setShowCoverPopup(false)}
+          onTitleCycle={handleTitleCycle}
+          titleIndex={titleIndex}
         />
       )}
     </>
   );
-};
-
-export const MangaCard = React.memo(MangaCardComponent);
+}

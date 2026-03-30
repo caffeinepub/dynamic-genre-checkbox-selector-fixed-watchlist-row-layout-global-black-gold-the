@@ -1,18 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useAddMangaEntry } from '../../hooks/useMangaMutations';
-import { useBackendConnectionSingleton } from '../../hooks/useBackendConnectionSingleton';
-import { MangaEntry, ExternalBlob } from '../../backend';
-import { CoverImagesField } from './CoverImagesField';
-import { GenreCheckboxGrid } from './GenreCheckboxGrid';
-import { useLibraryGenres } from '../../hooks/useLibraryGenres';
-import { Loader2, AlertCircle, Plus } from 'lucide-react';
-import { BACKEND_NOT_READY_MESSAGE } from '../../utils/backendNotReadyMessage';
+import { Loader2, Plus, X } from "lucide-react";
+import type React from "react";
+import { useRef, useState } from "react";
+import type { ExternalBlob } from "../../backend";
+import { useLibraryGenres } from "../../hooks/useLibraryGenres";
+import { useAddMangaEntry } from "../../hooks/useMangaMutations";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { CoverImagesField } from "./CoverImagesField";
+import { GenreCheckboxGrid } from "./GenreCheckboxGrid";
 
 interface AddMangaDialogProps {
   open: boolean;
@@ -20,332 +14,422 @@ interface AddMangaDialogProps {
   currentPage: number;
 }
 
-export function AddMangaDialog({ open, onOpenChange, currentPage }: AddMangaDialogProps) {
-  const [title, setTitle] = useState('');
-  const [alternateTitle1, setAlternateTitle1] = useState('');
-  const [alternateTitle2, setAlternateTitle2] = useState('');
+const inputStyle: React.CSSProperties = {
+  backgroundColor: "#0a0a0a",
+  border: "1px solid #d4a017",
+  color: "#d4a017",
+  padding: "6px 10px",
+  fontSize: "13px",
+  outline: "none",
+  borderRadius: "2px",
+  width: "100%",
+};
+
+const labelStyle: React.CSSProperties = {
+  color: "#d4a017",
+  fontSize: "12px",
+  fontFamily: "Cinzel, serif",
+  display: "block",
+  marginBottom: "4px",
+};
+
+export default function AddMangaDialog({
+  open,
+  onOpenChange,
+  currentPage,
+}: AddMangaDialogProps) {
+  const { genres: libraryGenres } = useLibraryGenres();
+  const addEntry = useAddMangaEntry(currentPage);
+
+  const [title, setTitle] = useState("");
+  const [alternateTitles, setAlternateTitles] = useState<string[]>([]);
+  const [altTitleInput, setAltTitleInput] = useState("");
+  const [synopsis, setSynopsis] = useState("");
+  const [chaptersRead, setChaptersRead] = useState("");
+  const [availableChapters, setAvailableChapters] = useState("");
+  const [rating, setRating] = useState("");
+  const [completed, setCompleted] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [coverImages, setCoverImages] = useState<ExternalBlob[]>([]);
-  const [synopsis, setSynopsis] = useState('');
-  const [chaptersRead, setChaptersRead] = useState('0');
-  const [availableChapters, setAvailableChapters] = useState('0');
-  const [status, setStatus] = useState<'incomplete' | 'complete'>('incomplete');
-  const [rating, setRating] = useState('0');
-  const [newGenreInput, setNewGenreInput] = useState('');
-  const [customGenres, setCustomGenres] = useState<string[]>([]);
+  const [newGenreInput, setNewGenreInput] = useState("");
 
-  const { isReady } = useBackendConnectionSingleton();
-  const addMutation = useAddMangaEntry(currentPage);
-  const { genres: libraryGenres } = useLibraryGenres();
+  const scrollBodyRef = useRef<HTMLDivElement>(null);
 
-  // Union of library genres and custom genres (selected genres are a subset)
-  const allAvailableGenres = Array.from(
-    new Set([...libraryGenres, ...customGenres])
-  ).sort((a, b) => a.localeCompare(b));
-
-  // Auto-prune selectedGenres when library genres change
-  useEffect(() => {
-    setSelectedGenres(prev => {
-      const validGenres = prev.filter(g => 
-        libraryGenres.includes(g) || customGenres.includes(g)
-      );
-      if (validGenres.length !== prev.length) {
-        return validGenres;
-      }
-      return prev;
-    });
-  }, [libraryGenres, customGenres]);
-
-  const resetForm = () => {
-    setTitle('');
-    setAlternateTitle1('');
-    setAlternateTitle2('');
-    setSelectedGenres([]);
-    setCoverImages([]);
-    setSynopsis('');
-    setChaptersRead('0');
-    setAvailableChapters('0');
-    setStatus('incomplete');
-    setRating('0');
-    setNewGenreInput('');
-    setCustomGenres([]);
+  const handleAddAltTitle = () => {
+    if (altTitleInput.trim()) {
+      setAlternateTitles((prev) => [...prev, altTitleInput.trim()]);
+      setAltTitleInput("");
+    }
   };
 
-  const handleAddGenre = () => {
-    const trimmed = newGenreInput.trim();
-    if (trimmed && !allAvailableGenres.includes(trimmed)) {
-      setCustomGenres([...customGenres, trimmed]);
-      setSelectedGenres([...selectedGenres, trimmed]);
-      setNewGenreInput('');
-    } else if (trimmed && allAvailableGenres.includes(trimmed)) {
-      // If genre already exists, just select it
-      if (!selectedGenres.includes(trimmed)) {
-        setSelectedGenres([...selectedGenres, trimmed]);
-      }
-      setNewGenreInput('');
+  const handleRemoveAltTitle = (idx: number) => {
+    setAlternateTitles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleGenreToggle = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
+    );
+  };
+
+  const handleAddNewGenre = () => {
+    const g = newGenreInput.trim();
+    if (g && !selectedGenres.includes(g)) {
+      setSelectedGenres((prev) => [...prev, g]);
     }
+    setNewGenreInput("");
+  };
+
+  const handleReset = () => {
+    setTitle("");
+    setAlternateTitles([]);
+    setAltTitleInput("");
+    setSynopsis("");
+    setChaptersRead("");
+    setAvailableChapters("");
+    setRating("");
+    setCompleted(false);
+    setSelectedGenres([]);
+    setCoverImages([]);
+    setNewGenreInput("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) return;
 
-    if (!isReady) {
-      console.error(BACKEND_NOT_READY_MESSAGE);
-      return;
-    }
-
-    const alternateTitles = [alternateTitle1, alternateTitle2]
-      .map(t => t.trim())
-      .filter(t => t.length > 0);
-
-    const newEntry: MangaEntry = {
-      stableId: BigInt(Date.now()),
+    const stableId = BigInt(Date.now());
+    await addEntry.mutateAsync({
+      stableId,
       title: title.trim(),
       alternateTitles,
+      synopsis,
+      chaptersRead: Number.parseFloat(chaptersRead) || 0,
+      availableChapters: Number.parseFloat(availableChapters) || 0,
+      rating: Number.parseFloat(rating) || 0,
+      completed,
       genres: selectedGenres,
       coverImages,
-      synopsis: synopsis.trim(),
-      chaptersRead: parseFloat(chaptersRead),
-      availableChapters: parseFloat(availableChapters),
-      notes: '',
+      notes: "",
       bookmarks: [],
-      rating: parseFloat(rating),
-      completed: status === 'complete',
       isBookmarked: false,
-    };
+    });
 
-    try {
-      await addMutation.mutateAsync(newEntry);
-      resetForm();
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Failed to add manga:', error);
-    }
+    handleReset();
+    onOpenChange(false);
   };
 
-  const handleClose = () => {
-    if (!addMutation.isPending) {
-      resetForm();
-      onOpenChange(false);
-    }
-  };
-
-  const canSubmit = title.trim() && isReady && !addMutation.isPending;
+  const allAvailableGenres = Array.from(
+    new Set([...libraryGenres, ...selectedGenres]),
+  ).sort();
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[90dvh] flex flex-col overflow-hidden p-0 bg-card border-gold">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="sm:max-w-lg flex flex-col"
+        style={{
+          backgroundColor: "#0a0a0a",
+          border: "1px solid #d4a017",
+          color: "#d4a017",
+          maxHeight: "90vh",
+          padding: 0,
+        }}
+      >
         {/* Fixed Header */}
-        <DialogHeader className="px-6 py-4 border-b border-gold shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle className="text-gold">Add New Manga</DialogTitle>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleClose}
-              disabled={addMutation.isPending}
-              className="text-gold"
+        <DialogHeader
+          className="px-4 py-3 flex-shrink-0"
+          style={{ borderBottom: "1px solid #d4a017" }}
+        >
+          <div className="flex items-center justify-between">
+            <DialogTitle
+              className="font-serif text-lg"
+              style={{ color: "#d4a017" }}
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-            >
-              {addMutation.isPending ? (
-                <>
-                  <Loader2 className="h-3 w-3 mr-2 animate-spin text-gold" />
-                  <span className="text-gold">Adding...</span>
-                </>
-              ) : (
-                <span className="text-gold">Add Manga</span>
-              )}
-            </Button>
+              Add Manga Entry
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs px-2 py-1 border font-serif transition-all"
+                style={{
+                  borderColor: "#8a6a10",
+                  color: "#8a6a10",
+                  backgroundColor: "transparent",
+                }}
+              >
+                Reset
+              </button>
+              <button
+                form="add-manga-form"
+                type="submit"
+                disabled={!title.trim() || addEntry.isPending}
+                className="text-xs px-3 py-1 border font-serif transition-all disabled:opacity-50 flex items-center gap-1"
+                style={{
+                  borderColor: "#d4a017",
+                  color: "#d4a017",
+                  backgroundColor: "transparent",
+                }}
+              >
+                {addEntry.isPending ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={12} />
+                    Add
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </DialogHeader>
 
-        {/* Backend not ready warning */}
-        {!isReady && (
-          <div className="px-6 py-2 bg-muted border-b border-gold">
-            <div className="flex items-center gap-2 text-sm text-gold">
-              <AlertCircle className="h-4 w-4" />
-              <span>Backend is connecting. Please wait...</span>
-            </div>
-          </div>
-        )}
-
-        {/* Scrollable Body - deterministic scroll region with overscroll containment */}
-        <div 
-          className="flex-1 min-h-0 add-manga-dialog-scroll-body px-6"
-          style={{ 
-            maxHeight: '400px',
-            overflowY: 'scroll',
-            overscrollBehavior: 'contain'
-          }}
+        {/* Scrollable Body */}
+        <div
+          ref={scrollBodyRef}
+          className="scroll-body overflow-y-auto flex-1"
+          style={{ maxHeight: "400px", overscrollBehavior: "contain" }}
         >
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-gold">Title *</Label>
-              <Input
-                id="title"
+          <form
+            id="add-manga-form"
+            onSubmit={handleSubmit}
+            className="p-4 space-y-4"
+          >
+            {/* Title */}
+            <div>
+              <label htmlFor="add-title" style={labelStyle}>
+                Title *
+              </label>
+              <input
+                id="add-title"
+                type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter manga title"
+                placeholder="Manga title..."
+                style={inputStyle}
                 required
-                disabled={addMutation.isPending || !isReady}
-                className="border-gold text-gold placeholder:text-gold/50"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="alternate-title-1" className="text-gold">Alternate Title 1</Label>
-                <Input
-                  id="alternate-title-1"
-                  value={alternateTitle1}
-                  onChange={(e) => setAlternateTitle1(e.target.value)}
-                  placeholder="Optional"
-                  disabled={addMutation.isPending || !isReady}
-                  className="border-gold text-gold placeholder:text-gold/50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="alternate-title-2" className="text-gold">Alternate Title 2</Label>
-                <Input
-                  id="alternate-title-2"
-                  value={alternateTitle2}
-                  onChange={(e) => setAlternateTitle2(e.target.value)}
-                  placeholder="Optional"
-                  disabled={addMutation.isPending || !isReady}
-                  className="border-gold text-gold placeholder:text-gold/50"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gold">Genres</Label>
+            {/* Alternate Titles */}
+            <div>
+              <label htmlFor="add-alt-title" style={labelStyle}>
+                Alternate Titles
+              </label>
               <div className="flex gap-2 mb-2">
-                <Input
-                  value={newGenreInput}
-                  onChange={(e) => setNewGenreInput(e.target.value)}
-                  placeholder="Add new genre"
-                  disabled={addMutation.isPending || !isReady}
+                <input
+                  id="add-alt-title"
+                  type="text"
+                  value={altTitleInput}
+                  onChange={(e) => setAltTitleInput(e.target.value)}
+                  placeholder="Add alternate title..."
+                  style={{ ...inputStyle, flex: 1 }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      handleAddGenre();
+                      handleAddAltTitle();
                     }
                   }}
-                  className="border-gold text-gold placeholder:text-gold/50"
                 />
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  onClick={handleAddGenre}
-                  disabled={!newGenreInput.trim() || addMutation.isPending || !isReady}
+                  onClick={handleAddAltTitle}
+                  className="px-2 py-1 border text-xs font-serif"
+                  style={{
+                    borderColor: "#d4a017",
+                    color: "#d4a017",
+                    backgroundColor: "transparent",
+                  }}
                 >
-                  <Plus className="h-4 w-4 text-gold" />
-                </Button>
+                  Add
+                </button>
               </div>
-              <GenreCheckboxGrid
-                genres={allAvailableGenres}
-                selectedGenres={selectedGenres}
-                onGenreToggle={(genre) => {
-                  if (selectedGenres.includes(genre)) {
-                    setSelectedGenres(selectedGenres.filter(g => g !== genre));
-                  } else {
-                    setSelectedGenres([...selectedGenres, genre]);
-                  }
-                }}
-                disabled={addMutation.isPending || !isReady}
+              {alternateTitles.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {alternateTitles.map((t, i) => {
+                    const altKey = `${t}-${i}`;
+                    return (
+                      <span
+                        key={altKey}
+                        className="flex items-center gap-1 text-xs px-2 py-0.5"
+                        style={{
+                          border: "1px solid #8a6a10",
+                          color: "#8a6a10",
+                        }}
+                      >
+                        {t}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAltTitle(i)}
+                          style={{
+                            color: "#8a6a10",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Synopsis */}
+            <div>
+              <label htmlFor="add-synopsis" style={labelStyle}>
+                Synopsis
+              </label>
+              <textarea
+                id="add-synopsis"
+                value={synopsis}
+                onChange={(e) => setSynopsis(e.target.value)}
+                placeholder="Brief description..."
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical" }}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gold">Cover Images</Label>
+            {/* Chapters */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="add-chapters-read" style={labelStyle}>
+                  Chapters Read
+                </label>
+                <input
+                  id="add-chapters-read"
+                  type="number"
+                  value={chaptersRead}
+                  onChange={(e) => setChaptersRead(e.target.value)}
+                  placeholder="0"
+                  style={inputStyle}
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label htmlFor="add-total-chapters" style={labelStyle}>
+                  Total Chapters
+                </label>
+                <input
+                  id="add-total-chapters"
+                  type="number"
+                  value={availableChapters}
+                  onChange={(e) => setAvailableChapters(e.target.value)}
+                  placeholder="0"
+                  style={inputStyle}
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div>
+              <label htmlFor="add-rating" style={labelStyle}>
+                Rating (0–10)
+              </label>
+              <input
+                id="add-rating"
+                type="number"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                placeholder="0.0"
+                style={inputStyle}
+                min="0"
+                max="10"
+                step="0.1"
+              />
+            </div>
+
+            {/* Completed */}
+            <div className="flex items-center gap-3">
+              <span style={labelStyle}>Status:</span>
+              <label
+                htmlFor="add-completed"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  id="add-completed"
+                  type="checkbox"
+                  checked={completed}
+                  onChange={(e) => setCompleted(e.target.checked)}
+                  style={{ accentColor: "#d4a017" }}
+                />
+                <span
+                  className="text-xs font-serif"
+                  style={{ color: "#d4a017" }}
+                >
+                  Completed
+                </span>
+              </label>
+            </div>
+
+            {/* Genres */}
+            <div>
+              <label htmlFor="add-new-genre" style={labelStyle}>
+                Genres
+              </label>
+              {allAvailableGenres.length > 0 && (
+                <div className="mb-2">
+                  <GenreCheckboxGrid
+                    genres={allAvailableGenres}
+                    selectedGenres={selectedGenres}
+                    onGenreToggle={handleGenreToggle}
+                  />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  id="add-new-genre"
+                  type="text"
+                  value={newGenreInput}
+                  onChange={(e) => setNewGenreInput(e.target.value)}
+                  placeholder="Add new genre..."
+                  style={{ ...inputStyle, flex: 1 }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddNewGenre();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddNewGenre}
+                  className="px-2 py-1 border text-xs font-serif"
+                  style={{
+                    borderColor: "#d4a017",
+                    color: "#d4a017",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Cover Images */}
+            <div>
+              <span style={labelStyle}>Cover Images</span>
               <CoverImagesField
                 coverImages={coverImages}
                 onChange={setCoverImages}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="synopsis" className="text-gold">Synopsis</Label>
-              <Textarea
-                id="synopsis"
-                value={synopsis}
-                onChange={(e) => setSynopsis(e.target.value)}
-                placeholder="Enter synopsis"
-                rows={4}
-                disabled={addMutation.isPending || !isReady}
-                className="border-gold text-gold placeholder:text-gold/50"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="chapters-read" className="text-gold">Chapters Read</Label>
-                <Input
-                  id="chapters-read"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={chaptersRead}
-                  onChange={(e) => setChaptersRead(e.target.value)}
-                  disabled={addMutation.isPending || !isReady}
-                  className="border-gold text-gold"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="available-chapters" className="text-gold">Available Chapters</Label>
-                <Input
-                  id="available-chapters"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={availableChapters}
-                  onChange={(e) => setAvailableChapters(e.target.value)}
-                  disabled={addMutation.isPending || !isReady}
-                  className="border-gold text-gold"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-gold">Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(value) => setStatus(value as 'incomplete' | 'complete')}
-                  disabled={addMutation.isPending || !isReady}
-                >
-                  <SelectTrigger id="status" className="border-gold text-gold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="incomplete" className="text-red-500">Incomplete</SelectItem>
-                    <SelectItem value="complete" className="rainbow-text">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rating" className="text-gold">Rating (0-10)</Label>
-                <Input
-                  id="rating"
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
-                  disabled={addMutation.isPending || !isReady}
-                  className="border-gold text-gold"
-                />
-              </div>
-            </div>
+            {addEntry.isError && (
+              <p className="text-sm" style={{ color: "#cc4444" }}>
+                {addEntry.error instanceof Error
+                  ? addEntry.error.message
+                  : "Failed to add entry. Please try again."}
+              </p>
+            )}
           </form>
         </div>
       </DialogContent>

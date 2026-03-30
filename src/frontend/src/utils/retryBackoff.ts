@@ -29,12 +29,15 @@ const DEFAULT_CONFIG: RetryConfig = {
 /**
  * Calculate delay for exponential backoff with jitter
  */
-export function calculateBackoffDelay(attempt: number, config: RetryConfig): number {
+export function calculateBackoffDelay(
+  attempt: number,
+  config: RetryConfig,
+): number {
   const exponentialDelay = Math.min(
-    config.baseDelay * Math.pow(2, attempt),
-    config.maxDelay
+    config.baseDelay * 2 ** attempt,
+    config.maxDelay,
   );
-  
+
   // Add jitter (±25%)
   const jitter = exponentialDelay * 0.25 * (Math.random() * 2 - 1);
   return Math.floor(exponentialDelay + jitter);
@@ -45,7 +48,7 @@ export function calculateBackoffDelay(attempt: number, config: RetryConfig): num
  */
 export async function retryWithBackoff<T>(
   operation: () => Promise<T>,
-  config: Partial<RetryConfig> = {}
+  config: Partial<RetryConfig> = {},
 ): Promise<T> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   let lastError: unknown;
@@ -57,18 +60,18 @@ export async function retryWithBackoff<T>(
       const elapsedTime = Date.now() - startTime;
       if (finalConfig.maxTotalTime && elapsedTime >= finalConfig.maxTotalTime) {
         throw new Error(
-          `Operation exceeded maximum total time of ${finalConfig.maxTotalTime}ms (elapsed: ${elapsedTime}ms)`
+          `Operation exceeded maximum total time of ${finalConfig.maxTotalTime}ms (elapsed: ${elapsedTime}ms)`,
         );
       }
 
       // Execute operation with per-attempt timeout if configured
       let operationPromise = operation();
       if (finalConfig.operationTimeout) {
-        const { withTimeout } = await import('./promiseTimeout');
+        const { withTimeout } = await import("./promiseTimeout");
         operationPromise = withTimeout(
           operationPromise,
           finalConfig.operationTimeout,
-          `Operation attempt ${attempt + 1} timed out after ${finalConfig.operationTimeout}ms`
+          `Operation attempt ${attempt + 1} timed out after ${finalConfig.operationTimeout}ms`,
         );
       }
 
@@ -93,12 +96,12 @@ export async function retryWithBackoff<T>(
         elapsedTime + delay >= finalConfig.maxTotalTime
       ) {
         throw new Error(
-          `Cannot retry: would exceed maximum total time of ${finalConfig.maxTotalTime}ms`
+          `Cannot retry: would exceed maximum total time of ${finalConfig.maxTotalTime}ms`,
         );
       }
 
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -120,7 +123,7 @@ export class RetryManager {
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     if (this.isRetrying) {
-      throw new Error('Retry already in progress');
+      throw new Error("Retry already in progress");
     }
 
     this.isRetrying = true;

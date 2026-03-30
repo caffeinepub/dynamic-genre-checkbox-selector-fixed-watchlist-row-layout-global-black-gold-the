@@ -1,8 +1,13 @@
 // IndexedDB blob cache for cover images keyed by principal + manga stableId + cover URL
 
-import { getFromStore, putToStore, deleteFromStore, getAllKeysFromStore } from './indexedDb';
+import {
+  deleteFromStore,
+  getAllKeysFromStore,
+  getFromStore,
+  putToStore,
+} from "./indexedDb";
 
-const STORE_NAME = 'coverImages';
+const STORE_NAME = "coverImages";
 
 interface CachedCoverImage {
   key: string; // Format: "principal:stableId:urlHash"
@@ -13,11 +18,18 @@ interface CachedCoverImage {
 /**
  * Generate a cache key for a cover image
  */
-function generateCoverKey(principal: string, stableId: bigint, coverUrl: string): string {
+function generateCoverKey(
+  principal: string,
+  stableId: bigint,
+  coverUrl: string,
+): string {
   // Simple hash of the URL to keep key manageable
-  const urlHash = coverUrl.split('').reduce((acc, char) => {
-    return ((acc << 5) - acc) + char.charCodeAt(0);
-  }, 0).toString(36);
+  const urlHash = coverUrl
+    .split("")
+    .reduce((acc, char) => {
+      return (acc << 5) - acc + char.charCodeAt(0);
+    }, 0)
+    .toString(36);
   return `${principal}:${stableId.toString()}:${urlHash}`;
 }
 
@@ -27,14 +39,14 @@ function generateCoverKey(principal: string, stableId: bigint, coverUrl: string)
 export async function getCachedCoverImage(
   principal: string,
   stableId: bigint,
-  coverUrl: string
+  coverUrl: string,
 ): Promise<Blob | null> {
   try {
     const key = generateCoverKey(principal, stableId, coverUrl);
     const cached = await getFromStore<CachedCoverImage>(STORE_NAME, key);
     return cached?.blob || null;
   } catch (error) {
-    console.error('Failed to get cached cover image:', error);
+    console.error("Failed to get cached cover image:", error);
     return null;
   }
 }
@@ -46,7 +58,7 @@ export async function storeCoverImage(
   principal: string,
   stableId: bigint,
   coverUrl: string,
-  blob: Blob
+  blob: Blob,
 ): Promise<void> {
   try {
     const key = generateCoverKey(principal, stableId, coverUrl);
@@ -57,7 +69,7 @@ export async function storeCoverImage(
     };
     await putToStore(STORE_NAME, cacheData);
   } catch (error) {
-    console.error('Failed to store cover image:', error);
+    console.error("Failed to store cover image:", error);
   }
 }
 
@@ -67,7 +79,7 @@ export async function storeCoverImage(
 export async function fetchAndCacheCoverImage(
   principal: string,
   stableId: bigint,
-  coverUrl: string
+  coverUrl: string,
 ): Promise<Blob | null> {
   try {
     const response = await fetch(coverUrl);
@@ -79,7 +91,7 @@ export async function fetchAndCacheCoverImage(
     await storeCoverImage(principal, stableId, coverUrl, blob);
     return blob;
   } catch (error) {
-    console.error('Failed to fetch and cache cover image:', error);
+    console.error("Failed to fetch and cache cover image:", error);
     return null;
   }
 }
@@ -87,14 +99,20 @@ export async function fetchAndCacheCoverImage(
 /**
  * Clear all cover images for a specific principal
  */
-export async function clearCoverImagesForPrincipal(principal: string): Promise<void> {
+export async function clearCoverImagesForPrincipal(
+  principal: string,
+): Promise<void> {
   try {
     const allKeys = await getAllKeysFromStore(STORE_NAME);
     const principalPrefix = `${principal}:`;
-    const keysToDelete = allKeys.filter(key => key.startsWith(principalPrefix));
-    
-    await Promise.all(keysToDelete.map(key => deleteFromStore(STORE_NAME, key)));
+    const keysToDelete = allKeys.filter((key) =>
+      key.startsWith(principalPrefix),
+    );
+
+    await Promise.all(
+      keysToDelete.map((key) => deleteFromStore(STORE_NAME, key)),
+    );
   } catch (error) {
-    console.error('Failed to clear cover images for principal:', error);
+    console.error("Failed to clear cover images for principal:", error);
   }
 }

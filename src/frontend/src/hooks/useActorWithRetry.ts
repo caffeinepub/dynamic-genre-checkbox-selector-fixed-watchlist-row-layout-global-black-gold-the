@@ -1,4 +1,4 @@
-import { useBackendConnectionSingleton } from './useBackendConnectionSingleton';
+import { useBackendConnectionSingleton } from "./useBackendConnectionSingleton";
 
 /**
  * Extended version of useActor that adds connection state tracking and retry functionality.

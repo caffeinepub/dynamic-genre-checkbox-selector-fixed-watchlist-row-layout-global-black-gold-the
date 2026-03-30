@@ -1,6 +1,6 @@
-import { MangaEntry } from '../backend';
+import type { MangaEntry } from "../backend";
 
-const CACHE_KEY = 'mangalist_offline_cache';
+const CACHE_KEY = "mangalist_offline_cache";
 const CACHE_VERSION = 1;
 
 interface CachedData {
@@ -31,29 +31,31 @@ function serializeMangaEntry(entry: MangaEntry): SerializableMangaEntry {
     title: entry.title,
     alternateTitles: entry.alternateTitles,
     genres: entry.genres,
-    coverImageUrls: entry.coverImages.map(img => img.getDirectURL()),
+    coverImageUrls: entry.coverImages.map((img) => img.getDirectURL()),
     synopsis: entry.synopsis,
     chaptersRead: entry.chaptersRead.toString(),
     availableChapters: entry.availableChapters.toString(),
     notes: entry.notes,
-    bookmarks: entry.bookmarks.map(b => b.toString()),
+    bookmarks: entry.bookmarks.map((b) => b.toString()),
     rating: entry.rating,
     completed: entry.completed,
     isBookmarked: entry.isBookmarked,
   };
 }
 
-function deserializeMangaEntry(entry: SerializableMangaEntry): Partial<MangaEntry> {
+function deserializeMangaEntry(
+  entry: SerializableMangaEntry,
+): Partial<MangaEntry> {
   return {
     stableId: BigInt(entry.stableId),
     title: entry.title,
     alternateTitles: entry.alternateTitles,
     genres: entry.genres,
     synopsis: entry.synopsis,
-    chaptersRead: parseFloat(entry.chaptersRead),
-    availableChapters: parseFloat(entry.availableChapters),
+    chaptersRead: Number.parseFloat(entry.chaptersRead),
+    availableChapters: Number.parseFloat(entry.availableChapters),
     notes: entry.notes,
-    bookmarks: entry.bookmarks.map(b => BigInt(b)),
+    bookmarks: entry.bookmarks.map((b) => BigInt(b)),
     rating: entry.rating,
     completed: entry.completed,
     isBookmarked: entry.isBookmarked,
@@ -73,7 +75,7 @@ export function writeMangaCache(entries: MangaEntry[]): void {
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
   } catch (error) {
-    console.error('Failed to write manga cache:', error);
+    console.error("Failed to write manga cache:", error);
   }
 }
 
@@ -90,7 +92,7 @@ export function readMangaCache(): Partial<MangaEntry>[] | null {
 
     return cacheData.entries.map(deserializeMangaEntry);
   } catch (error) {
-    console.error('Failed to read manga cache:', error);
+    console.error("Failed to read manga cache:", error);
     return null;
   }
 }
@@ -99,6 +101,6 @@ export function clearMangaCache(): void {
   try {
     localStorage.removeItem(CACHE_KEY);
   } catch (error) {
-    console.error('Failed to clear manga cache:', error);
+    console.error("Failed to clear manga cache:", error);
   }
 }

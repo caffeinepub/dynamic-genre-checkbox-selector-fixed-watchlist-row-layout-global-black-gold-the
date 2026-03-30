@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 interface AutoScrollTitleProps {
   title: string;
@@ -6,7 +6,11 @@ interface AutoScrollTitleProps {
   onClick?: () => void;
 }
 
-export function AutoScrollTitle({ title, className = '', onClick }: AutoScrollTitleProps) {
+export function AutoScrollTitle({
+  title,
+  className = "",
+  onClick,
+}: AutoScrollTitleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -22,9 +26,9 @@ export function AutoScrollTitle({ title, className = '', onClick }: AutoScrollTi
     };
 
     checkOverflow();
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [title]);
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, []);
 
   const handleMouseEnter = () => {
     setIsPaused(true);
@@ -34,20 +38,30 @@ export function AutoScrollTitle({ title, className = '', onClick }: AutoScrollTi
     setIsPaused(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (onClick && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <div 
+    <div
       ref={containerRef}
-      className={`relative overflow-hidden h-full ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`relative overflow-hidden h-full ${onClick ? "cursor-pointer" : ""} ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
     >
       <div
         ref={contentRef}
-        className={`text-gold font-medium text-sm ${shouldScroll ? 'animate-scroll-vertical-bottom-to-top' : ''} ${isPaused ? 'paused' : ''}`}
+        className={`text-gold font-medium text-sm ${shouldScroll ? "animate-scroll-vertical-bottom-to-top" : ""} ${isPaused ? "paused" : ""}`}
         style={{
-          whiteSpace: 'normal',
-          wordWrap: 'break-word',
+          whiteSpace: "normal",
+          wordWrap: "break-word",
         }}
       >
         {title}

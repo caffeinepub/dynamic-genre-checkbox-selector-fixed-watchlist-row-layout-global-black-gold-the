@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
-import { getCachedCoverImage, fetchAndCacheCoverImage } from '../utils/offlineCoverImageIndexedDbCache';
+import { useEffect, useState } from "react";
+import {
+  fetchAndCacheCoverImage,
+  getCachedCoverImage,
+} from "../utils/offlineCoverImageIndexedDbCache";
 
 /**
  * Hook that returns a cover image URL, preferring cached blob when available
@@ -8,7 +11,7 @@ import { getCachedCoverImage, fetchAndCacheCoverImage } from '../utils/offlineCo
 export function useCachedCoverImageUrl(
   principal: string | undefined,
   stableId: bigint,
-  networkUrl: string
+  networkUrl: string,
 ): string {
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
 
@@ -24,19 +27,25 @@ export function useCachedCoverImageUrl(
     async function loadCachedImage() {
       try {
         // Try to get cached blob
-        const cachedBlob = await getCachedCoverImage(principal!, stableId, networkUrl);
-        
+        const cachedBlob = await getCachedCoverImage(
+          principal!,
+          stableId,
+          networkUrl,
+        );
+
         if (cachedBlob && isMounted) {
           objectUrl = URL.createObjectURL(cachedBlob);
           setCachedUrl(objectUrl);
         } else if (isMounted) {
           // Not cached, fetch and cache in background
-          fetchAndCacheCoverImage(principal!, stableId, networkUrl).catch(err => {
-            console.warn('Background cover fetch failed:', err);
-          });
+          fetchAndCacheCoverImage(principal!, stableId, networkUrl).catch(
+            (err) => {
+              console.warn("Background cover fetch failed:", err);
+            },
+          );
         }
       } catch (error) {
-        console.error('Failed to load cached cover image:', error);
+        console.error("Failed to load cached cover image:", error);
       }
     }
 

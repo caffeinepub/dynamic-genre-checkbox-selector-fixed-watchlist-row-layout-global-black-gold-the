@@ -1,146 +1,143 @@
-import React, { useState, useCallback } from 'react';
-import { MangaEntry } from '../../backend';
-import { MangaCard } from './MangaCard';
-import { EditMangaDialog } from './EditMangaDialog';
-import { Button } from '../ui/button';
-import { Pencil, Trash2, Loader2 } from 'lucide-react';
-import { useDeleteMangaEntry } from '../../hooks/useMangaMutations';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/alert-dialog';
+import { Edit2, FileText, Trash2 } from "lucide-react";
+import React, { useState, useCallback, memo } from "react";
+import type { MangaEntry } from "../../backend";
+import { useDeleteMangaEntry } from "../../hooks/useMangaMutations";
+import EditMangaDialog from "./EditMangaDialog";
+import EditNotesDialog from "./EditNotesDialog";
+import MangaCard from "./MangaCard";
 
 interface MangaRowActionsProps {
-  manga: MangaEntry;
+  entry: MangaEntry;
+  uniformWidth?: number | null;
+  registerRow?: (el: HTMLElement | null) => void;
+  alignment?: "left" | "center";
   currentPage: number;
-  isBackendReady: boolean;
 }
 
-const MangaRowActionsComponent = ({ manga, currentPage, isBackendReady }: MangaRowActionsProps) => {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
-  const deleteMutation = useDeleteMangaEntry(currentPage);
+const MangaRowActions = memo(function MangaRowActions({
+  entry,
+  uniformWidth,
+  registerRow,
+  alignment = "left",
+  currentPage,
+}: MangaRowActionsProps) {
+  const [editOpen, setEditOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const deleteEntry = useDeleteMangaEntry(currentPage);
 
-  const handleDelete = useCallback(async () => {
-    if (!isBackendReady) return;
-    
-    try {
-      await deleteMutation.mutateAsync(manga.stableId);
-      setIsDeleteDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to delete manga:', error);
+  const handleDelete = useCallback(() => {
+    if (window.confirm(`Delete "${entry.title}"?`)) {
+      deleteEntry.mutate(entry.stableId);
     }
-  }, [isBackendReady, deleteMutation, manga.stableId]);
+  }, [deleteEntry, entry.stableId, entry.title]);
 
-  const handleEditClick = useCallback(() => {
-    if (!isBackendReady) return;
-    setIsEditDialogOpen(true);
-  }, [isBackendReady]);
-
-  const handleDeleteClick = useCallback(() => {
-    if (!isBackendReady) return;
-    setIsDeleteDialogOpen(true);
-  }, [isBackendReady]);
+  const handleEditOpen = useCallback(() => setEditOpen(true), []);
+  const handleEditClose = useCallback((open: boolean) => setEditOpen(open), []);
+  const handleNotesOpen = useCallback(() => setNotesOpen(true), []);
+  const handleNotesClose = useCallback(
+    (open: boolean) => setNotesOpen(open),
+    [],
+  );
 
   return (
-    <>
-      <div className="flex items-center gap-3 w-full">
-        <div className="flex-1 min-w-0">
-          <MangaCard manga={manga} />
-        </div>
-        
-        <div className="flex gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleEditClick}
-            disabled={!isBackendReady}
-            title="Edit manga"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
-            onClick={handleDeleteClick}
-            disabled={!isBackendReady || deleteMutation.isPending}
-            title="Delete manga"
-          >
-            {deleteMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+    <div
+      ref={registerRow}
+      className="flex items-stretch w-full"
+      style={{
+        justifyContent: alignment === "center" ? "center" : "flex-start",
+      }}
+    >
+      {/* Card */}
+      <div className="flex-1 min-w-0">
+        <MangaCard entry={entry} width={uniformWidth ?? undefined} />
       </div>
 
-      {/* Only mount EditMangaDialog when open */}
-      {isEditDialogOpen && (
+      {/* Action Buttons */}
+      <div
+        className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-1"
+        style={{ backgroundColor: "#000000" }}
+      >
+        <button
+          type="button"
+          onClick={handleEditOpen}
+          className="p-1.5 transition-colors"
+          style={{
+            color: "#8a6a10",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+          title="Edit entry"
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#d4a017";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#8a6a10";
+          }}
+        >
+          <Edit2 size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={handleNotesOpen}
+          className="p-1.5 transition-colors"
+          style={{
+            color: "#8a6a10",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+          title="Edit notes"
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#d4a017";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#8a6a10";
+          }}
+        >
+          <FileText size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleteEntry.isPending}
+          className="p-1.5 transition-colors disabled:opacity-50"
+          style={{
+            color: "#8a6a10",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+          title="Delete entry"
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#cc3333";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#8a6a10";
+          }}
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
+      {/* Dialogs */}
+      {editOpen && (
         <EditMangaDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          manga={manga}
+          entry={entry}
+          open={editOpen}
+          onOpenChange={handleEditClose}
           currentPage={currentPage}
         />
       )}
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Manga</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{manga.title}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-};
-
-// Memoize to avoid re-rendering unaffected rows
-export const MangaRowActions = React.memo(MangaRowActionsComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.manga.stableId === nextProps.manga.stableId &&
-    prevProps.currentPage === nextProps.currentPage &&
-    prevProps.isBackendReady === nextProps.isBackendReady &&
-    // Deep comparison of manga object for changes
-    prevProps.manga.title === nextProps.manga.title &&
-    prevProps.manga.rating === nextProps.manga.rating &&
-    prevProps.manga.completed === nextProps.manga.completed &&
-    prevProps.manga.isBookmarked === nextProps.manga.isBookmarked &&
-    prevProps.manga.notes === nextProps.manga.notes &&
-    prevProps.manga.genres.length === nextProps.manga.genres.length &&
-    prevProps.manga.alternateTitles.length === nextProps.manga.alternateTitles.length
+      {notesOpen && (
+        <EditNotesDialog
+          entry={entry}
+          open={notesOpen}
+          onOpenChange={handleNotesClose}
+        />
+      )}
+    </div>
   );
 });
 
-MangaRowActions.displayName = 'MangaRowActions';
+export default MangaRowActions;

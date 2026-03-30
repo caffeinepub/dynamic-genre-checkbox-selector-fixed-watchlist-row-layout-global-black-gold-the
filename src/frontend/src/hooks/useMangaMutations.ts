@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useBackendConnectionSingleton } from './useBackendConnectionSingleton';
-import { useInternetIdentity } from './useInternetIdentity';
-import { MangaEntry, UpdateFields } from '../backend';
-import { classifyError } from '../utils/backendErrorClassification';
-import { assertBackendReady } from '../utils/backendNotReadyMessage';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { MangaEntry, UpdateFields } from "../backend";
+import { classifyError } from "../utils/backendErrorClassification";
+import { assertBackendReady } from "../utils/backendNotReadyMessage";
+import { useBackendConnectionSingleton } from "./useBackendConnectionSingleton";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useAddMangaEntry(currentPage: number) {
   const { actor, isReady } = useBackendConnectionSingleton();
@@ -13,16 +13,16 @@ export function useAddMangaEntry(currentPage: number) {
   return useMutation({
     mutationFn: async (manga: MangaEntry) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.addEntry(manga);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mangaPage', currentPage] });
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["mangaPage", currentPage] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Add manga error:', {
+      console.error("Add manga error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -37,18 +37,21 @@ export function useUpdateMangaEntry(currentPage: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, updates }: { stableId: bigint; updates: UpdateFields }) => {
+    mutationFn: async ({
+      stableId,
+      updates,
+    }: { stableId: bigint; updates: UpdateFields }) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.updateEntry(stableId, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mangaPage', currentPage] });
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["mangaPage", currentPage] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Update manga error:', {
+      console.error("Update manga error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -63,17 +66,20 @@ export function useUpdateMangaRating() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, rating }: { stableId: bigint; rating: number }) => {
+    mutationFn: async ({
+      stableId,
+      rating,
+    }: { stableId: bigint; rating: number }) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.updateRating(stableId, rating);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Update rating error:', {
+      console.error("Update rating error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -90,15 +96,15 @@ export function useToggleBookmark() {
   return useMutation({
     mutationFn: async (stableId: bigint) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.toggleBookmark(stableId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Toggle bookmark error:', {
+      console.error("Toggle bookmark error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -113,17 +119,20 @@ export function useUpdateNotes() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, notes }: { stableId: bigint; notes: string }) => {
+    mutationFn: async ({
+      stableId,
+      notes,
+    }: { stableId: bigint; notes: string }) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.updateNotes(stableId, notes);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Update notes error:', {
+      console.error("Update notes error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -138,17 +147,20 @@ export function useUpdateCompletionStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, completed }: { stableId: bigint; completed: boolean }) => {
+    mutationFn: async ({
+      stableId,
+      completed,
+    }: { stableId: bigint; completed: boolean }) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.updateCompletionStatus(stableId, completed);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Update completion status error:', {
+      console.error("Update completion status error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -163,9 +175,17 @@ export function useUpdateChapterProgress() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stableId, chaptersRead, availableChapters }: { stableId: bigint; chaptersRead: number; availableChapters: number }) => {
+    mutationFn: async ({
+      stableId,
+      chaptersRead,
+      availableChapters,
+    }: {
+      stableId: bigint;
+      chaptersRead: number;
+      availableChapters: number;
+    }) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.updateEntry(stableId, {
         stableId,
         chaptersRead,
@@ -173,11 +193,11 @@ export function useUpdateChapterProgress() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Update chapter progress error:', {
+      console.error("Update chapter progress error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,
@@ -194,16 +214,16 @@ export function useDeleteMangaEntry(currentPage: number) {
   return useMutation({
     mutationFn: async (stableId: bigint) => {
       assertBackendReady(isReady, actor);
-      if (!identity) throw new Error('Not authenticated');
+      if (!identity) throw new Error("Not authenticated");
       return actor!.deleteEntry(stableId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mangaPage', currentPage] });
-      queryClient.invalidateQueries({ queryKey: ['allMangaEntries'] });
+      queryClient.invalidateQueries({ queryKey: ["mangaPage", currentPage] });
+      queryClient.invalidateQueries({ queryKey: ["allMangaEntries"] });
     },
     onError: (error) => {
       const classified = classifyError(error);
-      console.error('Delete manga error:', {
+      console.error("Delete manga error:", {
         category: classified.category,
         message: classified.message,
         userMessage: classified.userMessage,

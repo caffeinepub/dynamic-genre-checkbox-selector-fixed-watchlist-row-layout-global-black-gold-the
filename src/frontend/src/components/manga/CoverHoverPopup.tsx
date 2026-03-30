@@ -1,159 +1,213 @@
-import { useState, useEffect, useRef } from 'react';
-import { MangaEntry } from '../../backend';
-import { usePersistentPopupPosition } from '../../hooks/usePersistentPopupPosition';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { ChevronRight } from 'lucide-react';
-import { Button } from '../ui/button';
-import { useCachedCoverImageUrl } from '../../hooks/useCachedCoverImageUrl';
+import { ChevronRight, X } from "lucide-react";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import type { MangaEntry } from "../../backend";
+import { useCachedCoverImageUrl } from "../../hooks/useCachedCoverImageUrl";
+import { useInternetIdentity } from "../../hooks/useInternetIdentity";
+import { AutoScrollTitle } from "./AutoScrollTitle";
 
 interface CoverHoverPopupProps {
-  manga: MangaEntry;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  entry: MangaEntry;
   onClose: () => void;
+  onTitleCycle?: () => void;
+  titleIndex?: number;
 }
 
-export function CoverHoverPopup({ manga, onMouseEnter, onMouseLeave, onClose }: CoverHoverPopupProps) {
+export default function CoverHoverPopup({
+  entry,
+  onClose,
+  onTitleCycle,
+  titleIndex = 0,
+}: CoverHoverPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null);
-  const [titleIndex, setTitleIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 100, y: 100 });
+  const [dragging, setDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   const { identity } = useInternetIdentity();
-
-  const allTitles = [manga.title, ...manga.alternateTitles];
-  const hasAlternateTitles = manga.alternateTitles.length > 0;
-  const currentTitle = allTitles[titleIndex];
-
-  const networkCoverUrl = manga.coverImages.length > 0 
-    ? manga.coverImages[0].getDirectURL() 
-    : '/assets/generated/cover-placeholder.dim_600x900.png';
-
   const principal = identity?.getPrincipal().toString();
-  const coverUrl = useCachedCoverImageUrl(principal, manga.stableId, networkCoverUrl);
 
-  const { position, updatePosition } = usePersistentPopupPosition(popupRef);
+  const networkCoverUrl =
+    entry.coverImages && entry.coverImages.length > 0
+      ? entry.coverImages[0].getDirectURL()
+      : "/assets/generated/cover-placeholder.dim_600x900.png";
 
-  const cycleTitle = () => {
-    setTitleIndex((prev) => (prev + 1) % allTitles.length);
-  };
+  // useCachedCoverImageUrl requires (principal, stableId, networkUrl)
+  const cachedUrl = useCachedCoverImageUrl(
+    principal,
+    entry.stableId,
+    networkCoverUrl,
+  );
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (popupRef.current && e.target === popupRef.current) {
-      setIsDragging(true);
-      setDragOffset({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      });
-    }
-  };
+  const allTitles = [entry.title, ...entry.alternateTitles].filter(Boolean);
+  const currentTitle = allTitles[titleIndex] ?? entry.title;
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging && popupRef.current) {
-      const newX = e.clientX - dragOffset.x;
-      const newY = e.clientY - dragOffset.y;
-      updatePosition(newX, newY);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleClickOutside = (e: MouseEvent) => {
-    if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
-
+  // Center on mount
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, dragOffset]);
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    setPosition({
+      x: Math.max(0, (vw - 320) / 2),
+      y: Math.max(0, (vh - 480) / 2),
+    });
   }, []);
 
-  return (
+  // Click outside to close
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose]);
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if ((e.target as HTMLElement).closest("button")) return;
+      setDragging(true);
+      dragOffset.current = {
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      };
+      e.preventDefault();
+    },
+    [position],
+  );
+
+  useEffect(() => {
+    if (!dragging) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({
+        x: Math.max(
+          0,
+          Math.min(window.innerWidth - 320, e.clientX - dragOffset.current.x),
+        ),
+        y: Math.max(
+          0,
+          Math.min(window.innerHeight - 100, e.clientY - dragOffset.current.y),
+        ),
+      });
+    };
+    const handleMouseUp = () => setDragging(false);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging]);
+
+  return createPortal(
     <div
       ref={popupRef}
-      className="fixed z-50 bg-black border-2 border-gold rounded-lg shadow-gold-glow p-4 cursor-move"
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        maxWidth: '350px',
-        width: 'max-content',
+        position: "fixed",
+        left: position.x,
+        top: position.y,
+        zIndex: 10000,
+        width: "320px",
+        backgroundColor: "#0a0a0a",
+        border: "1px solid #d4a017",
+        boxShadow: "0 8px 32px rgba(212,160,23,0.3)",
+        cursor: dragging ? "grabbing" : "grab",
+        userSelect: "none",
       }}
       onMouseDown={handleMouseDown}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
-      <div className="flex flex-col gap-4" style={{ maxWidth: '318px' }}>
-        {/* Cover Image */}
-        <div className="flex items-center justify-center pointer-events-none">
-          <img
-            src={coverUrl}
-            alt={manga.title}
-            className="object-contain"
-            style={{
-              maxWidth: '100%',
-              maxHeight: '500px',
-              height: 'auto',
-              width: 'auto',
-            }}
-          />
-        </div>
-
-        {/* Title Area with Cycle Button - Scrollable */}
-        <div className="relative">
-          <div 
-            className="text-gold font-semibold text-base overflow-y-auto pr-8 pointer-events-auto"
-            style={{
-              maxHeight: '3em',
-              lineHeight: '1.5em',
-              wordBreak: 'break-word',
-            }}
-          >
-            {currentTitle}
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-3 py-2"
+        style={{ borderBottom: "1px solid #8a6a10" }}
+      >
+        <div className="flex-1 min-w-0 flex items-center gap-1">
+          <div className="flex-1 min-w-0">
+            <AutoScrollTitle
+              title={currentTitle}
+              className="text-sm font-serif"
+            />
           </div>
-          {hasAlternateTitles && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute top-0 right-0 h-6 w-6 p-0 pointer-events-auto hover:bg-gold/10 z-20"
-              style={{ transform: 'translateY(-25px)' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                cycleTitle();
+          {allTitles.length > 1 && onTitleCycle && (
+            <button
+              type="button"
+              onClick={onTitleCycle}
+              className="flex-shrink-0 p-0.5"
+              style={{
+                color: "#8a6a10",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                transform: "translateY(-25px)",
+                zIndex: 1,
               }}
+              title="Cycle title"
             >
-              <ChevronRight className="h-4 w-4 text-green-500" />
-            </Button>
+              <ChevronRight size={14} />
+            </button>
           )}
         </div>
-
-        {/* Synopsis Box - Scrollable */}
-        <div 
-          className="text-sm text-gold/90 overflow-y-auto pointer-events-auto"
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-shrink-0 p-1 ml-2"
           style={{
-            width: '100%',
-            maxWidth: '318px',
-            height: '200px',
+            color: "#8a6a10",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
         >
-          {manga.synopsis || 'No synopsis available.'}
-        </div>
+          <X size={14} />
+        </button>
       </div>
-    </div>
+
+      {/* Cover Image */}
+      <div style={{ height: "280px", overflow: "hidden" }}>
+        <img
+          src={cachedUrl}
+          alt={entry.title}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          draggable={false}
+        />
+      </div>
+
+      {/* Synopsis */}
+      {entry.synopsis && (
+        <div
+          className="px-3 py-2 overflow-y-auto"
+          style={{ maxHeight: "120px", borderTop: "1px solid #8a6a10" }}
+        >
+          <p className="text-xs leading-relaxed" style={{ color: "#8a6a10" }}>
+            {entry.synopsis}
+          </p>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div
+        className="px-3 py-2 flex items-center gap-4 text-xs font-serif"
+        style={{ borderTop: "1px solid #8a6a10", color: "#8a6a10" }}
+      >
+        <span>
+          Rating:{" "}
+          <span style={{ color: "#d4a017" }}>
+            {entry.rating > 0 ? entry.rating.toFixed(1) : "—"}
+          </span>
+        </span>
+        <span>
+          Ch:{" "}
+          <span style={{ color: "#d4a017" }}>
+            {entry.chaptersRead}
+            {entry.availableChapters > 0 && `/${entry.availableChapters}`}
+          </span>
+        </span>
+        <span style={{ color: entry.completed ? "#d4a017" : "#cc3333" }}>
+          {entry.completed ? "Complete" : "Incomplete"}
+        </span>
+      </div>
+    </div>,
+    document.body,
   );
 }

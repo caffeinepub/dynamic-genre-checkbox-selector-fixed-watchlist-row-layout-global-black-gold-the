@@ -1,6 +1,6 @@
 // IndexedDB helper utilities for per-principal caching
 
-const DB_NAME = 'MangaWatchlistDB';
+const DB_NAME = "MangaWatchlistDB";
 const DB_VERSION = 1;
 
 export interface IndexedDBConfig {
@@ -11,7 +11,7 @@ export interface IndexedDBConfig {
 /**
  * Opens an IndexedDB database with the specified store configuration
  */
-export async function openDB(config: IndexedDBConfig): Promise<IDBDatabase> {
+export async function openDB(_config: IndexedDBConfig): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -20,13 +20,13 @@ export async function openDB(config: IndexedDBConfig): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      
+
       // Create object stores if they don't exist
-      if (!db.objectStoreNames.contains('mangaMetadata')) {
-        db.createObjectStore('mangaMetadata', { keyPath: 'principal' });
+      if (!db.objectStoreNames.contains("mangaMetadata")) {
+        db.createObjectStore("mangaMetadata", { keyPath: "principal" });
       }
-      if (!db.objectStoreNames.contains('coverImages')) {
-        db.createObjectStore('coverImages', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains("coverImages")) {
+        db.createObjectStore("coverImages", { keyPath: "key" });
       }
     };
   });
@@ -37,12 +37,12 @@ export async function openDB(config: IndexedDBConfig): Promise<IDBDatabase> {
  */
 export async function getFromStore<T>(
   storeName: string,
-  key: string
+  key: string,
 ): Promise<T | null> {
   try {
     const db = await openDB({ storeName });
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, 'readonly');
+      const transaction = db.transaction(storeName, "readonly");
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
@@ -60,12 +60,12 @@ export async function getFromStore<T>(
  */
 export async function putToStore<T>(
   storeName: string,
-  value: T
+  value: T,
 ): Promise<void> {
   try {
     const db = await openDB({ storeName });
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, 'readwrite');
+      const transaction = db.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.put(value);
 
@@ -83,12 +83,12 @@ export async function putToStore<T>(
  */
 export async function deleteFromStore(
   storeName: string,
-  key: string
+  key: string,
 ): Promise<void> {
   try {
     const db = await openDB({ storeName });
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, 'readwrite');
+      const transaction = db.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.delete(key);
 
@@ -104,11 +104,13 @@ export async function deleteFromStore(
 /**
  * Get all keys from a store
  */
-export async function getAllKeysFromStore(storeName: string): Promise<string[]> {
+export async function getAllKeysFromStore(
+  storeName: string,
+): Promise<string[]> {
   try {
     const db = await openDB({ storeName });
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, 'readonly');
+      const transaction = db.transaction(storeName, "readonly");
       const store = transaction.objectStore(storeName);
       const request = store.getAllKeys();
 

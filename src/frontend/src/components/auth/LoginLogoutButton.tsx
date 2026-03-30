@@ -1,39 +1,38 @@
-import React from 'react';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '../ui/button';
-import { clearMangaCache } from '../../utils/offlineMangaCache';
-import { clearCoverImagesForPrincipal } from '../../utils/offlineCoverImageIndexedDbCache';
-import { clearServiceWorkerCache } from '../../sw/registerServiceWorker';
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, LogIn, LogOut } from "lucide-react";
+import React from "react";
+import { useInternetIdentity } from "../../hooks/useInternetIdentity";
+import { clearServiceWorkerCache } from "../../sw/registerServiceWorker";
+import { clearCoverImagesForPrincipal } from "../../utils/offlineCoverImageIndexedDbCache";
+import { clearMangaIndexedDbCache } from "../../utils/offlineMangaIndexedDbCache";
 
 export default function LoginLogoutButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-
   const isAuthenticated = !!identity;
-  const disabled = loginStatus === 'logging-in';
-  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
+  const isLoggingIn = loginStatus === "logging-in";
 
   const handleAuth = async () => {
     if (isAuthenticated) {
-      const principal = identity?.getPrincipal().toString();
-      
-      await clear();
-      queryClient.clear();
-      
-      clearMangaCache();
-      
-      if (principal) {
-        await clearCoverImagesForPrincipal(principal);
+      // Clear all caches on logout
+      try {
+        const principal = identity?.getPrincipal().toString();
+        if (principal) {
+          await clearMangaIndexedDbCache(principal);
+          await clearCoverImagesForPrincipal(principal);
+        }
+        await clearServiceWorkerCache();
+      } catch {
+        // Ignore cache clearing errors
       }
-      
-      await clearServiceWorkerCache();
+      queryClient.clear();
+      await clear();
     } else {
       try {
         await login();
-      } catch (error: any) {
-        console.error('Login error:', error);
-        if (error.message === 'User is already authenticated') {
+      } catch (error: unknown) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        if (errMsg === "User is already authenticated") {
           await clear();
           setTimeout(() => login(), 300);
         }
@@ -42,13 +41,44 @@ export default function LoginLogoutButton() {
   };
 
   return (
-    <Button
+    <button
+      type="button"
       onClick={handleAuth}
-      disabled={disabled}
-      variant={isAuthenticated ? 'outline' : 'default'}
-      className="text-gold"
+      disabled={isLoggingIn}
+      className="flex items-center gap-2 px-4 py-1.5 text-sm font-serif border transition-all duration-200 disabled:opacity-50"
+      style={{
+        borderColor: "#d4a017",
+        color: "#d4a017",
+        backgroundColor: "transparent",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+          "rgba(212,160,23,0.1)";
+        (e.currentTarget as HTMLButtonElement).style.boxShadow =
+          "0 0 8px rgba(212,160,23,0.4)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+          "transparent";
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+      }}
     >
-      {text}
-    </Button>
+      {isLoggingIn ? (
+        <>
+          <Loader2 size={14} className="animate-spin" />
+          <span>Logging in...</span>
+        </>
+      ) : isAuthenticated ? (
+        <>
+          <LogOut size={14} />
+          <span>Logout</span>
+        </>
+      ) : (
+        <>
+          <LogIn size={14} />
+          <span>Login</span>
+        </>
+      )}
+    </button>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseUniformWatchlistRowWidthReturn {
   uniformWidth: number | null;
@@ -6,7 +6,7 @@ interface UseUniformWatchlistRowWidthReturn {
 }
 
 export function useUniformWatchlistRowWidth(
-  dependencies: any[] = []
+  dependencies: any[] = [],
 ): UseUniformWatchlistRowWidthReturn {
   const [uniformWidth, setUniformWidth] = useState<number | null>(null);
   const rowElementsRef = useRef<Set<HTMLElement>>(new Set());
@@ -24,11 +24,11 @@ export function useUniformWatchlistRowWidth(
   const measureWidths = useCallback(() => {
     // Clean up stale elements
     const connectedElements = new Set<HTMLElement>();
-    rowElementsRef.current.forEach((element) => {
-      if (element && element.isConnected) {
+    for (const element of rowElementsRef.current) {
+      if (element?.isConnected) {
         connectedElements.add(element);
       }
-    });
+    }
     rowElementsRef.current = connectedElements;
 
     if (rowElementsRef.current.size === 0) {
@@ -37,7 +37,7 @@ export function useUniformWatchlistRowWidth(
     }
 
     let maxWidth = 0;
-    rowElementsRef.current.forEach((element) => {
+    for (const element of rowElementsRef.current) {
       const firstChild = element.firstElementChild as HTMLElement;
       if (firstChild) {
         const width = firstChild.scrollWidth;
@@ -45,8 +45,8 @@ export function useUniformWatchlistRowWidth(
           maxWidth = width;
         }
       }
-    });
-    
+    }
+
     if (maxWidth > 0) {
       setUniformWidth(maxWidth);
     }
@@ -84,49 +84,49 @@ export function useUniformWatchlistRowWidth(
     resizeObserverRef.current = resizeObserver;
 
     // Observe all row elements and their children
-    rowElementsRef.current.forEach((element) => {
-      if (element && element.isConnected) {
+    for (const element of rowElementsRef.current) {
+      if (element?.isConnected) {
         const firstChild = element.firstElementChild as HTMLElement;
         if (firstChild) {
           resizeObserver.observe(firstChild);
         }
       }
-    });
+    }
 
     // Listen for image load events to re-measure when covers finish loading
     const handleImageLoad = () => {
       scheduleMeasure();
     };
 
-    rowElementsRef.current.forEach((element) => {
-      const images = element.querySelectorAll('img');
-      images.forEach((img) => {
+    for (const element of rowElementsRef.current) {
+      const images = element.querySelectorAll("img");
+      for (const img of images) {
         if (!img.complete) {
-          img.addEventListener('load', handleImageLoad, { once: true });
+          img.addEventListener("load", handleImageLoad, { once: true });
         }
-      });
-    });
+      }
+    }
 
     // Listen for window resize
     const handleResize = () => {
       scheduleMeasure();
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       if (measureTimeoutRef.current) {
         clearTimeout(measureTimeoutRef.current);
       }
       resizeObserver.disconnect();
-      window.removeEventListener('resize', handleResize);
-      
+      window.removeEventListener("resize", handleResize);
+
       // Clean up image listeners
-      rowElementsRef.current.forEach((element) => {
-        const images = element.querySelectorAll('img');
-        images.forEach((img) => {
-          img.removeEventListener('load', handleImageLoad);
-        });
-      });
+      for (const element of rowElementsRef.current) {
+        const images = element.querySelectorAll("img");
+        for (const img of images) {
+          img.removeEventListener("load", handleImageLoad);
+        }
+      }
     };
   }, [scheduleMeasure]);
 
